@@ -1,23 +1,24 @@
 import { createClient } from '@/lib/supabase/server';
 import { Header } from '@/components/Header';
 import Link from 'next/link';
-import { Plus, Layers, Calendar, MapPin, Video, Users, Edit, Trash2 } from 'lucide-react';
+import { Plus, Layers, Video, Users, Edit, Calendar } from 'lucide-react';
+
+interface LinkedEvent {
+  id: string;
+  title: string;
+  event_date: string;
+}
 
 interface Collection {
   id: string;
   title: string;
   description: string | null;
   thumbnail_url: string | null;
-  collection_type: 'event' | 'certification' | 'custom';
-  event_date: string | null;
-  event_location: string | null;
   is_published: boolean;
-  access_starts_at: string | null;
-  access_ends_at: string | null;
-  sort_order: number;
   created_at: string;
   video_count: number;
   access_count: number;
+  linked_events: LinkedEvent[];
 }
 
 async function getCollections(): Promise<Collection[]> {
@@ -28,9 +29,10 @@ async function getCollections(): Promise<Collection[]> {
     .select(`
       *,
       collection_videos (id),
-      collection_access (id)
+      collection_access (id),
+      events (id, title, event_date)
     `)
-    .order('sort_order');
+    .order('created_at', { ascending: false });
 
   if (error) {
     console.error('Error fetching collections:', error);
@@ -41,34 +43,8 @@ async function getCollections(): Promise<Collection[]> {
     ...collection,
     video_count: collection.collection_videos?.length || 0,
     access_count: collection.collection_access?.length || 0,
+    linked_events: collection.events || [],
   }));
-}
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '-';
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
-function CollectionTypeLabel({ type }: { type: string }) {
-  const styles = {
-    event: 'bg-purple-100 text-purple-800',
-    certification: 'bg-blue-100 text-blue-800',
-    custom: 'bg-gray-100 text-gray-800',
-  };
-  const labels = {
-    event: 'Event',
-    certification: 'Certification',
-    custom: 'Custom',
-  };
-  return (
-    <span className={`text-xs px-2 py-1 rounded-full font-medium ${styles[type as keyof typeof styles] || styles.custom}`}>
-      {labels[type as keyof typeof labels] || type}
-    </span>
-  );
 }
 
 export default async function CollectionsPage() {
@@ -77,12 +53,19 @@ export default async function CollectionsPage() {
   const collections = await getCollections();
 
   const publishedCount = collections.filter((c) => c.is_published).length;
-  const eventCount = collections.filter((c) => c.collection_type === 'event').length;
+  const totalVideos = collections.reduce((sum, c) => sum + c.video_count, 0);
 
   return (
     <>
       <Header user={user} title="Collections" />
       <div className="p-6">
+        {/* Header with description */}
+        <div className="mb-6">
+          <p className="text-gray-600">
+            Collections are groups of videos that can be linked to events. When users register for an event, they get access to the linked collection.
+          </p>
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow p-4">
@@ -98,19 +81,19 @@ export default async function CollectionsPage() {
           </div>
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Calendar className="w-6 h-6 text-green-600" />
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Video className="w-6 h-6 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm text-gray-500">Events</p>
-                <p className="text-2xl font-semibold">{eventCount}</p>
+                <p className="text-sm text-gray-500">Total Videos</p>
+                <p className="text-2xl font-semibold">{totalVideos}</p>
               </div>
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="w-6 h-6 text-blue-600" />
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Users className="w-6 h-6 text-green-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm text-gray-500">Published</p>
@@ -141,19 +124,16 @@ export default async function CollectionsPage() {
                   Collection
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Event Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Videos
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Linked Events
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Access
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -183,27 +163,48 @@ export default async function CollectionsPage() {
                         >
                           {collection.title}
                         </Link>
-                        {collection.event_location && (
-                          <p className="text-xs text-gray-500 flex items-center mt-0.5">
-                            <MapPin className="w-3 h-3 mr-1" />
-                            {collection.event_location}
+                        {collection.description && (
+                          <p className="text-xs text-gray-500 truncate max-w-xs">
+                            {collection.description}
                           </p>
                         )}
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <CollectionTypeLabel type={collection.collection_type} />
-                  </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {collection.event_date ? (
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {formatDate(collection.event_date)}
+                    <div className="flex items-center">
+                      <Video className="w-4 h-4 mr-1" />
+                      {collection.video_count}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {collection.linked_events.length > 0 ? (
+                      <div className="space-y-1">
+                        {collection.linked_events.slice(0, 2).map((event) => (
+                          <Link
+                            key={event.id}
+                            href={`/events/${event.id}`}
+                            className="flex items-center text-sm text-blue-600 hover:underline"
+                          >
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {event.title}
+                          </Link>
+                        ))}
+                        {collection.linked_events.length > 2 && (
+                          <p className="text-xs text-gray-500">
+                            +{collection.linked_events.length - 2} more
+                          </p>
+                        )}
                       </div>
                     ) : (
-                      '-'
+                      <span className="text-sm text-gray-400">No events linked</span>
                     )}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    <div className="flex items-center">
+                      <Users className="w-4 h-4 mr-1" />
+                      {collection.access_count}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <span
@@ -215,18 +216,6 @@ export default async function CollectionsPage() {
                     >
                       {collection.is_published ? 'Published' : 'Draft'}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <Video className="w-4 h-4 mr-1" />
-                      {collection.video_count}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <Users className="w-4 h-4 mr-1" />
-                      {collection.access_count}
-                    </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end space-x-2">
@@ -243,10 +232,10 @@ export default async function CollectionsPage() {
               ))}
               {collections.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                     <Layers className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                     <p>No collections yet.</p>
-                    <p className="text-sm mt-1">Create a collection to group videos for events or special access.</p>
+                    <p className="text-sm mt-1">Create a collection to group videos, then link it to an event.</p>
                   </td>
                 </tr>
               )}

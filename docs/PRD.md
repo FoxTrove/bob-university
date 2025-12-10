@@ -682,12 +682,43 @@ Content unlocks based on time elapsed since user's subscription start date:
    •   New Content: Notify when new videos are published
 
 6.7 Analytics Dashboard
-   •   Key Metrics: Active users, MRR, churn rate, free-to-paid conversion
-   •   Content Performance: Most-watched videos, completion rates by module
-   •   Acquisition: Downloads, signups, conversion funnel
-   •   Engagement: DAU/MAU, session duration, retention curves
-   •   Revenue: Subscription revenue, certification sales, event revenue
-   •   Export: Download reports as CSV/PDF
+The Analytics Dashboard provides comprehensive business intelligence across five key areas.
+
+**Date Range Selection**
+   •   Quick select: Today, 7 days, 30 days, 90 days, 1 year
+   •   Custom date range picker
+   •   Period-over-period comparison (vs previous period)
+   •   Combined iOS + Android view with platform breakout
+
+**Overview Dashboard (`/analytics`)**
+   •   KPI Summary: Revenue, Active Users (MAU), New Users, Churn Rate, Conversion Rate
+   •   Revenue trend chart (line graph)
+   •   User growth chart (total + new users)
+   •   Platform distribution (iOS vs Android pie chart)
+
+**Revenue Analytics (`/analytics/revenue`)**
+   •   Key Metrics: Total Revenue, MRR, ARPU, Refund Rate
+   •   Revenue over time (daily/monthly trend)
+   •   Revenue by product type (Subscription/Event/Certification)
+   •   Revenue by platform (iOS/Apple vs Android/Stripe)
+   •   Recent transactions table with CSV export
+
+**User Analytics (`/analytics/users`)**
+   •   Key Metrics: Total Users, New Users, MAU, Conversion Rate
+   •   Active users panel: DAU, WAU, MAU with DAU/MAU stickiness ratio
+   •   User growth chart over time
+   •   Users by subscription plan (Free/Individual/Salon)
+   •   Platform distribution breakdown
+   •   Retention cohort analysis table
+
+**Future Analytics (Phase 2)**
+   •   Content Analytics: Watch time, video completion rates, drop-off analysis
+   •   Event Analytics: Attendance rates, no-shows, capacity utilization
+   •   Certification Analytics: Pass rates, revenue, time-to-certify
+
+**Export Capabilities**
+   •   CSV export on all data tables
+   •   Date range filtering on all reports
 
 6.8 Promo Codes & Discounts (Phase 2)
    •   Create Codes: Percentage or fixed amount discounts
