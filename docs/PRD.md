@@ -275,29 +275,35 @@ The video library consists of approximately 150 videos organized into structured
 3.5 Certification Program
 
 3.5.1 Certification Overview
-Certifications are premium add-ons ($297-300 each) that validate mastery of specific
-techniques and enable listing in the public stylist directory.
+The certification is a premium add-on ($297) that validates mastery of Ray's methods
+and enables listing in the public stylist directory. The certification means:
+"This stylist is certified and approved by Ray in his methods - he has confidence to endorse them."
 
-3.5.2 Certification Types (Initial Launch)
-   •​   The Perfect Bob Certification: Mastery of Ray's signature bob cutting method.
-   •​   Precision Pixie Certification: Short hair cutting expertise.
-   •​   Ray-Certified Stylist (Master): Comprehensive certification covering all techniques.
+3.5.2 Single Certification Model
+   •​   **Ray-Certified Stylist**: One certification type covering all of Ray's methods.
+   •​   Simple, clear value proposition for clients seeking Ray-trained stylists.
+   •​   No confusion from multiple certification tiers.
 
 3.5.3 Certification Process
-   1.​ Prerequisites: Complete all videos in the relevant module with 100% completion.
-   2.​ Purchase Certification: One-time payment of $297-300 via in-app purchase.
-   3.​ Video Submission: Upload a video demonstrating the technique on a real client.
-   4.​ Review Period: Ray reviews submission within 5-7 business days. Perhaps we don’t
-       do this to reduce friction and workload?
-   5.​ Priority Feedback: Chat with Ray and receive detailed feedback.
+   1.​ Prerequisites: Complete all required modules (configurable by admin).
+   2.​ Purchase Certification: One-time payment of $297 via in-app purchase.
+   3.​ Video Submission: Upload a video demonstrating technique on a real client.
+   4.​ Review Period: Ray reviews submission (configurable - can be disabled if needed).
+   5.​ Feedback: Written feedback provided for approved or rejected submissions.
    6.​ Certificate & Badge: Digital certificate, in-app badge, and directory listing eligibility.
+   7.​ Resubmission: One free resubmission allowed if initially rejected.
 
 3.5.4 Certification Benefits
    •​   Downloadable digital certificate (PDF)
    •​   Profile badge visible to other users
-   •​   Listing in public stylist directory with certification badges
+   •​   Listing in public stylist directory
    •​   Certificate verification via unique URL/QR code
    •​   Access to certified-only community features (Phase 2)
+
+3.5.5 Implementation Decisions
+   •​   Video Storage: Supabase Storage for submission videos (cost-effective for review)
+   •​   Review Workflow: Configurable via admin toggle (can enable/disable)
+   •​   Module Requirements: Admin can select which modules are required for eligibility
 
 
 
@@ -351,22 +357,36 @@ Ray-certified stylists in their area. This adds tangible value to certification 
 network effects that benefit both stylists and Ray's brand.
 
 3.7.2 Directory Features (Public View)
-   •​   Map View: Interactive map with pins showing certified stylists nationwide.
-   •​   Search & Filter: Search by location, certification type, or stylist name.
-   •​   Stylist Profiles: Photo, bio, certifications held, salon name/location, contact info.
-   •​   Verification Badges: Visual indicators of certification status and level.
+   •​   Map View: Interactive map with pins showing certified stylists nationwide (Mapbox).
+   •​   List View: Card-based grid of certified stylists with search/filter.
+   •​   Search & Filter: Search by location or stylist name.
+   •​   Stylist Profiles: Photo, bio, salon name/location, contact info, Instagram, booking link.
+   •​   Verification Badge: Visual "Ray-Certified" badge indicator.
    •​   Portfolio: Optional gallery of work photos. Phase 2 feature.
 
 3.7.3 Stylist Profile Management
-   •​   Opt-In/Opt-Out: Certified stylists choose whether to be listed publicly.
+   •​   Profile Creation: Certified stylists create their profile from the mobile app.
+   •​   Opt-In/Opt-Out: Stylists choose whether to be listed publicly (is_public toggle).
    •​   Profile Editing: Update bio, contact info, salon details, profile photo.
-   •​   Location Settings: Set service area (city/region, not exact address).
+   •​   Location Settings: Set city/state/country plus coordinates for map placement.
+   •​   Social Links: Instagram handle for social proof.
    •​   Link to External Booking: Optional link to stylist's booking system.
 
 3.7.4 Data Model
 Stylist directory data stored in Supabase with the following key fields: user_id,
-display_name, bio, salon_name, city, state, country, latitude, longitude, certifications (array),
-profile_photo_url, contact_email, booking_url, is_public, created_at, updated_at.
+display_name, bio, salon_name, city, state, country, latitude, longitude,
+profile_photo_url, contact_email, phone, instagram_handle, booking_url, is_public,
+created_at, updated_at.
+
+3.7.5 Embeddable Directory
+   •​   Ray can embed the directory on his external websites via iframe.
+   •​   Customizable via query params: theme (light/dark), location filter.
+   •​   Responsive design for various embed sizes.
+
+3.7.6 Implementation Decisions
+   •​   Map Provider: Mapbox (50k free map loads/month).
+   •​   Profile Creation: User-initiated from mobile app (not auto-created on certification).
+   •​   Directory Features: Full map + search from initial release.
 
 
 

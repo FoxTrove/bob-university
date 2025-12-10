@@ -14,6 +14,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  MapPin,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -24,6 +25,7 @@ const navigation = [
   { name: 'Modules', href: '/modules', icon: FolderOpen },
   { name: 'Users', href: '/users', icon: Users },
   { name: 'Certifications', href: '/certifications', icon: Award },
+  { name: 'Directory', href: '/directory', icon: MapPin },
   { name: 'Collections', href: '/collections', icon: Layers },
   { name: 'Events', href: '/events', icon: Calendar },
   { name: 'Notifications', href: '/notifications', icon: Bell },

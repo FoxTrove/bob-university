@@ -73,6 +73,8 @@ npm start          # Run production build
 - Module management (CRUD)
 - User management (view subscribers)
 - Events and Collections management
+- Certifications management (settings + review queue)
+- Stylist Directory management
 - Analytics dashboard with KPIs and charts
 
 ### Analytics (`admin/src/app/(dashboard)/analytics/`)
@@ -104,6 +106,37 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 MUX_TOKEN_ID=
 MUX_TOKEN_SECRET=
 ```
+
+### Certifications (`admin/src/app/(dashboard)/certifications/`)
+Single certification system: "Ray-Certified Stylist" - one certification that endorses stylists in Ray's methods.
+
+**Features:**
+- Settings: Configure title, description, price ($297), badge image, required modules
+- Review toggle: Enable/disable video submission review
+- Submissions table: View all certification applications with status filtering
+- Approve/reject workflow with feedback
+- CSV export
+
+**Database Tables:**
+- `certification_settings` - Singleton config row
+- `certification_required_modules` - Which modules are prerequisites
+- `user_certifications` - User certification status and submissions
+
+### Stylist Directory (`admin/src/app/(dashboard)/directory/`)
+Admin view of certified stylists who can be listed in the public directory.
+
+**Features:**
+- View all stylist profiles with stats
+- Edit profile details (bio, location, contact info, social links)
+- Toggle public visibility
+- View certification status
+
+**Database Table:**
+- `stylist_profiles` - Stylist directory profiles with location, contact, and visibility
+
+**Future Features (not yet built):**
+- Public-facing directory pages with map (Mapbox)
+- Embeddable directory widget for Ray's websites
 
 ### Admin Access
 Users must have `role = 'admin'` in the `profiles` table to access the admin dashboard.
