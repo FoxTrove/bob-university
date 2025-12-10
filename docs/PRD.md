@@ -580,33 +580,120 @@ Total time from Instagram to paid subscriber: 5-10 minutes
 
 
 
-6. Admin Features
-6.1 Content Management
-  •​   Video Upload: Upload new videos with metadata (title, description, module, access
-       level)
-  •​   Module Organization: Create/edit modules, reorder videos, set prerequisites
-  •​   Content Scheduling: Schedule video releases for drip content model
-  •​   Free/Paid Toggle: Mark videos as free or subscriber-only
+6. Admin Dashboard (Web Application)
 
-6.2 User Management
-  •​   User Search: Find users by name, email, subscription status
-  •​   Subscription Override: Grant/revoke access, extend subscriptions
-  •​   Progress View: See any user's completion status and engagement
-  •​   Certification Review: Queue of pending submissions with video playback and
-       approval/feedback tools
+6.1 Overview
+The Admin Dashboard is a separate web application for Ray to manage all aspects of
+Bob University. It provides full control over content, users, events, certifications,
+and push notifications without requiring technical knowledge.
 
-6.3 Event Management
-  •​   Create Events: Add new workshops with all details and pricing
-  •​   Attendee List: View registered attendees with ticket status
-  •​   Check-In: QR code scanner for in-person event check-in
-  •​   Capacity Management: Set limits, enable waitlist when sold out
+   •   URL: admin.bobuniversity.com (placeholder pending confirmation)
+   •   Technology: Next.js web application with Tailwind CSS
+   •   Authentication: Supabase Auth with admin role verification
+   •   Hosting: Vercel (recommended for Next.js optimization)
 
-6.4 Analytics Dashboard
-  •​   Key Metrics: Active users, MRR, churn rate, conversion rate
-  •​   Content Performance: Most-watched videos, completion rates by module
-  •​   Acquisition: Downloads, signups, free-to-paid funnel
-  •​   Engagement: DAU/MAU, session duration, retention curves
-  •​   Revenue: Subscription revenue, certification sales, event revenue
+6.2 Content Management
+
+6.2.1 Video Management
+   •   Video Upload: Direct upload to Mux via the admin interface
+   •   Metadata Editing: Title, description, thumbnail, duration
+   •   Draft/Publish Workflow: Videos can be saved as drafts before publishing
+   •   Module Assignment: Assign videos to modules, set sort order
+   •   Access Controls:
+       - Free tier (available to all users)
+       - Subscriber-only (requires active subscription)
+       - Drip release (unlocks X days after subscription start)
+   •   Bulk Operations: Publish/unpublish multiple videos at once
+
+6.2.2 Module Management
+   •   Create/Edit Modules: Title, description, thumbnail, sort order
+   •   Draft/Publish Status: Modules can be hidden until ready
+   •   Video Ordering: Drag-and-drop reordering of videos within modules
+   •   Drip Configuration: Set unlock delay (days from subscription start) per module
+
+6.2.3 Drip Release System
+Content unlocks based on time elapsed since user's subscription start date:
+   •   Module-level drip: "Module 3 unlocks 30 days after subscribing"
+   •   Video-level drip: Individual videos can have unlock delays
+   •   Override capability: Admin can manually unlock content for specific users
+
+6.3 User Management
+   •   User Search: Find users by name, email, subscription status
+   •   User Profile View: See full user details, subscription history, progress
+   •   Subscription Override: Grant/revoke access, extend subscriptions, change plans
+   •   Progress View: See any user's video completion status and engagement
+   •   Manual Entitlement: Grant free access for promotional purposes
+   •   Export: Download user data as CSV for external analysis
+
+6.4 Certification Management
+
+6.4.1 Submission Review Queue
+   •   Pending Submissions: List of all certification videos awaiting review
+   •   Video Playback: Watch submitted videos directly in admin
+   •   Approve/Reject Actions: One-click approval or rejection
+   •   Feedback System: Provide detailed written feedback to user
+   •   Resubmission Tracking: Track users on their second attempt
+
+6.4.2 Certification Configuration
+   •   Create Certifications: Define new certification types
+   •   Prerequisites: Set required module completions
+   •   Pricing: Set one-time purchase price ($297-300 range)
+   •   Badge Design: Upload badge images for each certification
+
+6.5 Event Management
+
+6.5.1 Event Creation
+   •   Event Types: In-person workshops, virtual sessions, certification bootcamps
+   •   Event Details: Title, description, date/time, location, capacity, pricing
+   •   Ticket Types: Early bird, regular, VIP tiers
+   •   Member Discounts: Automatic percentage off for subscribers (10-15%)
+
+6.5.2 Ticketing (MVP: In-App with Stripe)
+   •   In-App Checkout: Stripe integration for ticket purchases
+   •   Digital Tickets: QR codes for check-in
+   •   Attendee Management: View registrations, check-in status
+   •   Waitlist: Automatic waitlist when capacity reached
+   •   Note: Eventbrite integration can be evaluated post-MVP if needed
+
+6.5.3 Virtual Events (Phase 2)
+   •   Live Streaming: Integration with streaming platform (Mux Live or similar)
+   •   In-App Viewing: Members watch live events within the app
+   •   Replay Access: Automatic recording available for ticket holders
+
+6.6 Push Notification Center
+
+6.6.1 Global Notifications
+   •   Send Now: Immediate push to all users or subscribers
+   •   Schedule: Set future date/time for delivery
+   •   Rich Content: Title, body, optional deep link to content
+
+6.6.2 Segmented Notifications
+   •   By Subscription: Free users, Individual subscribers, Salon subscribers
+   •   By Progress: Users who completed specific modules
+   •   By Engagement: Inactive users (no activity in X days)
+   •   By Certification: Certified vs non-certified users
+
+6.6.3 Automated Notifications (System-Generated)
+   •   Welcome Series: Day 1, Day 3, Day 7 after signup
+   •   Continue Learning: Remind users with incomplete modules
+   •   Module Completion: Congratulate and suggest next module
+   •   Subscription Reminders: Expiring soon, payment failed
+   •   Event Reminders: 24 hours before, 1 hour before event
+   •   New Content: Notify when new videos are published
+
+6.7 Analytics Dashboard
+   •   Key Metrics: Active users, MRR, churn rate, free-to-paid conversion
+   •   Content Performance: Most-watched videos, completion rates by module
+   •   Acquisition: Downloads, signups, conversion funnel
+   •   Engagement: DAU/MAU, session duration, retention curves
+   •   Revenue: Subscription revenue, certification sales, event revenue
+   •   Export: Download reports as CSV/PDF
+
+6.8 Promo Codes & Discounts (Phase 2)
+   •   Create Codes: Percentage or fixed amount discounts
+   •   Usage Limits: Single use, limited uses, or unlimited
+   •   Expiration: Set validity period
+   •   Tracking: See redemption history and revenue impact
 
 
 
@@ -649,43 +736,84 @@ Total time from Instagram to paid subscriber: 5-10 minutes
 
 
 8. Development Timeline
-8.1 Phase 1: MVP (Weeks 1-5)
-Goal: Launch core functionality to replace GHL content delivery
 
+The development strategy involves two parallel workstreams: the Mobile App and the Admin Dashboard.
+These will be developed concurrently where possible, with shared backend infrastructure.
+
+8.1 Phase 1: Foundation (Weeks 1-5)
+Goal: Launch core mobile functionality and essential admin capabilities
+
+**Mobile App (Primary Focus)**
    •​   User authentication (email, Apple, Google)
-   •​   Video library with module organization
-   •​   Freemium content gating
+   •​   Video library with Mux streaming and module organization
+   •​   Freemium content gating with drip release system
    •​   Stripe subscription integration
    •​   Basic push notifications
-   •​   GHL contact sync
+   •​   Video progress tracking
    •​   App Store submission
 
-8.2 Phase 2: Enhanced Features (Weeks 6-8)
-Goal: Add premium features that drive engagement and revenue
+**Admin Dashboard**
+   •​   Next.js project setup with Supabase Auth
+   •​   Admin role verification and protected routes
+   •​   Video upload interface with Mux integration
+   •​   Module/video management (CRUD, ordering, draft/publish)
+   •​   Drip release configuration per video
+   •​   Basic user list view
 
-   •​   Certification system (submission, review, badges)
-   •​   AI assistant integration
-   •​   Salon owner team management
-   •​   Event calendar and ticket sales
+8.2 Phase 2: Enhanced Features (Weeks 6-8)
+Goal: Add premium features and complete admin content management
+
+**Mobile App**
+   •​   Certification submission (video upload)
+   •​   Certification badge display
+   •​   Event listing and ticket purchase (Stripe)
    •​   Progress tracking and streaks
+   •​   Push notification handling
+
+**Admin Dashboard**
+   •​   Certification review queue with video playback
+   •​   Approve/reject workflow with feedback
+   •​   Event creation and management
+   •​   Stripe ticketing integration
+   •​   Push notification center (global + segmented)
+   •​   User management (view subscriptions, grant access)
 
 8.3 Phase 3: Growth Features (Weeks 9-11)
 Goal: Build features that create network effects and retention
 
+**Mobile App**
+   •​   AI assistant integration
+   •​   Salon owner team management
    •​   Stylist directory (map view, profiles)
-   •​   Advanced analytics dashboard
    •​   Offline video downloads
-   •​   Enhanced notification system
-   •​   n8n automation workflows
+   •​   Enhanced notification handling
+
+**Admin Dashboard**
+   •​   Analytics dashboard (subscribers, revenue, engagement)
+   •​   Automated push notifications (triggers)
+   •​   Promo code management
+   •​   GHL contact sync monitoring
+   •​   n8n automation webhook configuration
 
 8.4 Key Milestones
- Week                  Milestone                                  Deliverable
- Week 2                Core App Functional                        Internal demo build
- Week 4                Video Library Complete                     Content migration done
- Week 6                MVP Complete                               TestFlight/Beta release
- Week 8                App Store Launch                           Public availability
- Week 10               Premium Features                           Certifications, AI live
- Week 14               Full Platform                              All features deployed
+ Week    Milestone                              Deliverable
+ Week 2  Core App + Basic Admin                 Internal mobile demo + admin login/upload
+ Week 4  Video Library Complete                 All content migrated via admin, drip configured
+ Week 5  Admin Content Management               Full video/module CRUD, user list
+ Week 6  MVP Complete                           TestFlight/Beta + admin for Ray
+ Week 8  App Store Launch                       Public mobile app + production admin
+ Week 10 Premium Features                       Certifications, Events, Push Center
+ Week 14 Full Platform                          All features deployed, analytics live
+
+8.5 Development Priorities
+The admin dashboard is critical for MVP because Ray needs to:
+1. Upload and organize video content before mobile launch
+2. Configure drip release schedules for existing content
+3. View and manage users who sign up during soft launch
+4. Send push notifications to drive engagement
+
+Admin dashboard should reach basic functionality (video upload, module management, user list)
+by Week 5 to support content migration and soft launch preparation.
 
 
 

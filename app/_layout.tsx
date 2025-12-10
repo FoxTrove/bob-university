@@ -1,4 +1,4 @@
-import { Slot, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '../lib/auth';
 import { View, ActivityIndicator } from 'react-native';
@@ -31,7 +31,34 @@ function RootLayoutNav() {
     );
   }
 
-  return <Slot />;
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen
+        name="module/[id]"
+        options={{
+          headerShown: true,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="video/[id]"
+        options={{
+          headerShown: true,
+          presentation: 'fullScreenModal',
+        }}
+      />
+      <Stack.Screen
+        name="subscribe"
+        options={{
+          headerShown: true,
+          title: 'Upgrade',
+          presentation: 'modal',
+        }}
+      />
+    </Stack>
+  );
 }
 
 export default function RootLayout() {

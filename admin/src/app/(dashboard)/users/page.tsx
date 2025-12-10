@@ -1,0 +1,181 @@
+import { createClient } from '@/lib/supabase/server';
+import { Header } from '@/components/Header';
+import { Users, Crown, Clock } from 'lucide-react';
+
+async function getUsers() {
+  const supabase = await createClient();
+
+  const { data: profiles, error } = await supabase
+    .from('profiles')
+    .select(`
+      *,
+      entitlements (
+        plan,
+        started_at,
+        expires_at
+      )
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching users:', error);
+    return [];
+  }
+
+  return profiles || [];
+}
+
+function formatDate(dateString: string | null) {
+  if (!dateString) return '-';
+  return new Date(dateString).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+export default async function UsersPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const users = await getUsers();
+
+  const premiumCount = users.filter(
+    (u) => u.entitlements?.[0]?.plan === 'premium'
+  ).length;
+
+  return (
+    <>
+      <Header user={user} title="Users" />
+      <div className="p-6">
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="bg-white rounded-lg shadow p-4 flex items-center">
+            <div className="bg-blue-100 p-3 rounded-lg mr-4">
+              <Users className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Total Users</p>
+              <p className="text-2xl font-semibold">{users.length}</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4 flex items-center">
+            <div className="bg-purple-100 p-3 rounded-lg mr-4">
+              <Crown className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Premium Subscribers</p>
+              <p className="text-2xl font-semibold">{premiumCount}</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4 flex items-center">
+            <div className="bg-green-100 p-3 rounded-lg mr-4">
+              <Clock className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Free Users</p>
+              <p className="text-2xl font-semibold">{users.length - premiumCount}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Users Table */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  User
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Plan
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Subscribed
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Expires
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Joined
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Role
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {users.map((profile) => {
+                const entitlement = profile.entitlements?.[0];
+                const isPremium = entitlement?.plan === 'premium';
+
+                return (
+                  <tr key={profile.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                          {profile.avatar_url ? (
+                            <img
+                              src={profile.avatar_url}
+                              alt={profile.full_name || ''}
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-gray-500 font-medium">
+                              {(profile.full_name || profile.email || '?').charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {profile.full_name || 'No name'}
+                          </p>
+                          <p className="text-sm text-gray-500">{profile.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          isPremium
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {isPremium ? 'Premium' : 'Free'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {formatDate(entitlement?.started_at)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {formatDate(entitlement?.expires_at)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {formatDate(profile.created_at)}
+                    </td>
+                    <td className="px-6 py-4">
+                      {profile.role === 'admin' ? (
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                          Admin
+                        </span>
+                      ) : (
+                        <span className="text-sm text-gray-500">User</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+              {users.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    No users yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
+  );
+}
