@@ -72,7 +72,30 @@ npm start          # Run production build
 - Video upload with Mux integration
 - Module management (CRUD)
 - User management (view subscribers)
-- Dashboard with stats
+- Events and Collections management
+- Analytics dashboard with KPIs and charts
+
+### Analytics (`admin/src/app/(dashboard)/analytics/`)
+The analytics section provides business intelligence dashboards:
+
+**Pages:**
+- `/analytics` - Overview dashboard with KPIs
+- `/analytics/revenue` - Revenue deep-dive
+- `/analytics/users` - User growth and retention
+
+**Key Components (`admin/src/components/analytics/`):**
+- `DateRangeSelector` - Quick select (1d, 7d, 30d, 90d, 1y) + custom picker
+- `MetricCard` - Stat cards with period comparison (↑↓ indicators)
+- `AnalyticsLineChart`, `AnalyticsBarChart`, `AnalyticsPieChart` - Chart wrappers
+- `ExportCSVButton` - CSV export functionality
+
+**Libraries:**
+- `recharts` - Charting
+- `date-fns` - Date manipulation
+
+**Utilities (`admin/src/lib/`):**
+- `analytics.ts` - Date range helpers, formatters
+- `analytics-queries.ts` - Supabase query functions for metrics
 
 ### Admin Environment Variables (`admin/.env.local`)
 ```
