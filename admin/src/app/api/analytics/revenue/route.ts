@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 import {
   getRevenueOverTime,
   getRevenueByProduct,
@@ -38,9 +37,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Fetch revenue data
-    const applyFilters = (
-      query: PostgrestFilterBuilder<any, any, any, unknown>
-    ) => {
+    const applyFilters = (query: any) => {
       if (filters?.sources?.length) {
         query = query.in('source', filters.sources);
       }
