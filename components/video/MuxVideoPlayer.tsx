@@ -1,8 +1,10 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { View, Text, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator, Animated, Dimensions } from 'react-native';
 import { useVideoPlayer, VideoView, VideoViewProps } from 'expo-video';
 import { useEvent } from 'expo';
 import { Ionicons } from '@expo/vector-icons';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface MuxVideoPlayerProps {
   playbackId: string | null;
@@ -41,7 +43,12 @@ export function MuxVideoPlayer({
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   const [maxWatched, setMaxWatched] = useState(initialPosition);
   const [progressBarWidth, setProgressBarWidth] = useState(0);
-  
+
+  // Double-tap state
+  const [doubleTapSide, setDoubleTapSide] = useState<'left' | 'right' | null>(null);
+  const doubleTapOpacity = useRef(new Animated.Value(0)).current;
+  const lastTapRef = useRef<{ time: number; x: number }>({ time: 0, x: 0 });
+
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasCompletedRef = useRef(false);
@@ -161,7 +168,48 @@ export function MuxVideoPlayer({
     player.currentTime = newTime;
   };
 
-  const handleVideoPress = () => {
+  // Show double-tap feedback animation
+  const showDoubleTapFeedback = (side: 'left' | 'right') => {
+    setDoubleTapSide(side);
+    doubleTapOpacity.setValue(1);
+    Animated.timing(doubleTapOpacity, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(() => setDoubleTapSide(null));
+  };
+
+  const handleVideoPress = (e: { nativeEvent: { locationX: number } }) => {
+    const now = Date.now();
+    const tapX = e.nativeEvent.locationX;
+    const timeDiff = now - lastTapRef.current.time;
+    const distanceDiff = Math.abs(tapX - lastTapRef.current.x);
+
+    // Check for double-tap (within 300ms and 50px of last tap)
+    if (timeDiff < 300 && distanceDiff < 50) {
+      // Double tap detected
+      const videoWidth = progressBarWidth || SCREEN_WIDTH;
+      const isLeftSide = tapX < videoWidth / 2;
+
+      if (isLeftSide) {
+        // Double-tap left = skip backward 10s
+        skipBackward();
+        showDoubleTapFeedback('left');
+      } else {
+        // Double-tap right = skip forward 10s (if allowed)
+        if (canSeekFuture || player.currentTime < maxWatched) {
+          skipForward();
+          showDoubleTapFeedback('right');
+        }
+      }
+
+      // Reset tap tracking
+      lastTapRef.current = { time: 0, x: 0 };
+      return;
+    }
+
+    // Single tap - toggle controls
+    lastTapRef.current = { time: now, x: tapX };
     setShowControls(!showControls);
     if (!showControls) {
       hideControlsDelayed();
@@ -212,6 +260,24 @@ export function MuxVideoPlayer({
           onFullscreenEnter={handleFullscreenEnter}
           onFullscreenExit={handleFullscreenExit}
         />
+
+        {/* Double-tap feedback overlay */}
+        {doubleTapSide && (
+          <Animated.View
+            className={`absolute top-0 bottom-0 ${doubleTapSide === 'left' ? 'left-0 right-1/2' : 'left-1/2 right-0'} items-center justify-center`}
+            style={{ opacity: doubleTapOpacity }}
+            pointerEvents="none"
+          >
+            <View className="bg-white/20 rounded-full p-4">
+              <Ionicons
+                name={doubleTapSide === 'left' ? 'play-back' : 'play-forward'}
+                size={32}
+                color="#fff"
+              />
+              <Text className="text-white text-xs font-bold mt-1 text-center">10s</Text>
+            </View>
+          </Animated.View>
+        )}
 
         {/* Buffering indicator */}
         {isBuffering && (

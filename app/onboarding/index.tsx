@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions, Image } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, Image, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { MuxVideoPlayer } from '../../components/video';
@@ -10,6 +10,9 @@ import { useEntitlement } from '../../lib/hooks/useEntitlement';
 import { AssessmentQuestion, QuestionType, QuestionOption } from './components/AssessmentQuestion';
 
 const { width } = Dimensions.get('window');
+
+// Total steps: Welcome (1) + Assessment (4) + Guide (3) = 8 (upsell is conditional)
+const TOTAL_BASE_STEPS = 8;
 
 // Steps definition
 // 0: Welcome (Video)
@@ -98,10 +101,42 @@ export default function OnboardingWizard() {
   const [assessmentIndex, setAssessmentIndex] = useState(0);
   const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
+  const progressAnim = useRef(new Animated.Value(0)).current;
 
   // MUX ID
-  const WELCOME_VIDEO_MUX_PLAYBACK_ID = process.env.EXPO_PUBLIC_ONBOARDING_MUX_PLAYBACK_ID || null; 
+  const WELCOME_VIDEO_MUX_PLAYBACK_ID = process.env.EXPO_PUBLIC_ONBOARDING_MUX_PLAYBACK_ID || null;
   const welcomeFallbackImage = require('../../assets/Bob Company app photos/img_1614.jpg');
+
+  // Calculate overall progress (0-1)
+  const calculateProgress = () => {
+    if (currentStep === 0) return 0;
+    if (currentStep === 1) {
+      // Assessment step - progress based on questions answered
+      return (1 + assessmentIndex) / TOTAL_BASE_STEPS;
+    }
+    if (currentStep === 2) {
+      // Upsell - halfway through
+      return 5 / TOTAL_BASE_STEPS;
+    }
+    // Guide steps (3, 4, 5 -> indices 0, 1, 2)
+    const guideIndex = currentStep - 3;
+    return (5 + guideIndex + 1) / TOTAL_BASE_STEPS;
+  };
+
+  // Animate progress bar
+  React.useEffect(() => {
+    Animated.timing(progressAnim, {
+      toValue: calculateProgress(),
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [currentStep, assessmentIndex]);
+
+  // Skip onboarding entirely
+  const handleSkip = async () => {
+    if (loading) return;
+    await finishOnboarding();
+  };
 
   // --- LOGIC ---
 
@@ -372,24 +407,52 @@ export default function OnboardingWizard() {
   return (
     <View className="flex-1 justify-center items-center px-4 bg-black/80">
         {/* Card Container */}
-        <View className="bg-neutral-900 w-full rounded-3xl p-6 shadow-2xl shadow-black/50 border border-white/10">
-            {content}
-            
-            {showNext && (
-                <View className="mt-8">
-                    <Button 
-                        size="lg"
-                        fullWidth
-                        onPress={handleNext}
-                        disabled={isNextDisabled()}
-                        variant={isNextDisabled() ? "outline" : "primary"}
-                    >
-                      <Text className={isNextDisabled() ? "text-gray-500" : "text-white font-bold"}>
-                          {nextLabel}
-                      </Text>
-                    </Button>
-                </View>
+        <View className="bg-neutral-900 w-full rounded-3xl shadow-2xl shadow-black/50 border border-white/10 overflow-hidden">
+            {/* Progress Bar */}
+            {currentStep > 0 && (
+              <View className="h-1 bg-white/10">
+                <Animated.View
+                  className="h-full bg-primary"
+                  style={{
+                    width: progressAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0%', '100%'],
+                    }),
+                  }}
+                />
+              </View>
             )}
+
+            {/* Skip Button */}
+            {currentStep > 0 && currentStep !== 2 && (
+              <TouchableOpacity
+                onPress={handleSkip}
+                className="absolute top-4 right-4 z-10 py-1 px-3"
+                disabled={loading}
+              >
+                <Text className="text-gray-400 text-sm font-medium">Skip</Text>
+              </TouchableOpacity>
+            )}
+
+            <View className="p-6">
+              {content}
+
+              {showNext && (
+                  <View className="mt-8">
+                      <Button
+                          size="lg"
+                          fullWidth
+                          onPress={handleNext}
+                          disabled={isNextDisabled()}
+                          variant={isNextDisabled() ? "outline" : "primary"}
+                      >
+                        <Text className={isNextDisabled() ? "text-gray-500" : "text-white font-bold"}>
+                            {nextLabel}
+                        </Text>
+                      </Button>
+                  </View>
+              )}
+            </View>
         </View>
     </View>
   );
