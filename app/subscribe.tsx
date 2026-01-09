@@ -1,7 +1,12 @@
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView, Alert } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeContainer } from '../components/layout/SafeContainer';
 import { Card } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
+import { useStripe } from '@stripe/stripe-react-native';
+import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 
 interface PlanFeature {
   text: string;
@@ -64,30 +69,37 @@ const plans: Plan[] = [
   },
 ];
 
-function PlanCard({ plan, onSelect }: { plan: Plan; onSelect: () => void }) {
+function PlanCard({ plan, onSelect, loading }: { plan: Plan; onSelect: () => void; loading: boolean }) {
+  const isSelected = plan.popular;
+  
   return (
-    <Card variant={plan.popular ? 'elevated' : 'outlined'} className="p-4 mb-4">
+    <Card 
+      className={`p-6 mb-6 border-2 ${isSelected ? 'border-primary bg-surfaceHighlight' : 'border-border bg-surface'}`}
+      padding="none"
+    >
       {plan.popular && (
-        <View className="absolute -top-3 right-4 bg-brand-accent px-3 py-1 rounded-full">
-          <Text className="text-white text-xs font-medium">Most Popular</Text>
+        <View className="absolute -top-3 right-6 bg-primary px-3 py-1 rounded-full">
+          <Text className="text-white text-xs font-bold uppercase tracking-wide">Most Popular</Text>
         </View>
       )}
 
-      <Text className="text-lg font-bold text-brand-primary">{plan.name}</Text>
-      <View className="flex-row items-baseline mt-1">
-        <Text className="text-3xl font-bold text-brand-primary">{plan.price}</Text>
-        <Text className="text-brand-muted ml-1">{plan.period}</Text>
+      <Text className="text-xl font-serifBold text-text mb-2">{plan.name}</Text>
+      <View className="flex-row items-baseline mb-4">
+        <Text className="text-4xl font-serifBold text-text">{plan.price}</Text>
+        <Text className="text-textMuted ml-1 font-medium">{plan.period}</Text>
       </View>
-      <Text className="text-brand-muted mt-2">{plan.description}</Text>
+      <Text className="text-textMuted mb-6 pb-6 border-b border-border">{plan.description}</Text>
 
-      <View className="mt-4 space-y-2">
+      <View className="space-y-3 mb-6">
         {plan.features.map((feature, index) => (
-          <View key={index} className="flex-row items-center gap-2">
-            <Text className={feature.included ? 'text-green-500' : 'text-brand-muted'}>
-              {feature.included ? '✓' : '✗'}
-            </Text>
+          <View key={index} className="flex-row items-center gap-3">
+            <Ionicons 
+              name={feature.included ? "checkmark-circle" : "close-circle"} 
+              size={20} 
+              color={feature.included ? "#3b82f6" : "#52525b"} 
+            />
             <Text
-              className={feature.included ? 'text-brand-primary' : 'text-brand-muted'}
+              className={`flex-1 ${feature.included ? 'text-text' : 'text-textMuted'}`}
             >
               {feature.text}
             </Text>
@@ -95,64 +107,108 @@ function PlanCard({ plan, onSelect }: { plan: Plan; onSelect: () => void }) {
         ))}
       </View>
 
-      <Pressable
+      <Button
+        title={plan.id === 'free' ? 'Current Plan' : 'Subscribe Now'}
         onPress={onSelect}
-        className={`mt-4 py-3 rounded-lg items-center ${
-          plan.popular ? 'bg-brand-accent' : 'bg-brand-primary'
-        }`}
-      >
-        <Text className="text-white font-semibold">
-          {plan.id === 'free' ? 'Current Plan' : 'Subscribe'}
-        </Text>
-      </Pressable>
+        variant={plan.popular ? 'primary' : 'outline'}
+        disabled={plan.id === 'free' || loading}
+        loading={loading}
+        fullWidth
+      />
     </Card>
   );
 }
 
 export default function Subscribe() {
   const router = useRouter();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const [loading, setLoading] = useState(false);
 
-  const handleSelectPlan = (planId: string) => {
-    if (planId === 'free') {
-      router.back();
-      return;
+  const handleSelectPlan = async (planId: string) => {
+    if (planId === 'free') return;
+    
+    setLoading(true);
+    
+    try {
+      // 1. Fetch PaymentIntent from your backend
+      // TODO: Replace with actual backend call
+      // const response = await fetch(`${API_URL}/create-payment-subscription`, {
+      //   method: 'POST',
+      //   body: JSON.stringify({ planId }),
+      // });
+      // const { paymentIntent, ephemeralKey, customer } = await response.json();
+
+      // Placeholder for now
+      Alert.alert("Backend Required", "Payment integration requires backend setup for Stripe Payment Sheet.");
+      
+      // 2. Initialize Payment Sheet
+      // const { error: initError } = await initPaymentSheet({
+      //   merchantDisplayName: "Bob University",
+      //   customerId: customer,
+      //   customerEphemeralKeySecret: ephemeralKey,
+      //   paymentIntentClientSecret: paymentIntent,
+      //   allowsDelayedPaymentMethods: true,
+      //   defaultBillingDetails: {
+      //     name: 'Jane Doe',
+      //   }
+      // });
+      // if (initError) throw new Error(initError.message);
+
+      // 3. Present Payment Sheet
+      // const { error: presentError } = await presentPaymentSheet();
+      // if (presentError) throw new Error(presentError.message);
+      
+      // Alert.alert("Success", "Subscription active!");
+      
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    // TODO: Implement Apple IAP subscription flow in Sprint 6
-    console.log('Selected plan:', planId);
   };
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: 'Choose Your Plan',
+          title: 'Upgrade Plan',
+          headerTitleStyle: { color: 'white' },
+          headerStyle: { backgroundColor: 'black' },
+          headerTintColor: '#3b82f6',
           headerLeft: () => (
             <Pressable onPress={() => router.back()}>
-              <Text className="text-brand-accent font-medium">Cancel</Text>
+              <Text className="text-white font-medium text-lg">Close</Text>
             </Pressable>
           ),
         }}
       />
       <SafeContainer edges={['bottom']}>
-        <ScrollView className="flex-1 bg-brand-background">
-          <View className="p-4">
-            <Text className="text-2xl font-bold text-brand-primary text-center">
-              Unlock Premium Content
-            </Text>
-            <Text className="text-brand-muted text-center mt-2 mb-6">
-              Get full access to all courses and certifications
-            </Text>
+        <ScrollView className="flex-1 bg-black">
+          <View className="p-6">
+            <View className="items-center mb-8">
+              <View className="bg-primary/20 w-16 h-16 rounded-full items-center justify-center mb-4">
+                <Ionicons name="star" size={32} color="#3b82f6" />
+              </View>
+              <Text className="text-3xl font-serifBold text-white text-center mb-2">
+                Unlock Premium
+              </Text>
+              <Text className="text-textMuted text-center px-4">
+                Get unlimited access to 150+ expert cutting tutorials and join the community.
+              </Text>
+            </View>
 
             {plans.map((plan) => (
               <PlanCard
                 key={plan.id}
                 plan={plan}
                 onSelect={() => handleSelectPlan(plan.id)}
+                loading={loading}
               />
             ))}
 
-            <Text className="text-brand-muted text-xs text-center mt-4">
-              Subscriptions are managed through Apple. Cancel anytime.
+            <Text className="text-textMuted text-xs text-center mt-6 mb-8">
+              Payments are processed securely by Stripe. You can cancel at any time in your account settings.
             </Text>
           </View>
         </ScrollView>

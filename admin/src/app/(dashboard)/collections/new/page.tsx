@@ -80,7 +80,7 @@ export default function NewCollectionPage() {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 placeholder="e.g., Denver Masterclass Videos, Precision Cutting Series"
               />
             </div>
@@ -94,7 +94,7 @@ export default function NewCollectionPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 placeholder="Describe what videos are in this collection..."
               />
             </div>
@@ -119,7 +119,7 @@ export default function NewCollectionPage() {
           <div className="flex justify-end space-x-4 mt-8 pt-6 border-t">
             <button
               onClick={() => router.push('/collections')}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 bg-white"
             >
               Cancel
             </button>

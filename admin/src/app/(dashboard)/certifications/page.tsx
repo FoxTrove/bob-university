@@ -1,5 +1,6 @@
 'use client';
 
+import { User } from '@supabase/supabase-js';
 import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { createClient } from '@/lib/supabase/client';
@@ -113,7 +114,7 @@ export default function CertificationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(true);
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     loadData();
@@ -124,7 +125,7 @@ export default function CertificationsPage() {
 
     // Get current user
     const { data: { user: currentUser } } = await supabase.auth.getUser();
-    setUser(currentUser ? { email: currentUser.email || '' } : null);
+    setUser(currentUser || null);
 
     // Load certification settings
     const { data: settingsData, error: settingsError } = await supabase
@@ -469,7 +470,7 @@ export default function CertificationsPage() {
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                       placeholder="Ray-Certified Stylist"
                     />
                   </div>
@@ -482,7 +483,7 @@ export default function CertificationsPage() {
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                       placeholder="Describe what this certification means..."
                     />
                   </div>
@@ -497,7 +498,7 @@ export default function CertificationsPage() {
                         type="number"
                         value={Math.round(parseInt(priceCents || '0') / 100)}
                         onChange={(e) => setPriceCents((parseInt(e.target.value) * 100).toString())}
-                        className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                       />
                       <span className="text-gray-400 ml-2 text-sm">({priceCents} cents)</span>
                     </div>
@@ -512,7 +513,7 @@ export default function CertificationsPage() {
                         type="text"
                         value={badgeImageUrl}
                         onChange={(e) => setBadgeImageUrl(e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                         placeholder="https://..."
                       />
                       {badgeImageUrl && (
@@ -618,7 +619,7 @@ export default function CertificationsPage() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-blue-500"
+                  className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 >
                   <option value="all">All Status</option>
                   <option value="pending">Pending</option>
@@ -787,7 +788,7 @@ export default function CertificationsPage() {
                     value={feedbackText}
                     onChange={(e) => setFeedbackText(e.target.value)}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     placeholder="Provide feedback for the applicant..."
                   />
                   <p className="mt-1 text-xs text-gray-500">

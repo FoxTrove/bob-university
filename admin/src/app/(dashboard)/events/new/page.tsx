@@ -62,9 +62,9 @@ export default function NewEventPage() {
       const priceInCents = priceCents ? Math.round(parseFloat(priceCents) * 100) : 0;
       const earlyBirdInCents = earlyBirdPriceCents ? Math.round(parseFloat(earlyBirdPriceCents) * 100) : null;
 
-      const { data, error: insertError } = await supabase
-        .from('events')
-        .insert({
+      // Use Edge Function to create event and sync with Stripe
+      const { data, error: invokeError } = await supabase.functions.invoke('manage-event', {
+        body: {
           title: title.trim(),
           description: description.trim() || null,
           event_date: new Date(eventDate).toISOString(),
@@ -79,11 +79,11 @@ export default function NewEventPage() {
           collection_id: collectionId || null,
           is_published: isPublished,
           registration_open: registrationOpen,
-        })
-        .select()
-        .single();
+        }
+      });
 
-      if (insertError) throw insertError;
+      if (invokeError) throw invokeError;
+      if (data?.error) throw new Error(data.error);
 
       router.push(`/events/${data.id}`);
     } catch (err) {
@@ -123,7 +123,7 @@ export default function NewEventPage() {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 placeholder="e.g., Denver Masterclass - January 2025"
               />
             </div>
@@ -137,7 +137,7 @@ export default function NewEventPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 placeholder="Describe this event..."
               />
             </div>
@@ -154,7 +154,7 @@ export default function NewEventPage() {
                     type="datetime-local"
                     value={eventDate}
                     onChange={(e) => setEventDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                   />
                 </div>
                 <div>
@@ -165,7 +165,7 @@ export default function NewEventPage() {
                     type="datetime-local"
                     value={eventEndDate}
                     onChange={(e) => setEventEndDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                   />
                 </div>
               </div>
@@ -183,7 +183,7 @@ export default function NewEventPage() {
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     placeholder="e.g., Denver, CO"
                   />
                 </div>
@@ -196,7 +196,7 @@ export default function NewEventPage() {
                       type="text"
                       value={venueName}
                       onChange={(e) => setVenueName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                       placeholder="e.g., Denver Convention Center"
                     />
                   </div>
@@ -208,7 +208,7 @@ export default function NewEventPage() {
                       type="text"
                       value={venueAddress}
                       onChange={(e) => setVenueAddress(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                       placeholder="e.g., 123 Main St"
                     />
                   </div>
@@ -230,7 +230,7 @@ export default function NewEventPage() {
                     step="0.01"
                     value={priceCents}
                     onChange={(e) => setPriceCents(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     placeholder="0.00 for free"
                   />
                 </div>
@@ -243,7 +243,7 @@ export default function NewEventPage() {
                     min="1"
                     value={maxCapacity}
                     onChange={(e) => setMaxCapacity(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     placeholder="Leave empty for unlimited"
                   />
                 </div>
@@ -263,7 +263,7 @@ export default function NewEventPage() {
                       step="0.01"
                       value={earlyBirdPriceCents}
                       onChange={(e) => setEarlyBirdPriceCents(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                       placeholder="Discounted price"
                     />
                   </div>
@@ -275,7 +275,7 @@ export default function NewEventPage() {
                       type="datetime-local"
                       value={earlyBirdDeadline}
                       onChange={(e) => setEarlyBirdDeadline(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     />
                   </div>
                 </div>
@@ -292,7 +292,7 @@ export default function NewEventPage() {
                 <select
                   value={collectionId}
                   onChange={(e) => setCollectionId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 >
                   <option value="">No collection linked</option>
                   {collections.map((c) => (
@@ -336,7 +336,7 @@ export default function NewEventPage() {
           <div className="flex justify-end space-x-4 mt-8 pt-6 border-t">
             <button
               onClick={() => router.push('/events')}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 bg-white"
             >
               Cancel
             </button>

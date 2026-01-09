@@ -74,13 +74,13 @@ export function Avatar({
       className={`
         ${sizeStyle.container}
         rounded-full
-        bg-gray-200
+        bg-surfaceHighlight
         items-center
         justify-center
         ${className}
       `}
     >
-      <Text className={`${sizeStyle.text} font-semibold text-gray-600`}>
+      <Text className={`${sizeStyle.text} font-semibold text-text`}>
         {initials}
       </Text>
     </View>

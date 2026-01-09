@@ -457,7 +457,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                   />
                 </div>
 
@@ -469,7 +469,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                   />
                 </div>
 
@@ -482,7 +482,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                       type="datetime-local"
                       value={eventDate}
                       onChange={(e) => setEventDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     />
                   </div>
                   <div>
@@ -493,7 +493,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                       type="datetime-local"
                       value={eventEndDate}
                       onChange={(e) => setEventEndDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     />
                   </div>
                 </div>
@@ -506,7 +506,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                   />
                 </div>
 
@@ -519,7 +519,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                       type="text"
                       value={venueName}
                       onChange={(e) => setVenueName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     />
                   </div>
                   <div>
@@ -530,7 +530,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                       type="text"
                       value={venueAddress}
                       onChange={(e) => setVenueAddress(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     />
                   </div>
                 </div>
@@ -549,7 +549,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                       step="0.01"
                       value={priceCents}
                       onChange={(e) => setPriceCents(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     />
                   </div>
                   <div>
@@ -561,7 +561,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                       min="1"
                       value={maxCapacity}
                       onChange={(e) => setMaxCapacity(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     />
                   </div>
                 </div>
@@ -579,7 +579,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                         step="0.01"
                         value={earlyBirdPriceCents}
                         onChange={(e) => setEarlyBirdPriceCents(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                       />
                     </div>
                     <div>
@@ -590,7 +590,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                         type="datetime-local"
                         value={earlyBirdDeadline}
                         onChange={(e) => setEarlyBirdDeadline(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                       />
                     </div>
                   </div>
@@ -603,7 +603,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                   <select
                     value={collectionId}
                     onChange={(e) => setCollectionId(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                   >
                     <option value="">No collection linked</option>
                     {collections.map((c) => (

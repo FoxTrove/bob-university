@@ -1,5 +1,6 @@
 'use client';
 
+import { User } from '@supabase/supabase-js';
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
@@ -79,7 +80,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   // Form state
   const [displayName, setDisplayName] = useState('');
@@ -106,7 +107,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
 
     // Get current user
     const { data: { user: currentUser } } = await supabase.auth.getUser();
-    setUser(currentUser ? { email: currentUser.email || '' } : null);
+    setUser(currentUser || null);
 
     // Load stylist profile
     const { data: profileData, error: profileError } = await supabase
@@ -302,7 +303,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                     placeholder="Name as shown in directory"
                   />
                 </div>
@@ -315,7 +316,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                     placeholder="Brief bio about the stylist..."
                   />
                 </div>
@@ -329,7 +330,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
                       type="text"
                       value={profilePhotoUrl}
                       onChange={(e) => setProfilePhotoUrl(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                       placeholder="https://..."
                     />
                     {profilePhotoUrl && (
@@ -352,7 +353,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
                       type="text"
                       value={salonName}
                       onChange={(e) => setSalonName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                     />
                   </div>
 
@@ -365,7 +366,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
                       type="text"
                       value={instagramHandle}
                       onChange={(e) => setInstagramHandle(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                       placeholder="@username"
                     />
                   </div>
@@ -382,7 +383,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                     />
                   </div>
 
@@ -394,7 +395,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
                       type="text"
                       value={state}
                       onChange={(e) => setState(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                     />
                   </div>
 
@@ -406,7 +407,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
                       type="text"
                       value={country}
                       onChange={(e) => setCountry(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                     />
                   </div>
                 </div>
@@ -421,7 +422,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
                       step="any"
                       value={latitude}
                       onChange={(e) => setLatitude(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                       placeholder="e.g., 40.7128"
                     />
                   </div>
@@ -435,7 +436,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
                       step="any"
                       value={longitude}
                       onChange={(e) => setLongitude(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                       placeholder="e.g., -74.0060"
                     />
                   </div>
@@ -453,7 +454,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
                       type="email"
                       value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                     />
                   </div>
 
@@ -466,7 +467,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                     />
                   </div>
                 </div>
@@ -480,7 +481,7 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
                     type="url"
                     value={bookingUrl}
                     onChange={(e) => setBookingUrl(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                     placeholder="https://..."
                   />
                 </div>

@@ -21,7 +21,8 @@ import { useRouter } from 'next/navigation';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Videos', href: '/videos', icon: Video },
+  { name: 'Lessons', href: '/videos', icon: Video },
+  { name: 'Video Library', href: '/library', icon: Layers },
   { name: 'Modules', href: '/modules', icon: FolderOpen },
   { name: 'Users', href: '/users', icon: Users },
   { name: 'Certifications', href: '/certifications', icon: Award },
@@ -44,7 +45,7 @@ export function Sidebar() {
   };
 
   return (
-    <div className="flex flex-col w-64 bg-gray-900 min-h-screen">
+    <div className="flex flex-col w-64 bg-gray-900 h-screen sticky top-0 overflow-y-auto">
       <div className="flex items-center justify-center h-16 border-b border-gray-800">
         <h1 className="text-xl font-bold text-white">Bob University</h1>
       </div>

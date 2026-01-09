@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { createClient } from '@/lib/supabase/client';
-import { GripVertical, Plus, Trash2, Save, Upload, X, ArrowLeft, Wand2, Settings2, Check } from 'lucide-react';
+import { GripVertical, Plus, Trash2, Save, Upload, X, ArrowLeft, Wand2, Settings2, Check, Loader2, Search, FileText, Video as VideoIcon } from 'lucide-react';
+import { LessonEditor } from '@/components/LessonEditor';
 import Link from 'next/link';
 import {
   DndContext,
@@ -34,6 +35,7 @@ interface Video {
   mux_playback_id: string | null;
   drip_days: number | null;
   thumbnail_url: string | null;
+  type: 'video' | 'text';
 }
 
 interface Module {
@@ -93,10 +95,12 @@ function getBucketForDays(days: number | null, buckets: DripBucketType[]): DripB
 function DraggableVideoCard({
   video,
   onRemove,
+  onEdit,
   buckets,
 }: {
   video: Video;
   onRemove: (id: string) => void;
+  onEdit: (id: string) => void;
   buckets: DripBucketType[];
 }) {
   const {
@@ -137,9 +141,9 @@ function DraggableVideoCard({
           <GripVertical className="w-4 h-4 text-gray-400" />
         </button>
         {/* Thumbnail */}
-        <Link
-          href={`/videos/${video.id}`}
-          className="flex-shrink-0 w-20 h-12 rounded overflow-hidden bg-gray-100"
+        <div
+          onClick={() => onEdit(video.id)}
+          className="flex-shrink-0 w-20 h-12 rounded overflow-hidden bg-gray-100 cursor-pointer hover:opacity-80 transition-opacity"
         >
           {thumbnailUrl ? (
             <img
@@ -148,26 +152,34 @@ function DraggableVideoCard({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
-              <span className="text-white/80 text-[10px]">No thumb</span>
+            <div className={`w-full h-full bg-gradient-to-br ${video.type === 'text' ? 'from-orange-400 to-pink-500' : 'from-purple-500 to-blue-600'} flex items-center justify-center`}>
+              {video.type === 'text' ? (
+                <FileText className="w-5 h-5 text-white/80" />
+              ) : (
+                <span className="text-white/80 text-[10px]">No thumb</span>
+              )}
             </div>
           )}
-        </Link>
+        </div>
         <div className="flex-1 min-w-0">
-          <Link
-            href={`/videos/${video.id}`}
-            className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-1"
+          <button
+            onClick={() => onEdit(video.id)}
+            className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-1 text-left"
           >
             {video.title}
-          </Link>
+          </button>
           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
             <span className={`text-[10px] px-1.5 py-0.5 rounded border ${bucket.color}`}>
               {bucket.label}
             </span>
-            {video.duration_seconds && (
-              <span className="text-[10px] text-gray-400">
-                {Math.floor(video.duration_seconds / 60)}:{(video.duration_seconds % 60).toString().padStart(2, '0')}
-              </span>
+            {video.type === 'text' ? (
+              <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200">Text</span>
+            ) : (
+              video.duration_seconds && (
+                <span className="text-[10px] text-gray-400">
+                  {Math.floor(video.duration_seconds / 60)}:{(video.duration_seconds % 60).toString().padStart(2, '0')}
+                </span>
+              )
             )}
             {video.is_free && <span className="text-[10px] text-blue-600 font-medium">Free</span>}
             {!video.is_published && <span className="text-[10px] text-yellow-600 font-medium">Draft</span>}
@@ -208,6 +220,18 @@ export default function EditModulePage() {
   const [showBucketSettings, setShowBucketSettings] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
+  // Edit Lesson State
+  const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
+  const [editingLesson, setEditingLesson] = useState<any | null>(null);
+  const [loadingLesson, setLoadingLesson] = useState(false);
+
+  // Video Selector State
+  const [showVideoSelector, setShowVideoSelector] = useState(false);
+  const [availableVideos, setAvailableVideos] = useState<Video[]>([]);
+  const [loadingAvailable, setLoadingAvailable] = useState(false);
+  const [selectedVideosForAdd, setSelectedVideosForAdd] = useState<Set<string>>(new Set());
+  const [videoSearchQuery, setVideoSearchQuery] = useState('');
+
   // Drag and drop sensors
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -244,7 +268,7 @@ export default function EditModulePage() {
 
       const { data: videosData } = await supabase
         .from('videos')
-        .select('id, title, duration_seconds, is_free, is_published, sort_order, mux_playback_id, drip_days, thumbnail_url')
+        .select('id, title, duration_seconds, is_free, is_published, sort_order, mux_playback_id, drip_days, thumbnail_url, type')
         .eq('module_id', moduleId)
         .order('sort_order');
 
@@ -469,6 +493,123 @@ export default function EditModulePage() {
     setDripBuckets(dripBuckets.filter((b) => b.id !== bucketId));
   };
 
+  const handleEditLesson = async (id: string) => {
+      setEditingLessonId(id);
+      setLoadingLesson(true);
+      try {
+          const { data, error } = await supabase.from('videos').select('*').eq('id', id).single();
+          if (error) throw error;
+          setEditingLesson(data);
+      } catch (err) {
+          console.error("Error fetching lesson details:", err);
+          setError("Failed to load lesson details");
+          setEditingLessonId(null);
+      } finally {
+          setLoadingLesson(false);
+      }
+  };
+
+  const handleLessonSaved = async () => {
+      // Refresh the list
+      const { data: videosData } = await supabase
+        .from('videos')
+        .select('id, title, duration_seconds, is_free, is_published, sort_order, mux_playback_id, drip_days, thumbnail_url, type')
+        .eq('module_id', moduleId)
+        .order('sort_order');
+
+      setVideos(videosData || []);
+      setEditingLesson(null);
+      setEditingLessonId(null);
+  };
+
+  // --- Existing Video Selection Logic ---
+
+  const handleOpenVideoSelector = async () => {
+    setShowVideoSelector(true);
+    setLoadingAvailable(true);
+    setSelectedVideosForAdd(new Set());
+    setVideoSearchQuery('');
+
+    // Fetch videos that are NOT in this module (module_id is null OR module_id != current)
+    // Actually, simpler to fetch ALL and filter in memory if list isn't huge, 
+    // or use Supabase filter details. For now, let's fetch videos where module_id is null (unassigned) 
+    // OR module_id is NOT this module. 
+    // Supabase .neq() is "not equal".
+    
+    try {
+        const { data: allVideos, error } = await supabase
+            .from('videos')
+            .select('id, title, duration_seconds, is_free, is_published, sort_order, mux_playback_id, drip_days, thumbnail_url, module_id, type')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Filter out videos already in this module
+        const available = allVideos?.filter(v => v.module_id !== moduleId) || [];
+        setAvailableVideos(available);
+
+    } catch (err) {
+        console.error("Error fetching available videos:", err);
+        setError("Failed to load available videos");
+    } finally {
+        setLoadingAvailable(false);
+    }
+  };
+
+  const handleToggleSelectVideo = (videoId: string) => {
+      const newSet = new Set(selectedVideosForAdd);
+      if (newSet.has(videoId)) {
+          newSet.delete(videoId);
+      } else {
+          newSet.add(videoId);
+      }
+      setSelectedVideosForAdd(newSet);
+  };
+
+  const handleAddSelectedVideos = async () => {
+      if (selectedVideosForAdd.size === 0) return;
+
+      setSaving(true);
+      try {
+          const videosToAdd = Array.from(selectedVideosForAdd);
+          // Get next sort order
+          const startSortOrder = videos.length;
+
+          // Update each video
+          let orderOffset = 0;
+          for (const videoId of videosToAdd) {
+              const { error } = await supabase
+                .from('videos')
+                .update({
+                    module_id: moduleId,
+                    sort_order: startSortOrder + orderOffset
+                })
+                .eq('id', videoId);
+              
+              if (error) throw error;
+              orderOffset++;
+          }
+
+          // Refresh list
+          const { data: videosData } = await supabase
+            .from('videos')
+            .select('id, title, duration_seconds, is_free, is_published, sort_order, mux_playback_id, drip_days, thumbnail_url, type')
+            .eq('module_id', moduleId)
+            .order('sort_order');
+          
+          setVideos(videosData || []);
+          setShowVideoSelector(false);
+
+      } catch (err) {
+          console.error("Error adding videos:", err);
+          setError("Failed to add selected videos");
+      } finally {
+          setSaving(false);
+      }
+  };
+
+
+
   if (loading) {
     return (
       <>
@@ -543,7 +684,7 @@ export default function EditModulePage() {
               />
               <label
                 htmlFor="cover-upload"
-                className={`flex items-center justify-center w-full px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
+                className={`flex items-center justify-center w-full px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors bg-white text-gray-900 ${
                   uploadingCover ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
@@ -574,7 +715,7 @@ export default function EditModulePage() {
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                   />
                 </div>
 
@@ -586,7 +727,7 @@ export default function EditModulePage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                   />
                 </div>
 
@@ -600,7 +741,7 @@ export default function EditModulePage() {
                       min="0"
                       value={sortOrder}
                       onChange={(e) => setSortOrder(parseInt(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     />
                   </div>
                   <div className="flex items-end">
@@ -620,7 +761,7 @@ export default function EditModulePage() {
               <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
                 <button
                   onClick={() => router.push('/modules')}
-                  className="px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 bg-white"
                 >
                   Cancel
                 </button>
@@ -640,18 +781,27 @@ export default function EditModulePage() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Videos in Module</h2>
-                <Link
-                  href={`/videos/upload?module=${moduleId}`}
-                  className="flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add Video
-                </Link>
+                <h2 className="text-lg font-semibold text-gray-900">Lessons in Module</h2>
+                <div className="flex gap-2">
+                    <button
+                        onClick={handleOpenVideoSelector}
+                        className="flex items-center px-3 py-1.5 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 bg-white"
+                    >
+                        <Search className="w-4 h-4 mr-1" />
+                        Select Existing Lesson
+                    </button>
+                    <Link
+                    href={`/videos/upload?module=${moduleId}`}
+                    className="flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add Lesson
+                    </Link>
+                </div>
               </div>
 
               {videos.length === 0 ? (
-                <p className="text-gray-500 text-sm py-8 text-center">No videos in this module yet.</p>
+                <p className="text-gray-500 text-sm py-8 text-center">No lessons in this module yet.</p>
               ) : (
                 <>
                   {/* Drip Timeline with Settings */}
@@ -679,7 +829,7 @@ export default function EditModulePage() {
                                 type="text"
                                 value={bucket.label}
                                 onChange={(e) => handleUpdateBucket(bucket.id, { label: e.target.value })}
-                                className="flex-1 text-sm px-2 py-1.5 border rounded"
+                                className="flex-1 text-sm px-2 py-1.5 border rounded bg-white text-gray-900"
                                 placeholder="Label"
                               />
                               <div className="flex items-center gap-1">
@@ -689,7 +839,7 @@ export default function EditModulePage() {
                                   min="0"
                                   value={bucket.days}
                                   onChange={(e) => handleUpdateBucket(bucket.id, { days: parseInt(e.target.value) || 0 })}
-                                  className="w-16 text-sm px-2 py-1.5 border rounded"
+                                  className="w-16 text-sm px-2 py-1.5 border rounded bg-white text-gray-900"
                                 />
                               </div>
                               <div className={`w-5 h-5 rounded border ${bucket.color}`} />
@@ -785,6 +935,7 @@ export default function EditModulePage() {
                             key={video.id}
                             video={video}
                             onRemove={handleRemoveVideo}
+                            onEdit={handleEditLesson}
                             buckets={dripBuckets}
                           />
                         ))}
@@ -800,6 +951,131 @@ export default function EditModulePage() {
           </div>
         </div>
       </div>
+
+      {/* Select Existing Videos Modal */}
+      {showVideoSelector && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+                <div className="flex items-center justify-between p-4 border-b">
+                    <h3 className="text-lg font-semibold text-gray-900">Add Existing Videos</h3>
+                    <button onClick={() => setShowVideoSelector(false)} className="text-gray-400 hover:text-gray-600">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+                
+                <div className="p-4 border-b">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input 
+                            type="text" 
+                            placeholder="Search videos..."
+                            value={videoSearchQuery}
+                            onChange={(e) => setVideoSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4">
+                    {loadingAvailable ? (
+                        <div className="flex justify-center py-8">
+                            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            {availableVideos
+                                .filter(v => v.title.toLowerCase().includes(videoSearchQuery.toLowerCase()))
+                                .map(video => (
+                                <div 
+                                    key={video.id} 
+                                    className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
+                                        selectedVideosForAdd.has(video.id) 
+                                            ? 'border-blue-500 bg-blue-50' 
+                                            : 'border-gray-200 hover:border-gray-300'
+                                    }`}
+                                    onClick={() => handleToggleSelectVideo(video.id)}
+                                >
+                                    <div className={`w-5 h-5 rounded border mr-3 flex items-center justify-center ${
+                                         selectedVideosForAdd.has(video.id) ? 'bg-blue-500 border-blue-500' : 'border-gray-300 bg-white'
+                                    }`}>
+                                        {selectedVideosForAdd.has(video.id) && <Check className="w-3 h-3 text-white" />}
+                                    </div>
+                                    
+                                    <div className="w-16 h-10 bg-gray-100 rounded overflow-hidden mr-3 flex-shrink-0">
+                                        {video.thumbnail_url ? (
+                                            <img src={video.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                                        ) : video.mux_playback_id ? (
+                                            <img src={`https://image.mux.com/${video.mux_playback_id}/thumbnail.jpg?width=120&height=68&fit_mode=smartcrop`} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full bg-gray-200" />
+                                        )}
+                                    </div>
+
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-900 truncate">{video.title}</p>
+                                        <p className="text-xs text-gray-500">
+                                            {video.duration_seconds ? `${Math.floor(video.duration_seconds/60)}:${(video.duration_seconds%60).toString().padStart(2,'0')}` : '--:--'}
+                                            {(video as any).module_id && <span className="ml-2 text-amber-600 font-medium">(In another module)</span>}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                            {availableVideos.length === 0 && (
+                                <p className="text-center text-gray-500 py-8">No other videos found.</p>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                <div className="p-4 border-t bg-gray-50 flex justify-end gap-3 rounded-b-lg">
+                    <button 
+                        onClick={() => setShowVideoSelector(false)}
+                        className="px-4 py-2 text-sm text-gray-700 font-medium hover:text-gray-900"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        onClick={handleAddSelectedVideos}
+                        disabled={selectedVideosForAdd.size === 0 || saving}
+                        className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    >
+                        {saving ? 'Adding...' : `Add ${selectedVideosForAdd.size} Video${selectedVideosForAdd.size !== 1 ? 's' : ''}`}
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+
+      {/* Edit Lesson Modal */}
+      {editingLessonId && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between p-4 border-b">
+                    <h3 className="text-lg font-semibold text-gray-900">Edit Lesson</h3>
+                    <button onClick={() => { setEditingLessonId(null); setEditingLesson(null); }} className="text-gray-400 hover:text-gray-600">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+                
+                <div className="flex-1 overflow-hidden relative">
+                    {loadingLesson && !editingLesson ? (
+                         <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+                            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                        </div>
+                    ) : (
+                        editingLesson && (
+                            <LessonEditor 
+                                video={editingLesson} 
+                                onSave={handleLessonSaved} 
+                                onCancel={() => { setEditingLessonId(null); setEditingLesson(null); }}
+                                isModal={true}
+                            />
+                        )
+                    )}
+                </div>
+            </div>
+        </div>
+      )}
     </>
   );
 }

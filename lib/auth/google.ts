@@ -52,10 +52,16 @@ export function configureGoogleSignIn() {
     return;
   }
 
+  const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+  if (!webClientId) {
+    console.warn('Google Sign-In configuration skipped: Missing EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID');
+    return;
+  }
+
   GoogleSignin.configure({
     // Web client ID from Google Cloud Console
     // This is required for getting the idToken for Supabase
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    webClientId,
     // iOS client ID (optional, but recommended for iOS)
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     // Request offline access to get a refresh token

@@ -4,7 +4,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { createClient } from '@/lib/supabase/client';
-import { Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, CheckCircle, AlertCircle, Loader2, Video, FileText } from 'lucide-react';
+import { RichTextEditor } from '@/components/RichTextEditor';
 
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
 
@@ -23,6 +24,8 @@ export default function UploadVideoPage() {
   const [isFree, setIsFree] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
   const [dripDelayDays, setDripDelayDays] = useState(0);
+  const [type, setType] = useState<'video' | 'text'>('video');
+  const [textContent, setTextContent] = useState('');
 
   const [file, setFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
@@ -152,8 +155,13 @@ export default function UploadVideoPage() {
   };
 
   const handleSave = async () => {
-    if (!title || !muxPlaybackId) {
-      setError('Please fill in required fields and complete video upload');
+    if (!title) {
+        setError('Title is required');
+        return;
+    }
+
+    if (type === 'video' && !muxPlaybackId) {
+      setError('Please complete video upload');
       return;
     }
 
@@ -161,17 +169,41 @@ export default function UploadVideoPage() {
     setError(null);
 
     try {
+        let videoLibraryId = null;
+
+        if (type === 'video' && muxPlaybackId) {
+            // Create video_library entry first
+            const { data: libraryData, error: libraryError } = await supabase
+                .from('video_library')
+                .insert({
+                    title: title,
+                    filename: file?.name || 'uploaded-video',
+                    mux_asset_id: muxAssetId,
+                    mux_playback_id: muxPlaybackId,
+                    duration_seconds: duration,
+                })
+                .select('id')
+                .single();
+
+            if (libraryError) throw libraryError;
+            videoLibraryId = libraryData.id;
+        }
+
       const { error: insertError } = await supabase.from('videos').insert({
         title,
         description: description || null,
         module_id: moduleId || null,
-        video_url: `https://stream.mux.com/${muxPlaybackId}.m3u8`,
-        mux_asset_id: muxAssetId,
-        mux_playback_id: muxPlaybackId,
-        duration_seconds: duration,
+        video_url: type === 'video' ? `https://stream.mux.com/${muxPlaybackId}.m3u8` : null, // keep mostly for backward compat if needed, or null it? Let's keep it for safety for now or null it if we fully trust the join. Let's write it to be safe.
+        mux_asset_id: muxAssetId, // Deprecated but writing for safety
+        mux_playback_id: muxPlaybackId, // Deprecated but writing for safety
+        duration_seconds: duration, // Deprecated but writing for safety
         is_free: isFree,
         is_published: isPublished,
+        video_library_id: videoLibraryId, // The new relation
+
         sort_order: 0,
+        type: type,
+        text_content: textContent || null,
       });
 
       if (insertError) throw insertError;
@@ -229,7 +261,28 @@ export default function UploadVideoPage() {
             </div>
           )}
 
-          {/* File Upload Section */}
+
+          
+          {/* Content Type Selector */}
+          <div className="flex space-x-4 mb-8">
+              <button
+                  onClick={() => setType('video')}
+                  className={`flex-1 p-4 rounded-lg border-2 flex items-center justify-center space-x-2 transition-all ${type === 'video' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-gray-300'}`}
+              >
+                  <Video className="w-5 h-5" />
+                  <span className="font-medium">Video Content</span>
+              </button>
+              <button
+                  onClick={() => setType('text')}
+                  className={`flex-1 p-4 rounded-lg border-2 flex items-center justify-center space-x-2 transition-all ${type === 'text' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-gray-300'}`}
+              >
+                  <FileText className="w-5 h-5" />
+                  <span className="font-medium">Text & Image Content</span>
+              </button>
+          </div>
+
+          {/* File Upload Section - Only for Video */}
+          {type === 'video' && (
           <div className="mb-8">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Video File *
@@ -274,6 +327,7 @@ export default function UploadVideoPage() {
               )}
             </div>
           </div>
+          )}
 
           {/* Video Details */}
           <div className="space-y-6">
@@ -285,7 +339,7 @@ export default function UploadVideoPage() {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 placeholder="Enter video title"
               />
             </div>
@@ -298,7 +352,7 @@ export default function UploadVideoPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 placeholder="Enter video description"
               />
             </div>
@@ -310,7 +364,7 @@ export default function UploadVideoPage() {
               <select
                 value={moduleId}
                 onChange={(e) => setModuleId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               >
                 <option value="">No module (standalone)</option>
                 {modules.map((module) => (
@@ -362,28 +416,42 @@ export default function UploadVideoPage() {
                 min="0"
                 value={dripDelayDays}
                 onChange={(e) => setDripDelayDays(parseInt(e.target.value) || 0)}
-                className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Days after subscription start before this video unlocks (0 = immediate)
               </p>
             </div>
+
+            
+            {/* Content Editor */}
+            <div>
+                <RichTextEditor 
+                    value={textContent} 
+                    onChange={setTextContent} 
+                    label="Lesson Content / Notes"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                    Formatted text content, show notes, or transcript.
+                </p>
+            </div>
+
           </div>
 
           {/* Actions */}
           <div className="flex justify-end space-x-4 mt-8 pt-6 border-t">
             <button
               onClick={() => router.push('/videos')}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 bg-white"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              disabled={saving || uploadStatus !== 'ready'}
+              disabled={saving || (type === 'video' && uploadStatus !== 'ready')}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? 'Saving...' : 'Save Video'}
+              {saving ? 'Saving...' : 'Save Content'}
             </button>
           </div>
         </div>

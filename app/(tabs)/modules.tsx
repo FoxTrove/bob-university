@@ -8,13 +8,13 @@ export default function Modules() {
 
   return (
     <SafeContainer edges={['top']}>
-      <View className="flex-1 bg-brand-background">
+      <View className="flex-1 bg-background">
         {/* Header */}
-        <View className="px-4 py-4 border-b border-brand-border">
-          <Text className="text-2xl font-bold text-brand-primary">
+        <View className="px-4 py-4 border-b border-border">
+          <Text className="text-3xl font-serifBold text-text">
             Course Library
           </Text>
-          <Text className="text-brand-muted mt-1">
+          <Text className="text-textMuted mt-1">
             Master the art of hair styling
           </Text>
         </View>

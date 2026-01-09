@@ -1,0 +1,78 @@
+# PRD Changelog
+**Date:** December 16, 2025
+**Version:** 2.0 Updates
+
+## 12-12-25 (PRD Meeting)
+
+### Feature Tiers & Gating
+- **Differentiation:** Clear delineation required between Free and Paid tiers.
+- **Gating:** Advanced modules and Certifications are strictly paid features.
+
+### Onboarding & User Flows
+- **Personas:** Stylist, Salon Owner, Certification Client.
+- **Tours:** Pop-up guided tours for new users.
+- **Assessment:** Extended skill assessment (beyond original 3 questions).
+
+### Training Modules
+- **Structure:** Customizable structures (Collections vs Modules) per salon/client.
+- **Tracking:** Detailed progress tracking (checklists, %) and Salon Owner monitoring.
+- **Prerequisites:** Toggleable logic per module (flexible learning paths).
+
+### Content Delivery
+- **Drip:** Schedule-based release or all-at-once options.
+- **Player:** Speed adjustments (0.5x-2x), Force minimum watch time.
+
+### Analytics (Salon Owners)
+- **Engagement:** Detailed stylist engagement capability.
+- **Completion:** Overall module completion rates.
+
+### Certification Program
+- **Phasing:** Initial launch: "The Bob". Future: Pixie, Shag, etc.
+- **Commerce:** Distinct pricing and Stripe flows per certification.
+- **Physical:** Automation for shipping certificates/rewards.
+
+### Payment & Subscription
+- **Platforms:** Stripe (Web/Android), Apple IAP (iOS).
+- **Pricing:** Potential markup for iOS to offset 15-30% fees.
+
+### Directory
+- **Access:** Public web portal + In-app.
+- **Roadmap:** Direct client-stylist connection.
+
+---
+
+## 12-15-25 (Meeting with Ray)
+
+### Lesson Content Enhancements
+- **Attachments:** PDF upload/download support.
+- **Rich Media:** Lessons now support Video + Text Blocks + Inline Images (not just video).
+
+### Event & Workshop Management
+- **Creation:** UI with Start/End times, auto-Stripe price ID generation.
+- **Virtual:** Zoom integration (auto-link delivery).
+- **Discovery:** Event calendar with preview videos.
+- **Discounts:** Automated member discount application.
+
+### Ticketing
+- **Management:** In-app PDF tickets, Email delivery.
+- **Future:** QR code scanning (Phased).
+
+### Notification & Engagement
+- **Cadence:** Configurable triggers (1 week, 24hr, 1hr).
+- **Controls:** Quiet hours, Frequency caps, User toggles.
+
+### Access & Content Organization
+- **Collections:** New organizational unit for video/content access. Can be assigned directly to bypass paywalls.
+
+### Certified Stylist Directory
+- **Features:** Map & Search, Profiles (Bio, Instagram, Badges).
+- **Automation:** Post-certification notifications.
+
+### Platform & Policy
+- **Fees:** researching waivers for Apple 15%.
+- **Architecture:** Split iOS/Android apps with shared root.
+
+### Analytics & AI
+- **Dashboard:** Combined Revenue, Location, Churn, Conversion.
+- **AI:** Scope added for backend workflows and future chatbot.
+

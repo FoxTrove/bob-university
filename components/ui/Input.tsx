@@ -19,22 +19,22 @@ export function Input({
   return (
     <View className="w-full">
       {label && (
-        <Text className="text-gray-700 mb-1 font-medium">{label}</Text>
+        <Text className="text-text mb-1 font-medium">{label}</Text>
       )}
       <TextInput
         className={`
-          w-full border rounded-lg px-4 py-3 bg-gray-50 text-gray-900
-          ${hasError ? 'border-red-500' : 'border-gray-300'}
+          w-full border rounded-lg px-4 py-3 bg-surface text-text
+          ${hasError ? 'border-error' : 'border-border'}
           ${className}
         `}
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor="#71717a" // textMuted (Zinc 500) for better contrast
         {...props}
       />
       {error && (
-        <Text className="text-red-500 text-sm mt-1">{error}</Text>
+        <Text className="text-error text-sm mt-1">{error}</Text>
       )}
       {hint && !error && (
-        <Text className="text-gray-500 text-sm mt-1">{hint}</Text>
+        <Text className="text-textMuted text-sm mt-1">{hint}</Text>
       )}
     </View>
   );

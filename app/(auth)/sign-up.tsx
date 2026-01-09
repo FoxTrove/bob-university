@@ -68,7 +68,8 @@ export default function SignUp() {
             <TextInput
               className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 text-gray-900"
               placeholder="jessica@salon.com"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor="#6B7280"
+              style={{ color: '#111827' }} // Enforce text-gray-900 for dark mode
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -82,7 +83,8 @@ export default function SignUp() {
             <TextInput
               className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 text-gray-900"
               placeholder="••••••••"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor="#6B7280"
+              style={{ color: '#111827' }} // Enforce text-gray-900 for dark mode
               value={password}
               onChangeText={setPassword}
               secureTextEntry

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ViewProps } from 'react-native';
 
-type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info' | 'premium';
+type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info' | 'premium' | 'gold' | 'outline' | 'purple';
 type BadgeSize = 'sm' | 'md';
 
 interface BadgeProps extends ViewProps {
@@ -12,28 +12,40 @@ interface BadgeProps extends ViewProps {
 
 const variantStyles: Record<BadgeVariant, { bg: string; text: string }> = {
   default: {
-    bg: 'bg-gray-100',
-    text: 'text-gray-700',
+    bg: 'bg-surfaceHighlight',
+    text: 'text-text',
   },
   success: {
-    bg: 'bg-green-100',
-    text: 'text-green-700',
+    bg: 'bg-green-900/50',
+    text: 'text-green-400',
   },
   warning: {
-    bg: 'bg-yellow-100',
-    text: 'text-yellow-700',
+    bg: 'bg-yellow-900/50',
+    text: 'text-yellow-400',
   },
   error: {
-    bg: 'bg-red-100',
-    text: 'text-red-700',
+    bg: 'bg-red-900/50',
+    text: 'text-red-400',
   },
   info: {
-    bg: 'bg-blue-100',
-    text: 'text-blue-700',
+    bg: 'bg-blue-900/50',
+    text: 'text-blue-400',
   },
   premium: {
-    bg: 'bg-black',
+    bg: 'bg-primary',
     text: 'text-white',
+  },
+  gold: {
+    bg: 'bg-accent',
+    text: 'text-white',
+  },
+  outline: {
+    bg: 'bg-transparent border border-text',
+    text: 'text-text',
+  },
+  purple: {
+    bg: 'bg-purple-900/50',
+    text: 'text-purple-400',
   },
 };
 

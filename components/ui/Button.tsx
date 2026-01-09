@@ -1,33 +1,34 @@
 import React from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps } from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator, TouchableOpacityProps, View } from 'react-native';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends TouchableOpacityProps {
-  title: string;
+  title?: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
   fullWidth?: boolean;
+  children?: React.ReactNode;
 }
 
 const variantStyles: Record<ButtonVariant, { container: string; text: string }> = {
   primary: {
-    container: 'bg-black',
+    container: 'bg-primary',
     text: 'text-white',
   },
   secondary: {
-    container: 'bg-gray-200',
-    text: 'text-gray-900',
+    container: 'bg-surfaceHighlight',
+    text: 'text-text',
   },
   outline: {
-    container: 'bg-transparent border border-gray-300',
-    text: 'text-gray-900',
+    container: 'bg-transparent border border-border',
+    text: 'text-text',
   },
   ghost: {
     container: 'bg-transparent',
-    text: 'text-gray-900',
+    text: 'text-text',
   },
 };
 
@@ -54,6 +55,7 @@ export function Button({
   fullWidth = false,
   disabled,
   className = '',
+  children,
   ...props
 }: ButtonProps) {
   const isDisabled = disabled || loading;
@@ -78,8 +80,10 @@ export function Button({
           size="small"
           color={variant === 'primary' ? '#ffffff' : '#000000'}
         />
+      ) : children ? (
+        children
       ) : (
-        <Text className={`${variantStyle.text} ${sizeStyle.text} font-semibold`}>
+        <Text className={`${variantStyle.text} ${sizeStyle.text} font-bold tracking-wide`}>
           {title}
         </Text>
       )}
