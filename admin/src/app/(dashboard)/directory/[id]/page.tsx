@@ -154,10 +154,12 @@ export default function DirectoryDetailPage({ params }: { params: Promise<{ id: 
       .from('user_certifications')
       .select('id, status, approved_at')
       .eq('user_id', profileData.user_id)
-      .single();
+      .order('approved_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
-    if (certData) {
-      setCertification(certData);
+    if (certData && certData.length > 0) {
+      const approved = certData.find((cert) => cert.status === 'approved') || certData[0];
+      setCertification(approved);
     }
 
     setLoading(false);

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { start, end, comparisonStart, comparisonEnd, preset } = body;
+    const { start, end, comparisonStart, comparisonEnd, preset, filters } = body;
 
     const range = {
       start: new Date(start),
@@ -37,6 +37,22 @@ export async function POST(request: NextRequest) {
     };
 
     // Fetch revenue data
+    const applyFilters = (query: ReturnType<typeof supabase.from>) => {
+      if (filters?.sources?.length) {
+        query = query.in('source', filters.sources);
+      }
+      if (filters?.productTypes?.length) {
+        query = query.in('product_type', filters.productTypes);
+      }
+      if (filters?.plans?.length) {
+        query = query.in('plan', filters.plans);
+      }
+      if (filters?.statuses?.length) {
+        query = query.in('status', filters.statuses);
+      }
+      return query;
+    };
+
     const [
       currentRevenueResult,
       previousRevenueResult,
@@ -46,32 +62,36 @@ export async function POST(request: NextRequest) {
       transactions,
     ] = await Promise.all([
       // Current period total
-      supabase
-        .from('purchases')
+      applyFilters(
+        supabase
+        .from('revenue_ledger')
         .select('amount_cents')
-        .gte('created_at', range.start.toISOString())
-        .lte('created_at', range.end.toISOString())
-        .eq('status', 'completed'),
+        .gte('occurred_at', range.start.toISOString())
+        .lte('occurred_at', range.end.toISOString())
+        .eq('status', 'completed')
+      ),
 
       // Previous period total
-      supabase
-        .from('purchases')
+      applyFilters(
+        supabase
+        .from('revenue_ledger')
         .select('amount_cents')
-        .gte('created_at', comparisonRange.start.toISOString())
-        .lte('created_at', comparisonRange.end.toISOString())
-        .eq('status', 'completed'),
+        .gte('occurred_at', comparisonRange.start.toISOString())
+        .lte('occurred_at', comparisonRange.end.toISOString())
+        .eq('status', 'completed')
+      ),
 
       // Chart data
-      getRevenueOverTime(supabase, range),
+      getRevenueOverTime(supabase, range, filters),
 
       // By product
-      getRevenueByProduct(supabase, range),
+      getRevenueByProduct(supabase, range, filters),
 
       // By source
-      getRevenueBySource(supabase, range),
+      getRevenueBySource(supabase, range, filters),
 
       // Recent transactions
-      getTransactions(supabase, range, 50),
+      getTransactions(supabase, range, 50, filters),
     ]);
 
     // Calculate totals
@@ -108,18 +128,22 @@ export async function POST(request: NextRequest) {
     const previousArpu = totalUsers ? previousRevenue / totalUsers : 0;
 
     // Calculate refund rate
-    const { count: refundedCount } = await supabase
-      .from('purchases')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', range.start.toISOString())
-      .lte('created_at', range.end.toISOString())
-      .eq('status', 'refunded');
+    const { count: refundedCount } = await applyFilters(
+      supabase
+        .from('revenue_ledger')
+        .select('*', { count: 'exact', head: true })
+        .gte('occurred_at', range.start.toISOString())
+        .lte('occurred_at', range.end.toISOString())
+        .eq('status', 'refunded')
+    );
 
-    const { count: totalPurchases } = await supabase
-      .from('purchases')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', range.start.toISOString())
-      .lte('created_at', range.end.toISOString());
+    const { count: totalPurchases } = await applyFilters(
+      supabase
+        .from('revenue_ledger')
+        .select('*', { count: 'exact', head: true })
+        .gte('occurred_at', range.start.toISOString())
+        .lte('occurred_at', range.end.toISOString())
+    );
 
     const refundRate =
       totalPurchases && totalPurchases > 0

@@ -16,25 +16,35 @@ export type Database = {
     Tables: {
       certification_required_modules: {
         Row: {
+          certification_id: string
           created_at: string | null
           id: string
           module_id: string
         }
         Insert: {
+          certification_id: string
           created_at?: string | null
           id?: string
           module_id: string
         }
         Update: {
+          certification_id?: string
           created_at?: string | null
           id?: string
           module_id?: string
         }
         Relationships: [
           {
+            foreignKeyName: "certification_required_modules_certification_id_fkey"
+            columns: ["certification_id"]
+            isOneToOne: false
+            referencedRelation: "certification_settings"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "certification_required_modules_module_id_fkey"
             columns: ["module_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "modules"
             referencedColumns: ["id"]
           },
@@ -357,7 +367,7 @@ export type Database = {
           poster_url?: string | null
           price_cents?: number | null
           promo_video_url?: string | null
-          registration_open?: string | null
+          registration_open?: boolean | null
           stripe_price_id?: string | null
           stripe_product_id?: string | null
           thumbnail_url?: string | null
@@ -381,7 +391,7 @@ export type Database = {
           poster_url?: string | null
           price_cents?: number | null
           promo_video_url?: string | null
-          registration_open?: string | null
+          registration_open?: boolean | null
           stripe_price_id?: string | null
           stripe_product_id?: string | null
           thumbnail_url?: string | null
@@ -438,6 +448,62 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      notification_campaigns: {
+        Row: {
+          audience: string
+          body: string
+          created_at: string | null
+          created_by: string | null
+          deep_link: string | null
+          failed_count: number | null
+          id: string
+          scheduled_for: string | null
+          sent_at: string | null
+          sent_count: number | null
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          audience: string
+          body: string
+          created_at?: string | null
+          created_by?: string | null
+          deep_link?: string | null
+          failed_count?: number | null
+          id?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          audience?: string
+          body?: string
+          created_at?: string | null
+          created_by?: string | null
+          deep_link?: string | null
+          failed_count?: number | null
+          id?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -570,6 +636,71 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "push_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_ledger: {
+        Row: {
+          amount_cents: number
+          charge_id: string | null
+          created_at: string | null
+          currency: string
+          external_id: string | null
+          id: string
+          metadata: Json | null
+          occurred_at: string
+          payment_intent_id: string | null
+          plan: string | null
+          platform: string | null
+          product_type: string
+          source: string
+          status: string
+          subscription_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_cents?: number
+          charge_id?: string | null
+          created_at?: string | null
+          currency?: string
+          external_id?: string | null
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          payment_intent_id?: string | null
+          plan?: string | null
+          platform?: string | null
+          product_type: string
+          source: string
+          status?: string
+          subscription_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          charge_id?: string | null
+          created_at?: string | null
+          currency?: string
+          external_id?: string | null
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          payment_intent_id?: string | null
+          plan?: string | null
+          platform?: string | null
+          product_type?: string
+          source?: string
+          status?: string
+          subscription_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_ledger_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -769,10 +900,67 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_records: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          external_id: string | null
+          id: string
+          paused_at: string | null
+          plan: string | null
+          provider_metadata: Json | null
+          source: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          external_id?: string | null
+          id?: string
+          paused_at?: string | null
+          plan?: string | null
+          provider_metadata?: Json | null
+          source: string
+          status: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          external_id?: string | null
+          id?: string
+          paused_at?: string | null
+          plan?: string | null
+          provider_metadata?: Json | null
+          source?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_certifications: {
         Row: {
           approved_at: string | null
           attempt_number: number | null
+          certification_id: string
           created_at: string | null
           feedback: string | null
           id: string
@@ -787,6 +975,7 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           attempt_number?: number | null
+          certification_id: string
           created_at?: string | null
           feedback?: string | null
           id?: string
@@ -801,6 +990,7 @@ export type Database = {
         Update: {
           approved_at?: string | null
           attempt_number?: number | null
+          certification_id?: string
           created_at?: string | null
           feedback?: string | null
           id?: string
@@ -814,6 +1004,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "user_certifications_certification_id_fkey"
+            columns: ["certification_id"]
+            isOneToOne: false
+            referencedRelation: "certification_settings"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "user_certifications_reviewed_by_fkey"
             columns: ["reviewed_by"]
             isOneToOne: false
@@ -823,7 +1020,7 @@ export type Database = {
           {
             foreignKeyName: "user_certifications_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1005,7 +1202,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
@@ -1129,7 +1326,6 @@ export type CompositeTypes<
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : never
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

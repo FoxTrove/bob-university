@@ -19,7 +19,6 @@ import {
   Filter,
   ChevronDown,
   ChevronUp,
-  Image as ImageIcon,
 } from 'lucide-react';
 
 interface Module {
@@ -41,6 +40,7 @@ interface CertificationSettings {
 interface UserCertification {
   id: string;
   user_id: string;
+  certification_id: string;
   status: 'pending' | 'submitted' | 'approved' | 'rejected' | 'resubmitted';
   submission_video_url: string | null;
   feedback: string | null;
@@ -53,6 +53,10 @@ interface UserCertification {
     id: string;
     email: string;
     full_name: string | null;
+  } | null;
+  certification: {
+    id: string;
+    title: string;
   } | null;
 }
 
@@ -88,7 +92,9 @@ export default function CertificationsPage() {
   const supabase = createClient();
 
   // Settings state
-  const [settings, setSettings] = useState<CertificationSettings | null>(null);
+  const [certifications, setCertifications] = useState<CertificationSettings[]>([]);
+  const [selectedCertificationId, setSelectedCertificationId] = useState<string | null>(null);
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priceCents, setPriceCents] = useState('29700');
@@ -103,6 +109,7 @@ export default function CertificationsPage() {
   // Submissions state
   const [submissions, setSubmissions] = useState<UserCertification[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [certificationFilter, setCertificationFilter] = useState<string>('all');
   const [selectedSubmission, setSelectedSubmission] = useState<UserCertification | null>(null);
   const [feedbackText, setFeedbackText] = useState('');
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -120,6 +127,27 @@ export default function CertificationsPage() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (!selectedCertificationId) {
+      setRequiredModuleIds(new Set());
+      return;
+    }
+
+    const selected = certifications.find((item) => item.id === selectedCertificationId) || null;
+
+    if (selected) {
+      setTitle(selected.title);
+      setDescription(selected.description || '');
+      setPriceCents(selected.price_cents.toString());
+      setBadgeImageUrl(selected.badge_image_url || '');
+      setRequiresReview(selected.requires_review);
+      setIsActive(selected.is_active);
+      setIsCreatingNew(false);
+    }
+
+    loadRequiredModules(selectedCertificationId);
+  }, [selectedCertificationId, certifications]);
+
   async function loadData() {
     setLoading(true);
 
@@ -131,23 +159,38 @@ export default function CertificationsPage() {
     const { data: settingsData, error: settingsError } = await supabase
       .from('certification_settings')
       .select('*')
-      .limit(1)
-      .single();
+      .order('created_at', { ascending: true });
 
-    if (settingsError && settingsError.code !== 'PGRST116') {
+    if (settingsError) {
       setError('Failed to load certification settings');
       setLoading(false);
       return;
     }
 
-    if (settingsData) {
-      setSettings(settingsData);
-      setTitle(settingsData.title);
-      setDescription(settingsData.description || '');
-      setPriceCents(settingsData.price_cents.toString());
-      setBadgeImageUrl(settingsData.badge_image_url || '');
-      setRequiresReview(settingsData.requires_review);
-      setIsActive(settingsData.is_active);
+    const settingsList = settingsData || [];
+    setCertifications(settingsList);
+
+    const nextSelectedId = selectedCertificationId || settingsList[0]?.id || null;
+    setSelectedCertificationId(nextSelectedId);
+
+    const selectedSettings = settingsList.find((item) => item.id === nextSelectedId) || null;
+
+    if (selectedSettings) {
+      setTitle(selectedSettings.title);
+      setDescription(selectedSettings.description || '');
+      setPriceCents(selectedSettings.price_cents.toString());
+      setBadgeImageUrl(selectedSettings.badge_image_url || '');
+      setRequiresReview(selectedSettings.requires_review);
+      setIsActive(selectedSettings.is_active);
+      setIsCreatingNew(false);
+    } else {
+      setTitle('');
+      setDescription('');
+      setPriceCents('29700');
+      setBadgeImageUrl('');
+      setRequiresReview(true);
+      setIsActive(true);
+      setIsCreatingNew(true);
     }
 
     // Load all modules
@@ -160,15 +203,6 @@ export default function CertificationsPage() {
       setModules(modulesData);
     }
 
-    // Load required modules
-    const { data: requiredData } = await supabase
-      .from('certification_required_modules')
-      .select('module_id');
-
-    if (requiredData) {
-      setRequiredModuleIds(new Set(requiredData.map(r => r.module_id)));
-    }
-
     // Load submissions with profile info
     const { data: submissionsData } = await supabase
       .from('user_certifications')
@@ -178,6 +212,10 @@ export default function CertificationsPage() {
           id,
           email,
           full_name
+        ),
+        certification:certification_settings (
+          id,
+          title
         )
       `)
       .order('created_at', { ascending: false });
@@ -189,39 +227,73 @@ export default function CertificationsPage() {
     setLoading(false);
   }
 
+  async function loadRequiredModules(certificationId: string) {
+    const { data: requiredData } = await supabase
+      .from('certification_required_modules')
+      .select('module_id')
+      .eq('certification_id', certificationId);
+
+    if (requiredData) {
+      setRequiredModuleIds(new Set(requiredData.map(r => r.module_id)));
+    }
+  }
+
   async function handleSaveSettings() {
     setSaving(true);
     setError(null);
     setSuccessMessage(null);
 
     try {
-      // Update settings
-      const { error: updateError } = await supabase
-        .from('certification_settings')
-        .update({
-          title: title.trim(),
-          description: description.trim() || null,
-          price_cents: parseInt(priceCents) || 29700,
-          badge_image_url: badgeImageUrl.trim() || null,
-          requires_review: requiresReview,
-          is_active: isActive,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', settings?.id);
+      const payload = {
+        title: title.trim(),
+        description: description.trim() || null,
+        price_cents: parseInt(priceCents) || 29700,
+        badge_image_url: badgeImageUrl.trim() || null,
+        requires_review: requiresReview,
+        is_active: isActive,
+        updated_at: new Date().toISOString(),
+      };
 
-      if (updateError) throw updateError;
+      let activeCertificationId = selectedCertificationId;
+
+      if (!selectedCertificationId || isCreatingNew) {
+        const { data: inserted, error: insertError } = await supabase
+          .from('certification_settings')
+          .insert(payload)
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+
+        activeCertificationId = inserted.id;
+        setCertifications((prev) => [...prev, inserted]);
+        setSelectedCertificationId(inserted.id);
+        setIsCreatingNew(false);
+      } else {
+        const { error: updateError } = await supabase
+          .from('certification_settings')
+          .update(payload)
+          .eq('id', selectedCertificationId);
+
+        if (updateError) throw updateError;
+
+        setCertifications((prev) =>
+          prev.map((item) => (item.id === selectedCertificationId ? { ...item, ...payload } : item))
+        );
+      }
 
       // Update required modules
       // First, delete all existing
       await supabase
         .from('certification_required_modules')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+        .eq('certification_id', activeCertificationId);
 
       // Then insert new ones
       if (requiredModuleIds.size > 0) {
         const inserts = Array.from(requiredModuleIds).map(moduleId => ({
           module_id: moduleId,
+          certification_id: activeCertificationId,
         }));
 
         const { error: insertError } = await supabase
@@ -238,6 +310,18 @@ export default function CertificationsPage() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleStartNewCertification() {
+    setSelectedCertificationId(null);
+    setTitle('');
+    setDescription('');
+    setPriceCents('29700');
+    setBadgeImageUrl('');
+    setRequiresReview(true);
+    setIsActive(true);
+    setRequiredModuleIds(new Set());
+    setIsCreatingNew(true);
   }
 
   function toggleRequiredModule(moduleId: string) {
@@ -258,6 +342,7 @@ export default function CertificationsPage() {
           status: 'approved',
           feedback: feedbackText.trim() || null,
           reviewed_at: new Date().toISOString(),
+          reviewed_by: user?.id || null,
           approved_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
@@ -294,6 +379,7 @@ export default function CertificationsPage() {
           status: 'rejected',
           feedback: feedbackText.trim(),
           reviewed_at: new Date().toISOString(),
+          reviewed_by: user?.id || null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', submission.id);
@@ -323,11 +409,12 @@ export default function CertificationsPage() {
 
   function handleExportCSV() {
     const csvContent = [
-      ['Name', 'Email', 'Status', 'Attempt', 'Submitted', 'Approved', 'Feedback'].join(','),
+      ['Name', 'Email', 'Status', 'Certification', 'Attempt', 'Submitted', 'Approved', 'Feedback'].join(','),
       ...submissions.map(s => [
         s.profile?.full_name || 'Unknown',
         s.profile?.email || 'Unknown',
         s.status,
+        s.certification?.title || 'Unknown',
         s.attempt_number,
         s.submitted_at ? formatDate(s.submitted_at) : '',
         s.approved_at ? formatDate(s.approved_at) : '',
@@ -344,9 +431,13 @@ export default function CertificationsPage() {
     URL.revokeObjectURL(url);
   }
 
-  const filteredSubmissions = statusFilter === 'all'
-    ? submissions
-    : submissions.filter(s => s.status === statusFilter);
+  const filteredSubmissions = submissions.filter((submission) => {
+    const matchesStatus = statusFilter === 'all' ? true : submission.status === statusFilter;
+    const matchesCert = certificationFilter === 'all'
+      ? true
+      : submission.certification_id === certificationFilter;
+    return matchesStatus && matchesCert;
+  });
 
   // Stats calculations
   const totalCertified = submissions.filter(s => s.status === 'approved').length;
@@ -459,6 +550,36 @@ export default function CertificationsPage() {
 
           {showSettings && (
             <div className="p-6">
+              <div className="flex flex-col gap-3 mb-6 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium text-gray-700">
+                    Certification
+                  </label>
+                  <select
+                    value={selectedCertificationId || ''}
+                    onChange={(e) => setSelectedCertificationId(e.target.value || null)}
+                    className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 min-w-[220px]"
+                    disabled={certifications.length === 0}
+                  >
+                    {certifications.length === 0 ? (
+                      <option value="">No certifications</option>
+                    ) : (
+                      certifications.map((cert) => (
+                        <option key={cert.id} value={cert.id}>
+                          {cert.title}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+                <button
+                  onClick={handleStartNewCertification}
+                  className="flex items-center justify-center px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium"
+                >
+                  New Certification
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Left Column */}
                 <div className="space-y-4">
@@ -629,6 +750,20 @@ export default function CertificationsPage() {
                   <option value="rejected">Rejected</option>
                 </select>
               </div>
+              <div className="flex items-center">
+                <select
+                  value={certificationFilter}
+                  onChange={(e) => setCertificationFilter(e.target.value)}
+                  className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                >
+                  <option value="all">All Certifications</option>
+                  {certifications.map((cert) => (
+                    <option key={cert.id} value={cert.id}>
+                      {cert.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <button
                 onClick={handleExportCSV}
                 className="flex items-center text-sm text-gray-600 hover:text-gray-900"
@@ -657,6 +792,9 @@ export default function CertificationsPage() {
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Certification
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Attempt
@@ -691,6 +829,9 @@ export default function CertificationsPage() {
                         >
                           {statusLabels[submission.status]}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {submission.certification?.title || 'Unknown'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
                         #{submission.attempt_number}
@@ -759,6 +900,10 @@ export default function CertificationsPage() {
                   <p className="text-sm text-gray-500">User</p>
                   <p className="font-medium">{selectedSubmission.profile?.full_name || 'Unknown'}</p>
                   <p className="text-sm text-gray-500">{selectedSubmission.profile?.email}</p>
+                </div>
+                <div className="mb-4">
+                  <p className="text-sm text-gray-500">Certification</p>
+                  <p className="font-medium">{selectedSubmission.certification?.title || 'Unknown'}</p>
                 </div>
 
                 <div className="mb-4">

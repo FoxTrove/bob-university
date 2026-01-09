@@ -21,6 +21,10 @@ interface StylistProfile {
     email: string;
     full_name: string | null;
   } | null;
+  certifications: {
+    status: string;
+    approved_at: string | null;
+  }[];
   certification: {
     status: string;
     approved_at: string | null;
@@ -38,7 +42,7 @@ async function getStylistProfiles(): Promise<StylistProfile[]> {
         email,
         full_name
       ),
-      certification:user_certifications (
+      certifications:user_certifications (
         status,
         approved_at
       )
@@ -50,10 +54,15 @@ async function getStylistProfiles(): Promise<StylistProfile[]> {
     return [];
   }
 
-  return (profiles || []).map(p => ({
-    ...p,
-    certification: Array.isArray(p.certification) ? p.certification[0] || null : p.certification,
-  }));
+  return (profiles || []).map(p => {
+    const certifications = Array.isArray(p.certifications) ? p.certifications : [];
+    const approved = certifications.find((c) => c.status === 'approved') || null;
+    return {
+      ...p,
+      certifications,
+      certification: approved || certifications[0] || null,
+    };
+  });
 }
 
 function formatDate(dateStr: string): string {
@@ -70,7 +79,7 @@ export default async function DirectoryPage() {
   const profiles = await getStylistProfiles();
 
   const publicProfiles = profiles.filter(p => p.is_public);
-  const certifiedProfiles = profiles.filter(p => p.certification?.status === 'approved');
+  const certifiedProfiles = profiles.filter(p => p.certifications.some((c) => c.status === 'approved'));
   const totalProfiles = profiles.length;
 
   return (

@@ -50,8 +50,10 @@ export function CertificationCard({ certification, onRefresh }: CertificationCar
       case 'approved':
         return <Badge label="Certified" variant="success" />;
       case 'submitted':
-      case 'pending':
+      case 'resubmitted':
         return <Badge label="Under Review" variant="warning" />;
+      case 'pending':
+        return <Badge label="Awaiting Submission" variant="info" />;
       case 'rejected':
         return <Badge label="Needs Work" variant="error" />;
       default:

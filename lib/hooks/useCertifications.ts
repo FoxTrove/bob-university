@@ -72,7 +72,8 @@ export function useCertifications() {
           // Fetch user certification submissions
           const { data: submissions } = await supabase
             .from('user_certifications')
-            .select('certification_id, status, feedback');
+            .select('certification_id, status, feedback')
+            .eq('user_id', user.id);
             
           if (submissions) {
               submissions.forEach(sub => {
@@ -276,17 +277,21 @@ export function useSubmitCertification() {
             // Check if exists first to update or insert
             const { data: existing } = await supabase
                 .from('user_certifications')
-                .select('id')
+                .select('id, status, attempt_number')
                 .eq('user_id', user.id)
                 .eq('certification_id', certificationId)
                 .maybeSingle();
 
             if (existing) {
+                 const isResubmission = existing.status === 'rejected';
+                 const nextAttempt = isResubmission ? (existing.attempt_number || 1) + 1 : existing.attempt_number || 1;
                  const { error: updateError } = await supabase
                     .from('user_certifications')
                     .update({
-                        status: 'pending', // Re-submitting triggers pending review
+                        status: isResubmission ? 'resubmitted' : 'submitted',
                         submission_video_url: videoUrl || null,
+                        attempt_number: nextAttempt,
+                        submitted_at: new Date().toISOString(),
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', existing.id);
@@ -295,9 +300,10 @@ export function useSubmitCertification() {
                 const { error: insertError } = await supabase.from('user_certifications').insert({
                     user_id: user.id,
                     certification_id: certificationId,
-                    status: 'pending',
+                    status: 'submitted',
                     submission_video_url: videoUrl || null,
-                    attempt_number: 1
+                    attempt_number: 1,
+                    submitted_at: new Date().toISOString()
                 });
                 if (insertError) throw insertError;
             }

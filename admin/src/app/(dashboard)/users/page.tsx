@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { Header } from '@/components/Header';
+import Link from 'next/link';
 import { Users, Crown, Clock } from 'lucide-react';
 
 async function getUsers() {
@@ -11,8 +12,9 @@ async function getUsers() {
       *,
       entitlements (
         plan,
-        started_at,
-        expires_at
+        status,
+        current_period_start,
+        current_period_end
       )
     `)
     .order('created_at', { ascending: false });
@@ -39,9 +41,12 @@ export default async function UsersPage() {
   const { data: { user } } = await supabase.auth.getUser();
   const users = await getUsers();
 
-  const premiumCount = users.filter(
-    (u) => u.entitlements?.[0]?.plan === 'premium'
-  ).length;
+  const premiumCount = users.filter((u) => {
+    const entitlement = u.entitlements?.[0];
+    if (!entitlement) return false;
+    if (entitlement.status !== 'active') return false;
+    return entitlement.plan === 'individual' || entitlement.plan === 'salon';
+  }).length;
 
   return (
     <>
@@ -106,7 +111,12 @@ export default async function UsersPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {users.map((profile) => {
                 const entitlement = profile.entitlements?.[0];
-                const isPremium = entitlement?.plan === 'premium';
+                const isPremium = entitlement?.status === 'active' && (entitlement?.plan === 'individual' || entitlement?.plan === 'salon');
+                const planLabel = entitlement?.plan === 'salon'
+                  ? 'Salon'
+                  : entitlement?.plan === 'individual'
+                    ? 'Individual'
+                    : 'Free';
 
                 return (
                   <tr key={profile.id} className="hover:bg-gray-50">
@@ -126,9 +136,12 @@ export default async function UsersPage() {
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">
+                          <Link
+                            href={`/users/${profile.id}`}
+                            className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                          >
                             {profile.full_name || 'No name'}
-                          </p>
+                          </Link>
                           <p className="text-sm text-gray-500">{profile.email}</p>
                         </div>
                       </div>
@@ -141,14 +154,14 @@ export default async function UsersPage() {
                             : 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        {isPremium ? 'Premium' : 'Free'}
+                        {isPremium ? planLabel : 'Free'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {formatDate(entitlement?.started_at)}
+                      {formatDate(entitlement?.current_period_start)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {formatDate(entitlement?.expires_at)}
+                      {formatDate(entitlement?.current_period_end)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       {formatDate(profile.created_at)}

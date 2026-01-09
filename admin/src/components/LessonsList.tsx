@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Plus, Search, LayoutGrid, List as ListIcon, Play, Check, ChevronDown, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';

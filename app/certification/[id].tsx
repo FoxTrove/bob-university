@@ -48,6 +48,7 @@ export default function CertificationDetails() {
   
   const userStatus = cert.user_status?.status;
   const isQualified = cert.is_qualified;
+  const isUnderReview = userStatus === 'submitted' || userStatus === 'resubmitted';
   
   const handleApply = async () => {
     // Check if payment is required
@@ -260,7 +261,8 @@ export default function CertificationDetails() {
                      
                      <View className="mt-2">
                         {userStatus === 'approved' && <Badge label="Certified" variant="success" />}
-                        {(userStatus === 'submitted' || userStatus === 'pending') && <Badge label="Under Review" variant="warning" />}
+                        {isUnderReview && <Badge label="Under Review" variant="warning" />}
+                        {userStatus === 'pending' && <Badge label="Awaiting Submission" variant="info" />}
                         {userStatus === 'rejected' && <Badge label="Needs Work" variant="error" />}
                         {!userStatus && isQualified && <Badge label="Ready to Apply" variant="success" />}
                         {!userStatus && !isQualified && <Badge label="In Progress" variant="info" />}
@@ -268,7 +270,7 @@ export default function CertificationDetails() {
                 </View>
 
                 {/* Status-specific messages */}
-                {(userStatus === 'submitted' || userStatus === 'pending') ? (
+                {isUnderReview ? (
                     <View className="bg-surfaceHighlight p-6 rounded-xl items-center mb-8">
                         <Ionicons name="hourglass-outline" size={48} color="#eab308" className="mb-4" />
                         <Text className="text-white font-bold text-lg mb-2">Submission Received</Text>
@@ -317,7 +319,7 @@ export default function CertificationDetails() {
                 )}
 
                 {/* Available / Apply Flow */}
-                {(!userStatus || userStatus === 'rejected') && (
+                {(!userStatus || userStatus === 'rejected' || userStatus === 'pending') && (
                     <View>
                         {isQualified ? (
                             <View>
@@ -383,7 +385,7 @@ export default function CertificationDetails() {
                                      So we likely need a "Purchase to Start" button here if they haven't paid.
                                      Assuming price_cents > 0 means payment required.
                                  */}
-                                 {cert.price_cents > 0 && (
+                                 {!userStatus && cert.price_cents > 0 && (
                                      <Button 
                                         title={`Purchase for ${formattedPrice}`}
                                         onPress={handlePurchase}

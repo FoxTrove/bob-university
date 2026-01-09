@@ -27,6 +27,13 @@ function mapSubscriptionStatus(status: Stripe.Subscription.Status): string {
   }
 }
 
+function mapProductType(value: string | null | undefined): 'subscription' | 'event' | 'certification' | 'other' {
+  if (value === 'subscription' || value === 'event' || value === 'certification') {
+    return value;
+  }
+  return 'other';
+}
+
 async function resolveUserId({
   customerId,
   metadata,
@@ -74,6 +81,54 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    async function upsertRevenueLedger({
+      userId,
+      source,
+      productType,
+      plan,
+      status,
+      amountCents,
+      currency,
+      externalId,
+      paymentIntentId,
+      chargeId,
+      subscriptionId,
+      occurredAt,
+      metadata,
+    }: {
+      userId: string | null;
+      source: 'stripe';
+      productType: 'subscription' | 'event' | 'certification' | 'other';
+      plan?: string | null;
+      status: 'completed' | 'pending' | 'refunded' | 'failed';
+      amountCents: number;
+      currency: string;
+      externalId?: string | null;
+      paymentIntentId?: string | null;
+      chargeId?: string | null;
+      subscriptionId?: string | null;
+      occurredAt?: string | null;
+      metadata?: Record<string, unknown> | null;
+    }) {
+      if (!userId) return;
+      await supabase.from('revenue_ledger').insert({
+        user_id: userId,
+        source,
+        platform: 'web',
+        product_type: productType,
+        plan: plan || null,
+        status,
+        amount_cents: amountCents,
+        currency: currency.toUpperCase(),
+        external_id: externalId || null,
+        payment_intent_id: paymentIntentId || null,
+        charge_id: chargeId || null,
+        subscription_id: subscriptionId || null,
+        occurred_at: occurredAt || new Date().toISOString(),
+        metadata: metadata || {},
+      });
+    }
+
     if (event.type === 'payment_intent.succeeded') {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
       const { userId, productType, certificationId, eventId } = paymentIntent.metadata || {};
@@ -95,6 +150,21 @@ serve(async (req) => {
           console.error('Failed to record purchase:', purchaseError);
           throw purchaseError;
         }
+
+        await upsertRevenueLedger({
+          userId,
+          source: 'stripe',
+          productType: mapProductType(productType),
+          status: 'completed',
+          amountCents: paymentIntent.amount,
+          currency: paymentIntent.currency,
+          externalId: paymentIntent.id,
+          paymentIntentId: paymentIntent.id,
+          chargeId: paymentIntent.latest_charge as string | null,
+          subscriptionId: paymentIntent.invoice as string | null,
+          occurredAt: new Date(paymentIntent.created * 1000).toISOString(),
+          metadata: paymentIntent.metadata || {},
+        });
 
         if (productType === 'certification' && certificationId) {
           const { error: certError } = await supabase
@@ -137,6 +207,9 @@ serve(async (req) => {
           .single();
 
         const status = mapSubscriptionStatus(subscription.status);
+        const recordStatus = subscription.pause_collection?.behavior
+          ? 'paused'
+          : status;
 
         await supabase.from('entitlements').upsert(
           {
@@ -150,6 +223,23 @@ serve(async (req) => {
             updated_at: new Date().toISOString(),
           },
           { onConflict: 'user_id' }
+        );
+
+        await supabase.from('subscription_records').upsert(
+          {
+            user_id: userId,
+            source: 'stripe',
+            external_id: subscription.id,
+            status: recordStatus,
+            plan: planRow?.plan || null,
+            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            cancel_at_period_end: subscription.cancel_at_period_end,
+            paused_at: subscription.pause_collection?.behavior ? new Date().toISOString() : null,
+            provider_metadata: subscription.metadata || {},
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'user_id, source' }
         );
       }
     }
@@ -172,6 +262,12 @@ serve(async (req) => {
       const priceId = subscription?.items.data[0]?.price?.id || null;
 
       if (userId && priceId) {
+        const planRow = await supabase
+          .from('subscription_plans')
+          .select('plan')
+          .eq('stripe_price_id', priceId)
+          .single();
+
         await supabase.from('purchases').insert({
           user_id: userId,
           source: 'stripe',
@@ -183,7 +279,51 @@ serve(async (req) => {
           currency: invoice.currency,
           metadata: invoice.metadata,
         });
+
+        await upsertRevenueLedger({
+          userId,
+          source: 'stripe',
+          productType: 'subscription',
+          plan: planRow.data?.plan || null,
+          status: 'completed',
+          amountCents: invoice.amount_paid,
+          currency: invoice.currency,
+          externalId: invoice.id,
+          paymentIntentId: invoice.payment_intent as string | null,
+          chargeId: invoice.charge as string | null,
+          subscriptionId: subscriptionId,
+          occurredAt: invoice.created
+            ? new Date(invoice.created * 1000).toISOString()
+            : new Date().toISOString(),
+          metadata: invoice.metadata || {},
+        });
       }
+    }
+
+    if (event.type === 'charge.refunded') {
+      const charge = event.data.object as Stripe.Charge;
+      const paymentIntentId = charge.payment_intent as string | null;
+      const userId = await resolveUserId({
+        customerId: charge.customer as string | null,
+        metadata: charge.metadata,
+      });
+
+      await upsertRevenueLedger({
+        userId,
+        source: 'stripe',
+        productType: 'other',
+        status: 'refunded',
+        amountCents: charge.amount_refunded || charge.amount,
+        currency: charge.currency,
+        externalId: charge.id,
+        paymentIntentId,
+        chargeId: charge.id,
+        subscriptionId: charge.invoice as string | null,
+        occurredAt: charge.created
+          ? new Date(charge.created * 1000).toISOString()
+          : new Date().toISOString(),
+        metadata: charge.metadata || {},
+      });
     }
 
     return new Response(JSON.stringify({ received: true }), {

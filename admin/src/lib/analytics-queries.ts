@@ -60,6 +60,13 @@ export interface RevenueBySource {
   color: string;
 }
 
+export interface RevenueFilters {
+  sources?: string[];
+  productTypes?: string[];
+  plans?: string[];
+  statuses?: string[];
+}
+
 export interface UsersByPlan {
   name: string;
   value: number;
@@ -97,10 +104,10 @@ export async function getOverviewMetrics(
   ] = await Promise.all([
     // Total revenue in period
     supabase
-      .from('purchases')
+      .from('revenue_ledger')
       .select('amount_cents')
-      .gte('created_at', start.toISOString())
-      .lte('created_at', end.toISOString())
+      .gte('occurred_at', start.toISOString())
+      .lte('occurred_at', end.toISOString())
       .eq('status', 'completed'),
 
     // Total users as of end date
@@ -144,10 +151,10 @@ export async function getOverviewMetrics(
     previousChurnedResult,
   ] = await Promise.all([
     supabase
-      .from('purchases')
+      .from('revenue_ledger')
       .select('amount_cents')
-      .gte('created_at', comparison.start.toISOString())
-      .lte('created_at', comparison.end.toISOString())
+      .gte('occurred_at', comparison.start.toISOString())
+      .lte('occurred_at', comparison.end.toISOString())
       .eq('status', 'completed'),
 
     supabase
@@ -236,16 +243,32 @@ export async function getOverviewMetrics(
 
 export async function getRevenueOverTime(
   supabase: SupabaseClient,
-  range: DateRange
+  range: DateRange,
+  filters: RevenueFilters = {}
 ): Promise<RevenueByDate[]> {
   const { start, end, preset } = range;
 
-  const { data: purchases } = await supabase
-    .from('purchases')
-    .select('amount_cents, created_at')
-    .gte('created_at', start.toISOString())
-    .lte('created_at', end.toISOString())
+  let query = supabase
+    .from('revenue_ledger')
+    .select('amount_cents, occurred_at, source, product_type, plan, status')
+    .gte('occurred_at', start.toISOString())
+    .lte('occurred_at', end.toISOString())
     .eq('status', 'completed');
+
+  if (filters.sources && filters.sources.length > 0) {
+    query = query.in('source', filters.sources);
+  }
+  if (filters.productTypes && filters.productTypes.length > 0) {
+    query = query.in('product_type', filters.productTypes);
+  }
+  if (filters.plans && filters.plans.length > 0) {
+    query = query.in('plan', filters.plans);
+  }
+  if (filters.statuses && filters.statuses.length > 0) {
+    query = query.in('status', filters.statuses);
+  }
+
+  const { data: purchases } = await query;
 
   // Group by date
   const revenueByDate = new Map<string, number>();
@@ -267,8 +290,8 @@ export async function getRevenueOverTime(
   purchases?.forEach((purchase) => {
     const dateKey =
       preset === '1y'
-        ? format(new Date(purchase.created_at), 'yyyy-MM')
-        : format(new Date(purchase.created_at), 'yyyy-MM-dd');
+        ? format(new Date(purchase.occurred_at), 'yyyy-MM')
+        : format(new Date(purchase.occurred_at), 'yyyy-MM-dd');
 
     const current = revenueByDate.get(dateKey) || 0;
     revenueByDate.set(dateKey, current + (purchase.amount_cents || 0));
@@ -282,16 +305,29 @@ export async function getRevenueOverTime(
 
 export async function getRevenueByProduct(
   supabase: SupabaseClient,
-  range: DateRange
+  range: DateRange,
+  filters: RevenueFilters = {}
 ): Promise<RevenueByProduct[]> {
   const { start, end } = range;
 
-  const { data: purchases } = await supabase
-    .from('purchases')
-    .select('product_type, amount_cents')
-    .gte('created_at', start.toISOString())
-    .lte('created_at', end.toISOString())
+  let query = supabase
+    .from('revenue_ledger')
+    .select('product_type, amount_cents, source, plan, status')
+    .gte('occurred_at', start.toISOString())
+    .lte('occurred_at', end.toISOString())
     .eq('status', 'completed');
+
+  if (filters.sources && filters.sources.length > 0) {
+    query = query.in('source', filters.sources);
+  }
+  if (filters.plans && filters.plans.length > 0) {
+    query = query.in('plan', filters.plans);
+  }
+  if (filters.statuses && filters.statuses.length > 0) {
+    query = query.in('status', filters.statuses);
+  }
+
+  const { data: purchases } = await query;
 
   const byProduct = new Map<string, number>();
   purchases?.forEach((p) => {
@@ -316,16 +352,29 @@ export async function getRevenueByProduct(
 
 export async function getRevenueBySource(
   supabase: SupabaseClient,
-  range: DateRange
+  range: DateRange,
+  filters: RevenueFilters = {}
 ): Promise<RevenueBySource[]> {
   const { start, end } = range;
 
-  const { data: purchases } = await supabase
-    .from('purchases')
-    .select('source, amount_cents')
-    .gte('created_at', start.toISOString())
-    .lte('created_at', end.toISOString())
+  let query = supabase
+    .from('revenue_ledger')
+    .select('source, amount_cents, product_type, plan, status')
+    .gte('occurred_at', start.toISOString())
+    .lte('occurred_at', end.toISOString())
     .eq('status', 'completed');
+
+  if (filters.productTypes && filters.productTypes.length > 0) {
+    query = query.in('product_type', filters.productTypes);
+  }
+  if (filters.plans && filters.plans.length > 0) {
+    query = query.in('plan', filters.plans);
+  }
+  if (filters.statuses && filters.statuses.length > 0) {
+    query = query.in('status', filters.statuses);
+  }
+
+  const { data: purchases } = await query;
 
   const bySource = new Map<string, number>();
   purchases?.forEach((p) => {
@@ -335,13 +384,15 @@ export async function getRevenueBySource(
 
   const labels: Record<string, string> = {
     apple: 'iOS (Apple)',
-    stripe: 'Android/Web (Stripe)',
+    google: 'Android (Google)',
+    stripe: 'Web (Stripe)',
     unknown: 'Unknown',
   };
 
   const colors: Record<string, string> = {
     apple: '#3B82F6',
-    stripe: '#10B981',
+    google: '#10B981',
+    stripe: '#9333EA',
     unknown: '#6B7280',
   };
 
@@ -534,47 +585,72 @@ export interface Transaction {
   source: string;
   amount: number;
   status: string;
+  external_id?: string | null;
+  payment_intent_id?: string | null;
+  charge_id?: string | null;
 }
 
 export async function getTransactions(
   supabase: SupabaseClient,
   range: DateRange,
-  limit = 100
+  limit = 100,
+  filters: RevenueFilters = {}
 ): Promise<Transaction[]> {
   const { start, end } = range;
 
-  const { data: purchases } = await supabase
-    .from('purchases')
+  let query = supabase
+    .from('revenue_ledger')
     .select(`
       id,
-      created_at,
+      occurred_at,
       user_id,
       product_type,
       source,
       amount_cents,
-      status
+      status,
+      external_id,
+      payment_intent_id,
+      charge_id
     `)
-    .gte('created_at', start.toISOString())
-    .lte('created_at', end.toISOString())
-    .order('created_at', { ascending: false })
+    .gte('occurred_at', start.toISOString())
+    .lte('occurred_at', end.toISOString())
+    .order('occurred_at', { ascending: false })
     .limit(limit);
+
+  if (filters.sources && filters.sources.length > 0) {
+    query = query.in('source', filters.sources);
+  }
+  if (filters.productTypes && filters.productTypes.length > 0) {
+    query = query.in('product_type', filters.productTypes);
+  }
+  if (filters.plans && filters.plans.length > 0) {
+    query = query.in('plan', filters.plans);
+  }
+  if (filters.statuses && filters.statuses.length > 0) {
+    query = query.in('status', filters.statuses);
+  }
+
+  const { data: purchases } = await query;
 
   // Get user emails
   const userIds = [...new Set(purchases?.map((p) => p.user_id) || [])];
   const { data: profiles } = await supabase
     .from('profiles')
-    .select('user_id, email')
-    .in('user_id', userIds);
+    .select('id, email')
+    .in('id', userIds);
 
-  const emailMap = new Map(profiles?.map((p) => [p.user_id, p.email]) || []);
+  const emailMap = new Map(profiles?.map((p) => [p.id, p.email]) || []);
 
   return (purchases || []).map((p) => ({
     id: p.id,
-    date: format(new Date(p.created_at), 'yyyy-MM-dd HH:mm'),
+    date: format(new Date(p.occurred_at), 'yyyy-MM-dd HH:mm'),
     user_email: emailMap.get(p.user_id) || 'Unknown',
     product_type: p.product_type || 'Unknown',
     source: p.source || 'Unknown',
     amount: p.amount_cents / 100,
     status: p.status,
+    external_id: p.external_id,
+    payment_intent_id: p.payment_intent_id,
+    charge_id: p.charge_id,
   }));
 }

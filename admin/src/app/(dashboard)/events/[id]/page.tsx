@@ -206,9 +206,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       const priceInCents = priceCents ? Math.round(parseFloat(priceCents) * 100) : 0;
       const earlyBirdInCents = earlyBirdPriceCents ? Math.round(parseFloat(earlyBirdPriceCents) * 100) : null;
 
-      const { error: updateError } = await supabase
-        .from('events')
-        .update({
+      const { data, error: updateError } = await supabase.functions.invoke('manage-event', {
+        body: {
+          event_id: id,
           title: title.trim(),
           description: description.trim() || null,
           event_date: new Date(eventDate).toISOString(),
@@ -223,10 +223,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           collection_id: collectionId || null,
           is_published: isPublished,
           registration_open: registrationOpen,
-        })
-        .eq('id', id);
+        },
+      });
 
       if (updateError) throw updateError;
+      if (data?.error) throw new Error(data.error);
 
       setSuccessMessage('Event saved successfully');
       setTimeout(() => setSuccessMessage(null), 3000);

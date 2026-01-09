@@ -61,6 +61,7 @@ serve(async (req) => {
 
     const eventData = await req.json();
     const { 
+        event_id,
         title, 
         description, 
         event_date, 
@@ -81,32 +82,85 @@ serve(async (req) => {
         throw new Error('Title and Event Date are required');
     }
 
-    // 2. Create Stripe Product & Price if price > 0
     let stripeProductId = null;
     let stripePriceId = null;
+    let existingEvent = null;
 
-    if (price_cents && price_cents > 0) {
-        console.log('Creating Stripe Product for event:', title);
-        const product = await stripe.products.create({
-            name: title,
-            description: description || undefined,
-            metadata: {
-                type: 'event',
-                location: location || 'TBD'
-            }
-        });
-        stripeProductId = product.id;
-
-        console.log('Creating Stripe Price');
-        const price = await stripe.prices.create({
-            product: stripeProductId,
-            unit_amount: price_cents,
-            currency: 'usd',
-        });
-        stripePriceId = price.id;
+    if (event_id) {
+        const { data: existing, error: fetchError } = await supabaseClient
+            .from('events')
+            .select('*')
+            .eq('id', event_id)
+            .single();
+        if (fetchError) throw fetchError;
+        existingEvent = existing;
     }
 
-    // 3. Insert into Database
+    if (price_cents && price_cents > 0) {
+        if (existingEvent?.stripe_product_id) {
+            stripeProductId = existingEvent.stripe_product_id;
+        } else {
+            console.log('Creating Stripe Product for event:', title);
+            const product = await stripe.products.create({
+                name: title,
+                description: description || undefined,
+                metadata: {
+                    type: 'event',
+                    location: location || 'TBD'
+                }
+            });
+            stripeProductId = product.id;
+        }
+
+        if (existingEvent?.stripe_price_id && existingEvent?.price_cents === price_cents) {
+            stripePriceId = existingEvent.stripe_price_id;
+        } else {
+            console.log('Creating Stripe Price');
+            const price = await stripe.prices.create({
+                product: stripeProductId,
+                unit_amount: price_cents,
+                currency: 'usd',
+            });
+            stripePriceId = price.id;
+        }
+    } else if (existingEvent?.stripe_product_id) {
+        stripeProductId = existingEvent.stripe_product_id;
+        stripePriceId = null;
+    }
+
+    if (event_id) {
+        const { data: updatedEvent, error: updateError } = await supabaseClient
+            .from('events')
+            .update({
+                title,
+                description,
+                event_date,
+                event_end_date,
+                location,
+                venue_name,
+                venue_address,
+                max_capacity,
+                price_cents,
+                early_bird_price_cents,
+                early_bird_deadline,
+                collection_id,
+                is_published,
+                registration_open,
+                stripe_product_id: stripeProductId,
+                stripe_price_id: stripePriceId
+            })
+            .eq('id', event_id)
+            .select()
+            .single();
+
+        if (updateError) throw updateError;
+
+        return new Response(
+            JSON.stringify(updatedEvent),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+    }
+
     const { data: newEvent, error: insertError } = await supabaseClient
         .from('events')
         .insert({

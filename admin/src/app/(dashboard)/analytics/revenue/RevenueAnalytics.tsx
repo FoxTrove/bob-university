@@ -6,7 +6,7 @@ import {
   TrendingUp,
   CreditCard,
   RefreshCw,
-  Download,
+  ArrowRight,
 } from 'lucide-react';
 import {
   DateRangeSelector,
@@ -21,12 +21,12 @@ import {
   BarChartSkeleton,
   ExportCSVButton,
 } from '@/components/analytics';
+import { createClient } from '@/lib/supabase/client';
 import {
   DateRange,
   getDateRangeFromPreset,
   getComparisonPeriod,
   formatCurrency,
-  formatNumber,
 } from '@/lib/analytics';
 
 interface RevenueData {
@@ -51,21 +51,37 @@ interface RevenueData {
     source: string;
     amount: number;
     status: string;
+    external_id?: string | null;
+    payment_intent_id?: string | null;
+    charge_id?: string | null;
   }[];
 }
 
 export function RevenueAnalytics() {
+  const supabase = createClient();
   const [dateRange, setDateRange] = useState<DateRange>(
     getDateRangeFromPreset('30d')
   );
   const [data, setData] = useState<RevenueData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sourceFilter, setSourceFilter] = useState('all');
+  const [productFilter, setProductFilter] = useState('all');
+  const [planFilter, setPlanFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [refundState, setRefundState] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
       try {
         const rangeWithComparison = getComparisonPeriod(dateRange);
+        const filters = {
+          sources: sourceFilter === 'all' ? [] : [sourceFilter],
+          productTypes: productFilter === 'all' ? [] : [productFilter],
+          plans: planFilter === 'all' ? [] : [planFilter],
+          statuses: statusFilter === 'all' ? [] : [statusFilter],
+        };
         const response = await fetch('/api/analytics/revenue', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -75,6 +91,7 @@ export function RevenueAnalytics() {
             comparisonStart: rangeWithComparison.comparison.start.toISOString(),
             comparisonEnd: rangeWithComparison.comparison.end.toISOString(),
             preset: dateRange.preset,
+            filters,
           }),
         });
 
@@ -90,17 +107,97 @@ export function RevenueAnalytics() {
     }
 
     fetchData();
-  }, [dateRange]);
+  }, [dateRange, sourceFilter, productFilter, planFilter, statusFilter, refreshKey]);
 
   const handleDateRangeChange = (range: DateRange) => {
     setDateRange(range);
   };
 
+  const handleRefund = async (transaction: RevenueData['transactions'][number]) => {
+    if (transaction.source !== 'stripe') return;
+    if (!transaction.payment_intent_id && !transaction.charge_id && !transaction.external_id) {
+      return;
+    }
+
+    setRefundState(transaction.id);
+    try {
+      const payload: Record<string, unknown> = {
+        action: 'refund',
+        source: 'stripe',
+      };
+
+      if (transaction.payment_intent_id) {
+        payload.payment_intent_id = transaction.payment_intent_id;
+      } else if (transaction.charge_id) {
+        payload.charge_id = transaction.charge_id;
+      } else {
+        payload.invoice_id = transaction.external_id;
+      }
+
+      const { data: result, error } = await supabase.functions.invoke('admin-subscription', {
+        body: payload,
+      });
+
+      if (error) throw error;
+      if (result?.error) throw new Error(result.error);
+
+      setRefreshKey((prev) => prev + 1);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRefundState(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Date Range Selector */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <DateRangeSelector value={dateRange} onChange={handleDateRangeChange} />
+        <div className="flex flex-wrap gap-3">
+          <select
+            value={sourceFilter}
+            onChange={(event) => setSourceFilter(event.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-700"
+          >
+            <option value="all">All Sources</option>
+            <option value="stripe">Stripe (Web)</option>
+            <option value="apple">Apple (iOS)</option>
+            <option value="google">Google (Android)</option>
+          </select>
+          <select
+            value={productFilter}
+            onChange={(event) => setProductFilter(event.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-700"
+          >
+            <option value="all">All Products</option>
+            <option value="subscription">Subscriptions</option>
+            <option value="event">Events</option>
+            <option value="certification">Certifications</option>
+            <option value="other">Other</option>
+          </select>
+          <select
+            value={planFilter}
+            onChange={(event) => setPlanFilter(event.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-700"
+          >
+            <option value="all">All Plans</option>
+            <option value="individual">Individual</option>
+            <option value="salon">Salon</option>
+            <option value="free">Free</option>
+          </select>
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-700"
+          >
+            <option value="all">All Statuses</option>
+            <option value="completed">Completed</option>
+            <option value="pending">Pending</option>
+            <option value="refunded">Refunded</option>
+            <option value="failed">Failed</option>
+          </select>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -187,7 +284,7 @@ export function RevenueAnalytics() {
 
         <ChartCard
           title="Revenue by Platform"
-          subtitle="iOS (Apple) vs Android/Web (Stripe)"
+          subtitle="Apple, Google Play, and Stripe breakdown"
         >
           {loading ? (
             <BarChartSkeleton height={280} />
@@ -256,6 +353,9 @@ export function RevenueAnalytics() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -290,6 +390,19 @@ export function RevenueAnalytics() {
                       >
                         {tx.status}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right">
+                      {tx.source === 'stripe' && tx.status === 'completed' ? (
+                        <button
+                          onClick={() => handleRefund(tx)}
+                          className="text-xs text-red-600 hover:text-red-700 inline-flex items-center"
+                        >
+                          {refundState === tx.id ? 'Refunding...' : 'Refund'}
+                          <ArrowRight className="w-3 h-3 ml-1" />
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-400">-</span>
+                      )}
                     </td>
                   </tr>
                 ))}
