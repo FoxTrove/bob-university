@@ -88,6 +88,8 @@ serve(async (req) => {
       plan,
       status,
       amountCents,
+      feeCents,
+      netCents,
       currency,
       externalId,
       paymentIntentId,
@@ -102,6 +104,8 @@ serve(async (req) => {
       plan?: string | null;
       status: 'completed' | 'pending' | 'refunded' | 'failed';
       amountCents: number;
+      feeCents?: number | null;
+      netCents?: number | null;
       currency: string;
       externalId?: string | null;
       paymentIntentId?: string | null;
@@ -119,6 +123,8 @@ serve(async (req) => {
         plan: plan || null,
         status,
         amount_cents: amountCents,
+        fee_cents: feeCents ?? 0,
+        net_cents: netCents ?? amountCents,
         currency: currency.toUpperCase(),
         external_id: externalId || null,
         payment_intent_id: paymentIntentId || null,
@@ -132,6 +138,19 @@ serve(async (req) => {
     if (event.type === 'payment_intent.succeeded') {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
       const { userId, productType, certificationId, eventId } = paymentIntent.metadata || {};
+
+      let feeCents = 0;
+      let netCents = paymentIntent.amount;
+      const latestChargeId = paymentIntent.latest_charge as string | null;
+      if (latestChargeId) {
+        const charge = await stripe.charges.retrieve(latestChargeId, {
+          expand: ['balance_transaction'],
+        });
+        if (charge.balance_transaction && typeof charge.balance_transaction !== 'string') {
+          feeCents = charge.balance_transaction.fee || 0;
+          netCents = charge.balance_transaction.net || paymentIntent.amount - feeCents;
+        }
+      }
 
       if (userId) {
         const { error: purchaseError } = await supabase.from('purchases').insert({
@@ -157,6 +176,8 @@ serve(async (req) => {
           productType: mapProductType(productType),
           status: 'completed',
           amountCents: paymentIntent.amount,
+          feeCents,
+          netCents,
           currency: paymentIntent.currency,
           externalId: paymentIntent.id,
           paymentIntentId: paymentIntent.id,
@@ -261,6 +282,18 @@ serve(async (req) => {
 
       const priceId = subscription?.items.data[0]?.price?.id || null;
 
+      let feeCents = 0;
+      let netCents = invoice.amount_paid;
+      if (invoice.charge) {
+        const charge = await stripe.charges.retrieve(invoice.charge as string, {
+          expand: ['balance_transaction'],
+        });
+        if (charge.balance_transaction && typeof charge.balance_transaction !== 'string') {
+          feeCents = charge.balance_transaction.fee || 0;
+          netCents = charge.balance_transaction.net || invoice.amount_paid - feeCents;
+        }
+      }
+
       if (userId && priceId) {
         const planRow = await supabase
           .from('subscription_plans')
@@ -287,6 +320,8 @@ serve(async (req) => {
           plan: planRow.data?.plan || null,
           status: 'completed',
           amountCents: invoice.amount_paid,
+          feeCents,
+          netCents,
           currency: invoice.currency,
           externalId: invoice.id,
           paymentIntentId: invoice.payment_intent as string | null,
@@ -314,6 +349,8 @@ serve(async (req) => {
         productType: 'other',
         status: 'refunded',
         amountCents: charge.amount_refunded || charge.amount,
+        feeCents: 0,
+        netCents: -(charge.amount_refunded || charge.amount),
         currency: charge.currency,
         externalId: charge.id,
         paymentIntentId,

@@ -33,6 +33,10 @@ interface RevenueData {
   metrics: {
     totalRevenue: number;
     previousRevenue: number;
+    totalFees: number;
+    previousFees: number;
+    totalNet: number;
+    previousNet: number;
     mrr: number;
     previousMrr: number;
     arpu: number;
@@ -201,9 +205,9 @@ export function RevenueAnalytics() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         {loading ? (
-          <MetricCardSkeleton count={4} />
+          <MetricCardSkeleton count={6} />
         ) : data ? (
           <>
             <MetricCard
@@ -213,6 +217,22 @@ export function RevenueAnalytics() {
               previousValue={data.metrics.previousRevenue}
               icon={DollarSign}
               iconColor="bg-green-100 text-green-600"
+            />
+            <MetricCard
+              title="Fees"
+              value={formatCurrency(data.metrics.totalFees)}
+              currentValue={data.metrics.totalFees}
+              previousValue={data.metrics.previousFees}
+              icon={RefreshCw}
+              iconColor="bg-red-100 text-red-600"
+            />
+            <MetricCard
+              title="Net Revenue"
+              value={formatCurrency(data.metrics.totalNet)}
+              currentValue={data.metrics.totalNet}
+              previousValue={data.metrics.previousNet}
+              icon={DollarSign}
+              iconColor="bg-emerald-100 text-emerald-600"
             />
             <MetricCard
               title="MRR"
@@ -236,7 +256,7 @@ export function RevenueAnalytics() {
               currentValue={data.metrics.refundRate}
               previousValue={data.metrics.previousRefundRate}
               icon={RefreshCw}
-              iconColor="bg-red-100 text-red-600"
+              iconColor="bg-orange-100 text-orange-600"
             />
           </>
         ) : null}

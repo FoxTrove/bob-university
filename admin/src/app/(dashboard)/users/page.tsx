@@ -1,22 +1,15 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient, createClient } from '@/lib/supabase/server';
 import { Header } from '@/components/Header';
 import Link from 'next/link';
 import { Users, Crown, Clock } from 'lucide-react';
 
 async function getUsers() {
-  const supabase = await createClient();
+  const adminClient = createAdminClient();
+  const supabase = adminClient ?? await createClient();
 
   const { data: profiles, error } = await supabase
     .from('profiles')
-    .select(`
-      *,
-      entitlements (
-        plan,
-        status,
-        current_period_start,
-        current_period_end
-      )
-    `)
+    .select('id, email, full_name, avatar_url, role, created_at')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -24,7 +17,43 @@ async function getUsers() {
     return [];
   }
 
-  return profiles || [];
+  const userIds = (profiles || []).map((profile) => profile.id);
+  let entitlementsByUser = new Map<string, {
+    plan: string | null;
+    status: string | null;
+    current_period_start: string | null;
+    current_period_end: string | null;
+  }>();
+
+  if (userIds.length > 0) {
+    const { data: entitlements, error: entitlementError } = await supabase
+      .from('entitlements')
+      .select('user_id, plan, status, current_period_start, current_period_end')
+      .in('user_id', userIds);
+
+    if (entitlementError) {
+      console.error('Error fetching entitlements:', entitlementError);
+    } else if (entitlements) {
+      entitlementsByUser = new Map(
+        entitlements.map((entitlement) => [
+          entitlement.user_id,
+          {
+            plan: entitlement.plan,
+            status: entitlement.status,
+            current_period_start: entitlement.current_period_start,
+            current_period_end: entitlement.current_period_end,
+          },
+        ])
+      );
+    }
+  }
+
+  return (profiles || []).map((profile) => ({
+    ...profile,
+    entitlements: entitlementsByUser.get(profile.id)
+      ? [entitlementsByUser.get(profile.id)]
+      : [],
+  }));
 }
 
 function formatDate(dateString: string | null) {

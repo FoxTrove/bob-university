@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       applyFilters(
         supabase
         .from('revenue_ledger')
-        .select('amount_cents')
+        .select('amount_cents, fee_cents, net_cents')
         .gte('occurred_at', range.start.toISOString())
         .lte('occurred_at', range.end.toISOString())
         .eq('status', 'completed')
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       applyFilters(
         supabase
         .from('revenue_ledger')
-        .select('amount_cents')
+        .select('amount_cents, fee_cents, net_cents')
         .gte('occurred_at', comparisonRange.start.toISOString())
         .lte('occurred_at', comparisonRange.end.toISOString())
         .eq('status', 'completed')
@@ -100,9 +100,29 @@ export async function POST(request: NextRequest) {
         (sum, p) => sum + (p.amount_cents || 0),
         0
       ) || 0;
+    const totalFees =
+      currentRevenueResult.data?.reduce(
+        (sum, p) => sum + (p.fee_cents || 0),
+        0
+      ) || 0;
+    const totalNet =
+      currentRevenueResult.data?.reduce(
+        (sum, p) => sum + (p.net_cents ?? p.amount_cents || 0),
+        0
+      ) || 0;
     const previousRevenue =
       previousRevenueResult.data?.reduce(
         (sum, p) => sum + (p.amount_cents || 0),
+        0
+      ) || 0;
+    const previousFees =
+      previousRevenueResult.data?.reduce(
+        (sum, p) => sum + (p.fee_cents || 0),
+        0
+      ) || 0;
+    const previousNet =
+      previousRevenueResult.data?.reduce(
+        (sum, p) => sum + (p.net_cents ?? p.amount_cents || 0),
         0
       ) || 0;
 
@@ -124,8 +144,8 @@ export async function POST(request: NextRequest) {
       .from('profiles')
       .select('*', { count: 'exact', head: true });
 
-    const arpu = totalUsers ? totalRevenue / totalUsers : 0;
-    const previousArpu = totalUsers ? previousRevenue / totalUsers : 0;
+    const arpu = totalUsers ? totalNet / totalUsers : 0;
+    const previousArpu = totalUsers ? previousNet / totalUsers : 0;
 
     // Calculate refund rate
     const { count: refundedCount } = await applyFilters(
@@ -154,6 +174,10 @@ export async function POST(request: NextRequest) {
       metrics: {
         totalRevenue,
         previousRevenue,
+        totalFees,
+        previousFees,
+        totalNet,
+        previousNet,
         mrr,
         previousMrr,
         arpu,
