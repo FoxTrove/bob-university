@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Header } from '@/components/Header';
 import { User } from '@supabase/supabase-js';
@@ -36,31 +36,20 @@ export default function VideoLibraryPage() {
   const [user, setUser] = useState<User | null>(null);
   
   // New UI states
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window === 'undefined') return 'grid';
+    const savedView = localStorage.getItem('libraryViewMode') as ViewMode | null;
+    return savedView === 'grid' || savedView === 'list' ? savedView : 'grid';
+  });
+  const [sortBy, setSortBy] = useState<SortOption>(() => {
+    if (typeof window === 'undefined') return 'newest';
+    const savedSort = localStorage.getItem('librarySortBy') as SortOption | null;
+    return savedSort === 'newest' || savedSort === 'oldest' || savedSort === 'title' || savedSort === 'duration'
+      ? savedSort
+      : 'newest';
+  });
 
-  useEffect(() => {
-    // Load preferences from localStorage on mount
-    const savedView = localStorage.getItem('libraryViewMode') as ViewMode;
-    const savedSort = localStorage.getItem('librarySortBy') as SortOption;
-    
-    if (savedView) setViewMode(savedView);
-    if (savedSort) setSortBy(savedSort);
-    
-    loadData();
-  }, []);
-
-  const handleViewModeChange = (mode: ViewMode) => {
-      setViewMode(mode);
-      localStorage.setItem('libraryViewMode', mode);
-  };
-
-  const handleSortChange = (sort: SortOption) => {
-      setSortBy(sort);
-      localStorage.setItem('librarySortBy', sort);
-  };
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true);
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     setUser(currentUser);
@@ -72,7 +61,22 @@ export default function VideoLibraryPage() {
     
     setItems(data || []);
     setLoading(false);
-  }
+  }, [supabase]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadData();
+  }, [loadData]);
+
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    localStorage.setItem('libraryViewMode', mode);
+  };
+
+  const handleSortChange = (sort: SortOption) => {
+    setSortBy(sort);
+    localStorage.setItem('librarySortBy', sort);
+  };
 
   const getThumbnail = (item: LibraryItem) => {
     if (item.thumbnail_url) return item.thumbnail_url;

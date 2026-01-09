@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { MuxVideoPlayer } from '../../components/video';
@@ -100,7 +100,8 @@ export default function OnboardingWizard() {
   const [loading, setLoading] = useState(false);
 
   // MUX ID
-  const WELCOME_VIDEO_MUX_PLAYBACK_ID = "PLACEHOLDER_ID"; 
+  const WELCOME_VIDEO_MUX_PLAYBACK_ID = process.env.EXPO_PUBLIC_ONBOARDING_MUX_PLAYBACK_ID || null; 
+  const welcomeFallbackImage = require('../../assets/Bob Company app photos/img_1614.jpg');
 
   // --- LOGIC ---
 
@@ -207,12 +208,26 @@ export default function OnboardingWizard() {
             A personal message from Ray.
         </Text>
         <View className="w-full aspect-video bg-black rounded-xl overflow-hidden mb-6 shadow-sm shadow-black/20">
-            <MuxVideoPlayer
-                playbackId={WELCOME_VIDEO_MUX_PLAYBACK_ID}
-                title="Welcome"
-                autoPlay={false}
-                canSeekFuture={true}
-            />
+            {WELCOME_VIDEO_MUX_PLAYBACK_ID ? (
+                <MuxVideoPlayer
+                    playbackId={WELCOME_VIDEO_MUX_PLAYBACK_ID}
+                    title="Welcome"
+                    autoPlay={false}
+                    canSeekFuture={true}
+                />
+            ) : (
+                <View className="w-full h-full items-center justify-center bg-black">
+                    <Image
+                        source={welcomeFallbackImage}
+                        className="w-full h-full opacity-80"
+                        resizeMode="cover"
+                    />
+                    <View className="absolute inset-0 bg-black/40" />
+                    <Text className="absolute text-white text-base font-semibold">
+                        Welcome video coming soon
+                    </Text>
+                </View>
+            )}
         </View>
         <Text className="text-gray-200 text-center text-base px-2 font-sans">
             We're excited to help you master the art of the Bob and grow your salon business.

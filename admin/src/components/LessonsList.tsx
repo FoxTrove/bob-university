@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
-import { Plus, Search, LayoutGrid, List as ListIcon, Filter, Play, Check, ChevronDown, X } from 'lucide-react';
+import { Plus, Search, LayoutGrid, List as ListIcon, Play, Check, ChevronDown, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { VideoRow } from './VideoRow';
 
@@ -98,40 +98,57 @@ function FilterDropdown({
 
 export function LessonsList({ initialVideos }: LessonsListProps) {
   const router = useRouter();
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window === 'undefined') return 'list';
+    const savedView = localStorage.getItem('lessonsViewMode') as ViewMode | null;
+    return savedView === 'grid' || savedView === 'list' ? savedView : 'list';
+  });
+  const [sortBy, setSortBy] = useState<SortOption>(() => {
+    if (typeof window === 'undefined') return 'newest';
+    const savedSort = localStorage.getItem('lessonsSortBy') as SortOption | null;
+    return savedSort === 'newest' || savedSort === 'oldest' || savedSort === 'title' ? savedSort : 'newest';
+  });
   const [searchTerm, setSearchTerm] = useState('');
 
   // Filters
-  const [selectedModules, setSelectedModules] = useState<string[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
-  const [selectedAccess, setSelectedAccess] = useState<string[]>([]);
+  const [selectedModules, setSelectedModules] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const saved = localStorage.getItem('lessonsFilterModules');
+    if (!saved) return [];
+    try {
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+  const [selectedStatus, setSelectedStatus] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const saved = localStorage.getItem('lessonsFilterStatus');
+    if (!saved) return [];
+    try {
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+  const [selectedAccess, setSelectedAccess] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const saved = localStorage.getItem('lessonsFilterAccess');
+    if (!saved) return [];
+    try {
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Derived Options
   const distinctModules = Array.from(new Set(initialVideos.map(v => v.modules?.title).filter(Boolean))) as string[];
   const statusOptions = ['Published', 'Draft'];
   const accessOptions = ['Free', 'Premium'];
-
-  useEffect(() => {
-    // Load preferences
-    const savedView = localStorage.getItem('lessonsViewMode') as ViewMode;
-    const savedSort = localStorage.getItem('lessonsSortBy') as SortOption;
-    
-    // Load filters
-    try {
-        const savedMods = localStorage.getItem('lessonsFilterModules');
-        const savedStats = localStorage.getItem('lessonsFilterStatus');
-        const savedAccess = localStorage.getItem('lessonsFilterAccess');
-        
-        if (savedView) setViewMode(savedView);
-        if (savedSort) setSortBy(savedSort);
-        if (savedMods) setSelectedModules(JSON.parse(savedMods));
-        if (savedStats) setSelectedStatus(JSON.parse(savedStats));
-        if (savedAccess) setSelectedAccess(JSON.parse(savedAccess));
-    } catch (e) {
-        console.error('Failed to parse saved filters', e);
-    }
-  }, []);
 
   const handleViewModeChange = (mode: ViewMode) => {
     setViewMode(mode);

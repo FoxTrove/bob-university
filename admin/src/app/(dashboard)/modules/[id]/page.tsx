@@ -36,6 +36,7 @@ interface Video {
   drip_days: number | null;
   thumbnail_url: string | null;
   type: 'video' | 'text';
+  module_id?: string | null;
 }
 
 interface Module {
@@ -47,6 +48,25 @@ interface Module {
   sort_order: number;
   drip_days: number | null;
   drip_buckets: DripBucketType[] | null;
+}
+
+interface LessonVideo {
+  id: string;
+  title: string;
+  description: string | null;
+  module_id: string | null;
+  video_url: string;
+  thumbnail_url: string | null;
+  duration_seconds: number | null;
+  is_free: boolean;
+  is_published: boolean;
+  sort_order: number;
+  mux_playback_id: string | null;
+  mux_asset_id: string | null;
+  transcript: string | null;
+  type: 'video' | 'text';
+  text_content: string | null;
+  created_at: string;
 }
 
 // Drip bucket type
@@ -222,7 +242,7 @@ export default function EditModulePage() {
 
   // Edit Lesson State
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
-  const [editingLesson, setEditingLesson] = useState<any | null>(null);
+  const [editingLesson, setEditingLesson] = useState<LessonVideo | null>(null);
   const [loadingLesson, setLoadingLesson] = useState(false);
 
   // Video Selector State
@@ -499,7 +519,7 @@ export default function EditModulePage() {
       try {
           const { data, error } = await supabase.from('videos').select('*').eq('id', id).single();
           if (error) throw error;
-          setEditingLesson(data);
+          setEditingLesson(data as LessonVideo);
       } catch (err) {
           console.error("Error fetching lesson details:", err);
           setError("Failed to load lesson details");
@@ -1015,7 +1035,7 @@ export default function EditModulePage() {
                                         <p className="text-sm font-medium text-gray-900 truncate">{video.title}</p>
                                         <p className="text-xs text-gray-500">
                                             {video.duration_seconds ? `${Math.floor(video.duration_seconds/60)}:${(video.duration_seconds%60).toString().padStart(2,'0')}` : '--:--'}
-                                            {(video as any).module_id && <span className="ml-2 text-amber-600 font-medium">(In another module)</span>}
+                                            {video.module_id && <span className="ml-2 text-amber-600 font-medium">(In another module)</span>}
                                         </p>
                                     </div>
                                 </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Header } from '@/components/Header';
@@ -36,11 +36,7 @@ export default function LibraryItemPage({ params }: { params: Promise<{ id: stri
   const [title, setTitle] = useState('');
   const [filename, setFilename] = useState('');
 
-  useEffect(() => {
-    loadData();
-  }, [id]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true);
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     setUser(currentUser);
@@ -60,7 +56,12 @@ export default function LibraryItemPage({ params }: { params: Promise<{ id: stri
       setFilename(data.filename || '');
     }
     setLoading(false);
-  }
+  }, [id, supabase]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadData();
+  }, [loadData]);
 
   async function handleSave() {
     if (!title.trim()) {

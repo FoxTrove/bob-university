@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { Database } from '../../../lib/database.types';
 import { useStripe } from '@stripe/stripe-react-native';
+import { useAuth } from '../../../lib/auth';
 
 type Event = Database['public']['Tables']['events']['Row'] & {
   thumbnail_url: string | null;
@@ -24,6 +25,7 @@ export default function EventDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchEventDetails();
@@ -52,13 +54,34 @@ export default function EventDetailScreen() {
 
   const handlePurchase = async () => {
     if (!event) return;
+    if (!user) {
+      Alert.alert('Sign in required', 'Please sign in to book an event ticket.');
+      router.push('/(auth)/sign-in');
+      return;
+    }
     setPurchasing(true);
 
     try {
+      const amountCents = event.price_cents || 0;
+
+      if (amountCents === 0) {
+        await supabase.from('event_registrations').insert({
+          event_id: event.id,
+          user_id: user.id,
+          status: 'confirmed',
+          ticket_type: 'general',
+          amount_paid_cents: 0,
+          registered_at: new Date().toISOString(),
+          confirmed_at: new Date().toISOString(),
+        });
+        Alert.alert('Success', 'Your ticket is confirmed!');
+        return;
+      }
+
       // 1. Fetch PaymentIntent from our Edge Function
       const { data, error } = await supabase.functions.invoke('payment-sheet', {
         body: {
-            amountCents: event.price_cents || 0, // Already in cents from DB
+            amountCents,
             description: `Ticket for ${event.title}`,
             eventId: event.id,
         },
@@ -69,6 +92,9 @@ export default function EventDetailScreen() {
       }
 
       const { paymentIntent, ephemeralKey, customer } = data;
+      const paymentIntentId = typeof paymentIntent === 'string'
+        ? paymentIntent.split('_secret_')[0]
+        : null;
 
       // 2. Initialize the Payment Sheet
       const { error: initError } = await initPaymentSheet({
@@ -92,8 +118,25 @@ export default function EventDetailScreen() {
       if (paymentError) {
         Alert.alert(`Error code: ${paymentError.code}`, paymentError.message);
       } else {
+        const { error: registrationError } = await supabase
+          .from('event_registrations')
+          .insert({
+            event_id: event.id,
+            user_id: user.id,
+            status: 'confirmed',
+            ticket_type: 'general',
+            amount_paid_cents: amountCents,
+            payment_id: paymentIntentId,
+            registered_at: new Date().toISOString(),
+            confirmed_at: new Date().toISOString(),
+          });
+
+        if (registrationError) {
+          console.error('Registration insert failed:', registrationError);
+          Alert.alert('Payment confirmed', 'We received your payment. Ticket confirmation is still processing.');
+          return;
+        }
         Alert.alert('Success', 'Your ticket is confirmed!');
-        // TODO: Record purchase in 'event_registrations' table
       }
 
     } catch (error: any) {
@@ -214,4 +257,3 @@ export default function EventDetailScreen() {
     </SafeContainer>
   );
 }
-

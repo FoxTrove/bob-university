@@ -19,7 +19,7 @@ export default function Home() {
   useEffect(() => {
     if (user && !onboardingComplete) {
       const timer = setTimeout(() => {
-        router.push('/onboarding/welcome');
+        router.push('/onboarding');
       }, 2000); // 2 second delay
       return () => clearTimeout(timer);
     }

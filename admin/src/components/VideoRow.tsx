@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Play, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 
 interface VideoRowProps {
   video: {
@@ -21,6 +22,7 @@ interface VideoRowProps {
 
 export function VideoRow({ video }: VideoRowProps) {
   const router = useRouter();
+  const supabase = createClient();
 
   const thumbnailSrc = video.thumbnail_url
     || (video.mux_playback_id
@@ -36,9 +38,22 @@ export function VideoRow({ video }: VideoRowProps) {
     router.push(`/videos/${video.id}`);
   };
 
-  const handleDeleteClick = (e: React.MouseEvent) => {
+  const handleDeleteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    // TODO: Implement delete confirmation
+    const confirmed = window.confirm(`Delete "${video.title}"? This cannot be undone.`);
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from('videos')
+      .delete()
+      .eq('id', video.id);
+
+    if (error) {
+      window.alert(error.message || 'Failed to delete video.');
+      return;
+    }
+
+    router.refresh();
   };
 
   return (

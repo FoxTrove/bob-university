@@ -1,769 +1,1141 @@
-// Generated TypeScript types from Supabase database schema
-// Generated at: 2025-12-16T17:34:20.634Z
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
-
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
+  }
   public: {
     Tables: {
       certification_required_modules: {
         Row: {
-          id: string;
-          module_id: string;
-          created_at: string | null;
+          created_at: string | null
+          id: string
+          module_id: string
         }
         Insert: {
-          id?: string;
-          module_id: string;
-          created_at?: string | null;
+          created_at?: string | null
+          id?: string
+          module_id: string
         }
         Update: {
-          id?: string;
-          module_id?: string;
-          created_at?: string | null;
+          created_at?: string | null
+          id?: string
+          module_id?: string
         }
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "certification_required_modules_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: true
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       certification_settings: {
         Row: {
-          id: string;
-          title: string;
-          description: string | null;
-          price_cents: number;
-          badge_image_url: string | null;
-          requires_review: boolean | null;
-          is_active: boolean | null;
-          created_at: string | null;
-          updated_at: string | null;
+          badge_image_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          price_cents: number
+          requires_review: boolean | null
+          title: string
+          updated_at: string | null
         }
         Insert: {
-          id?: string;
-          title: string;
-          description?: string | null;
-          price_cents: number;
-          badge_image_url?: string | null;
-          requires_review?: boolean | null;
-          is_active?: boolean | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          badge_image_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          price_cents?: number
+          requires_review?: boolean | null
+          title?: string
+          updated_at?: string | null
         }
         Update: {
-          id?: string;
-          title?: string;
-          description?: string | null;
-          price_cents?: number;
-          badge_image_url?: string | null;
-          requires_review?: boolean | null;
-          is_active?: boolean | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          badge_image_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          price_cents?: number
+          requires_review?: boolean | null
+          title?: string
+          updated_at?: string | null
         }
-        Relationships: [];
+        Relationships: []
       }
       collection_access: {
         Row: {
-          id: string;
-          collection_id: string;
-          user_id: string;
-          granted_at: string | null;
-          expires_at: string | null;
-          source: string | null;
-          source_id: string | null;
-          notes: string | null;
-          created_at: string | null;
+          collection_id: string
+          created_at: string | null
+          expires_at: string | null
+          granted_at: string | null
+          id: string
+          notes: string | null
+          source: string | null
+          source_id: string | null
+          user_id: string
         }
         Insert: {
-          id?: string;
-          collection_id: string;
-          user_id: string;
-          granted_at?: string | null;
-          expires_at?: string | null;
-          source?: string | null;
-          source_id?: string | null;
-          notes?: string | null;
-          created_at?: string | null;
+          collection_id: string
+          created_at?: string | null
+          expires_at?: string | null
+          granted_at?: string | null
+          id?: string
+          notes?: string | null
+          source?: string | null
+          source_id?: string | null
+          user_id: string
         }
         Update: {
-          id?: string;
-          collection_id?: string;
-          user_id?: string;
-          granted_at?: string | null;
-          expires_at?: string | null;
-          source?: string | null;
-          source_id?: string | null;
-          notes?: string | null;
-          created_at?: string | null;
+          collection_id?: string
+          created_at?: string | null
+          expires_at?: string | null
+          granted_at?: string | null
+          id?: string
+          notes?: string | null
+          source?: string | null
+          source_id?: string | null
+          user_id?: string
         }
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "collection_access_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_access_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       collection_videos: {
         Row: {
-          id: string;
-          collection_id: string;
-          video_id: string;
-          sort_order: number | null;
-          custom_title: string | null;
-          custom_description: string | null;
-          created_at: string | null;
+          collection_id: string
+          created_at: string | null
+          custom_description: string | null
+          custom_title: string | null
+          id: string
+          sort_order: number | null
+          video_id: string
         }
         Insert: {
-          id?: string;
-          collection_id: string;
-          video_id: string;
-          sort_order?: number | null;
-          custom_title?: string | null;
-          custom_description?: string | null;
-          created_at?: string | null;
+          collection_id: string
+          created_at?: string | null
+          custom_description?: string | null
+          custom_title?: string | null
+          id?: string
+          sort_order?: number | null
+          video_id: string
         }
         Update: {
-          id?: string;
-          collection_id?: string;
-          video_id?: string;
-          sort_order?: number | null;
-          custom_title?: string | null;
-          custom_description?: string | null;
-          created_at?: string | null;
+          collection_id?: string
+          created_at?: string | null
+          custom_description?: string | null
+          custom_title?: string | null
+          id?: string
+          sort_order?: number | null
+          video_id?: string
         }
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "collection_videos_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_videos_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       collections: {
         Row: {
-          id: string;
-          title: string;
-          description: string | null;
-          thumbnail_url: string | null;
-          collection_type: string | null;
-          event_date: string | null;
-          event_location: string | null;
-          is_published: boolean | null;
-          access_starts_at: string | null;
-          access_ends_at: string | null;
-          sort_order: number | null;
-          created_at: string | null;
-          updated_at: string | null;
+          access_ends_at: string | null
+          access_starts_at: string | null
+          collection_type: string | null
+          created_at: string | null
+          description: string | null
+          event_date: string | null
+          event_location: string | null
+          id: string
+          is_published: boolean | null
+          sort_order: number | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
         }
         Insert: {
-          id?: string;
-          title: string;
-          description?: string | null;
-          thumbnail_url?: string | null;
-          collection_type?: string | null;
-          event_date?: string | null;
-          event_location?: string | null;
-          is_published?: boolean | null;
-          access_starts_at?: string | null;
-          access_ends_at?: string | null;
-          sort_order?: number | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          access_ends_at?: string | null
+          access_starts_at?: string | null
+          collection_type?: string | null
+          created_at?: string | null
+          description?: string | null
+          event_date?: string | null
+          event_location?: string | null
+          id?: string
+          is_published?: boolean | null
+          sort_order?: number | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
         }
         Update: {
-          id?: string;
-          title?: string;
-          description?: string | null;
-          thumbnail_url?: string | null;
-          collection_type?: string | null;
-          event_date?: string | null;
-          event_location?: string | null;
-          is_published?: boolean | null;
-          access_starts_at?: string | null;
-          access_ends_at?: string | null;
-          sort_order?: number | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          access_ends_at?: string | null
+          access_starts_at?: string | null
+          collection_type?: string | null
+          created_at?: string | null
+          description?: string | null
+          event_date?: string | null
+          event_location?: string | null
+          id?: string
+          is_published?: boolean | null
+          sort_order?: number | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
         }
-        Relationships: [];
+        Relationships: []
       }
       entitlements: {
         Row: {
-          id: string;
-          user_id: string;
-          plan: string | null;
-          status: string | null;
-          current_period_start: string | null;
-          current_period_end: string | null;
-          cancel_at_period_end: boolean | null;
-          created_at: string | null;
-          updated_at: string | null;
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan: string | null
+          status: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+          user_id: string
         }
         Insert: {
-          id?: string;
-          user_id: string;
-          plan?: string | null;
-          status?: string | null;
-          current_period_start?: string | null;
-          current_period_end?: string | null;
-          cancel_at_period_end?: boolean | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan?: string | null
+          status?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id: string
         }
         Update: {
-          id?: string;
-          user_id?: string;
-          plan?: string | null;
-          status?: string | null;
-          current_period_start?: string | null;
-          current_period_end?: string | null;
-          cancel_at_period_end?: boolean | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan?: string | null
+          status?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "entitlements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       event_registrations: {
         Row: {
-          id: string;
-          event_id: string;
-          user_id: string;
-          status: string | null;
-          ticket_type: string | null;
-          amount_paid_cents: number | null;
-          payment_id: string | null;
-          registered_at: string | null;
-          confirmed_at: string | null;
-          cancelled_at: string | null;
-          notes: string | null;
+          amount_paid_cents: number | null
+          cancelled_at: string | null
+          confirmed_at: string | null
+          event_id: string
+          id: string
+          notes: string | null
+          payment_id: string | null
+          registered_at: string | null
+          status: string | null
+          ticket_type: string | null
+          user_id: string
         }
         Insert: {
-          id?: string;
-          event_id: string;
-          user_id: string;
-          status?: string | null;
-          ticket_type?: string | null;
-          amount_paid_cents?: number | null;
-          payment_id?: string | null;
-          registered_at?: string | null;
-          confirmed_at?: string | null;
-          cancelled_at?: string | null;
-          notes?: string | null;
+          amount_paid_cents?: number | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          event_id: string
+          id?: string
+          notes?: string | null
+          payment_id?: string | null
+          registered_at?: string | null
+          status?: string | null
+          ticket_type?: string | null
+          user_id: string
         }
         Update: {
-          id?: string;
-          event_id?: string;
-          user_id?: string;
-          status?: string | null;
-          ticket_type?: string | null;
-          amount_paid_cents?: number | null;
-          payment_id?: string | null;
-          registered_at?: string | null;
-          confirmed_at?: string | null;
-          cancelled_at?: string | null;
-          notes?: string | null;
+          amount_paid_cents?: number | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          event_id?: string
+          id?: string
+          notes?: string | null
+          payment_id?: string | null
+          registered_at?: string | null
+          status?: string | null
+          ticket_type?: string | null
+          user_id?: string
         }
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       events: {
         Row: {
-          id: string;
-          title: string;
-          description: string | null;
-          event_date: string;
-          event_end_date: string | null;
-          location: string | null;
-          venue_name: string | null;
-          venue_address: string | null;
-          max_capacity: number | null;
-          price_cents: number | null;
-          early_bird_price_cents: number | null;
-          early_bird_deadline: string | null;
-          collection_id: string | null;
-          thumbnail_url: string | null;
-          is_published: boolean | null;
-          registration_open: boolean | null;
-          created_at: string | null;
-          updated_at: string | null;
-          stripe_product_id: string | null;
-          stripe_price_id: string | null;
+          collection_id: string | null
+          created_at: string | null
+          description: string | null
+          early_bird_deadline: string | null
+          early_bird_price_cents: number | null
+          event_date: string
+          event_end_date: string | null
+          id: string
+          is_published: boolean | null
+          location: string | null
+          max_capacity: number | null
+          poster_url: string | null
+          price_cents: number | null
+          promo_video_url: string | null
+          registration_open: boolean | null
+          stripe_price_id: string | null
+          stripe_product_id: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+          venue_address: string | null
+          venue_name: string | null
         }
         Insert: {
-          id?: string;
-          title: string;
-          description?: string | null;
-          event_date: string;
-          event_end_date?: string | null;
-          location?: string | null;
-          venue_name?: string | null;
-          venue_address?: string | null;
-          max_capacity?: number | null;
-          price_cents?: number | null;
-          early_bird_price_cents?: number | null;
-          early_bird_deadline?: string | null;
-          collection_id?: string | null;
-          thumbnail_url?: string | null;
-          is_published?: boolean | null;
-          registration_open?: boolean | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          stripe_product_id?: string | null;
-          stripe_price_id?: string | null;
+          collection_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          early_bird_deadline?: string | null
+          early_bird_price_cents?: number | null
+          event_date: string
+          event_end_date?: string | null
+          id?: string
+          is_published?: boolean | null
+          location?: string | null
+          max_capacity?: number | null
+          poster_url?: string | null
+          price_cents?: number | null
+          promo_video_url?: string | null
+          registration_open?: string | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+          venue_address?: string | null
+          venue_name?: string | null
         }
         Update: {
-          id?: string;
-          title?: string;
-          description?: string | null;
-          event_date?: string;
-          event_end_date?: string | null;
-          location?: string | null;
-          venue_name?: string | null;
-          venue_address?: string | null;
-          max_capacity?: number | null;
-          price_cents?: number | null;
-          early_bird_price_cents?: number | null;
-          early_bird_deadline?: string | null;
-          collection_id?: string | null;
-          thumbnail_url?: string | null;
-          is_published?: boolean | null;
-          registration_open?: boolean | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          stripe_product_id?: string | null;
-          stripe_price_id?: string | null;
+          collection_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          early_bird_deadline?: string | null
+          early_bird_price_cents?: number | null
+          event_date?: string
+          event_end_date?: string | null
+          id?: string
+          is_published?: boolean | null
+          location?: string | null
+          max_capacity?: number | null
+          poster_url?: string | null
+          price_cents?: number | null
+          promo_video_url?: string | null
+          registration_open?: string | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+          venue_address?: string | null
+          venue_name?: string | null
         }
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "events_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       modules: {
         Row: {
-          id: string;
-          title: string;
-          description: string | null;
-          thumbnail_url: string | null;
-          sort_order: number | null;
-          is_published: boolean | null;
-          created_at: string | null;
-          updated_at: string | null;
-          drip_days: number | null;
-          drip_buckets: Record<string, any> | null;
+          created_at: string | null
+          description: string | null
+          drip_buckets: Json | null
+          drip_days: number | null
+          id: string
+          is_published: boolean | null
+          sort_order: number | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
         }
         Insert: {
-          id?: string;
-          title: string;
-          description?: string | null;
-          thumbnail_url?: string | null;
-          sort_order?: number | null;
-          is_published?: boolean | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          drip_days?: number | null;
-          drip_buckets?: Record<string, any> | null;
+          created_at?: string | null
+          description?: string | null
+          drip_buckets?: Json | null
+          drip_days?: number | null
+          id?: string
+          is_published?: boolean | null
+          sort_order?: number | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
         }
         Update: {
-          id?: string;
-          title?: string;
-          description?: string | null;
-          thumbnail_url?: string | null;
-          sort_order?: number | null;
-          is_published?: boolean | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          drip_days?: number | null;
-          drip_buckets?: Record<string, any> | null;
+          created_at?: string | null
+          description?: string | null
+          drip_buckets?: Json | null
+          drip_days?: number | null
+          id?: string
+          is_published?: boolean | null
+          sort_order?: number | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
         }
-        Relationships: [];
+        Relationships: []
       }
       profiles: {
         Row: {
-          id: string;
-          email: string;
-          full_name: string | null;
-          avatar_url: string | null;
-          role: string | null;
-          salon_id: string | null;
-          years_experience: number | null;
-          location: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-          stripe_customer_id: string | null;
-          has_completed_onboarding: boolean | null;
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          full_name: string | null
+          has_completed_onboarding: boolean | null
+          id: string
+          location: string | null
+          role: string | null
+          salon_id: string | null
+          stripe_customer_id: string | null
+          updated_at: string | null
+          years_experience: number | null
         }
         Insert: {
-          id?: string;
-          email: string;
-          full_name?: string | null;
-          avatar_url?: string | null;
-          role?: string | null;
-          salon_id?: string | null;
-          years_experience?: number | null;
-          location?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          stripe_customer_id?: string | null;
-          has_completed_onboarding?: boolean | null;
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          has_completed_onboarding?: boolean | null
+          id: string
+          location?: string | null
+          role?: string | null
+          salon_id?: string | null
+          stripe_customer_id?: string | null
+          updated_at?: string | null
+          years_experience?: number | null
         }
         Update: {
-          id?: string;
-          email?: string;
-          full_name?: string | null;
-          avatar_url?: string | null;
-          role?: string | null;
-          salon_id?: string | null;
-          years_experience?: number | null;
-          location?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          stripe_customer_id?: string | null;
-          has_completed_onboarding?: boolean | null;
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          has_completed_onboarding?: boolean | null
+          id?: string
+          location?: string | null
+          role?: string | null
+          salon_id?: string | null
+          stripe_customer_id?: string | null
+          updated_at?: string | null
+          years_experience?: number | null
         }
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "fk_profiles_salon"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       purchases: {
         Row: {
-          id: string;
-          user_id: string;
-          source: string;
-          product_type: string;
-          product_id: string;
-          external_id: string;
-          status: string | null;
-          amount_cents: number | null;
-          currency: string | null;
-          metadata: Record<string, any> | null;
-          created_at: string | null;
-          updated_at: string | null;
+          amount_cents: number | null
+          created_at: string | null
+          currency: string | null
+          external_id: string
+          id: string
+          metadata: Json | null
+          product_id: string
+          product_type: string
+          source: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
         }
         Insert: {
-          id?: string;
-          user_id: string;
-          source: string;
-          product_type: string;
-          product_id: string;
-          external_id: string;
-          status?: string | null;
-          amount_cents?: number | null;
-          currency?: string | null;
-          metadata?: Record<string, any> | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          amount_cents?: number | null
+          created_at?: string | null
+          currency?: string | null
+          external_id: string
+          id?: string
+          metadata?: Json | null
+          product_id: string
+          product_type: string
+          source: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
         }
         Update: {
-          id?: string;
-          user_id?: string;
-          source?: string;
-          product_type?: string;
-          product_id?: string;
-          external_id?: string;
-          status?: string | null;
-          amount_cents?: number | null;
-          currency?: string | null;
-          metadata?: Record<string, any> | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          amount_cents?: number | null
+          created_at?: string | null
+          currency?: string | null
+          external_id?: string
+          id?: string
+          metadata?: Json | null
+          product_id?: string
+          product_type?: string
+          source?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       push_tokens: {
         Row: {
-          id: string;
-          user_id: string;
-          token: string;
-          platform: string | null;
-          created_at: string | null;
+          created_at: string | null
+          id: string
+          platform: string | null
+          token: string
+          user_id: string
         }
         Insert: {
-          id?: string;
-          user_id: string;
-          token: string;
-          platform?: string | null;
-          created_at?: string | null;
+          created_at?: string | null
+          id?: string
+          platform?: string | null
+          token: string
+          user_id: string
         }
         Update: {
-          id?: string;
-          user_id?: string;
-          token?: string;
-          platform?: string | null;
-          created_at?: string | null;
+          created_at?: string | null
+          id?: string
+          platform?: string | null
+          token?: string
+          user_id?: string
         }
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "push_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       salons: {
         Row: {
-          id: string;
-          name: string;
-          owner_id: string | null;
-          max_staff: number | null;
-          created_at: string | null;
-          updated_at: string | null;
+          created_at: string | null
+          id: string
+          max_staff: number | null
+          name: string
+          owner_id: string | null
+          updated_at: string | null
         }
         Insert: {
-          id?: string;
-          name: string;
-          owner_id?: string | null;
-          max_staff?: number | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          created_at?: string | null
+          id?: string
+          max_staff?: number | null
+          name: string
+          owner_id?: string | null
+          updated_at?: string | null
         }
         Update: {
-          id?: string;
-          name?: string;
-          owner_id?: string | null;
-          max_staff?: number | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          created_at?: string | null
+          id?: string
+          max_staff?: number | null
+          name?: string
+          owner_id?: string | null
+          updated_at?: string | null
         }
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "salons_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_access_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          max_uses: number | null
+          owner_id: string
+          salon_id: string | null
+          updated_at: string | null
+          used_count: number | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          owner_id: string
+          salon_id?: string | null
+          updated_at?: string | null
+          used_count?: number | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          owner_id?: string
+          salon_id?: string | null
+          updated_at?: string | null
+          used_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_access_codes_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stylist_profiles: {
         Row: {
-          id: string;
-          user_id: string;
-          display_name: string;
-          bio: string | null;
-          profile_photo_url: string | null;
-          salon_name: string | null;
-          city: string | null;
-          state: string | null;
-          country: string | null;
-          latitude: number | null;
-          longitude: number | null;
-          contact_email: string | null;
-          phone: string | null;
-          instagram_handle: string | null;
-          booking_url: string | null;
-          is_public: boolean | null;
-          created_at: string | null;
-          updated_at: string | null;
+          bio: string | null
+          booking_url: string | null
+          city: string | null
+          contact_email: string | null
+          country: string | null
+          created_at: string | null
+          display_name: string
+          id: string
+          instagram_handle: string | null
+          is_public: boolean | null
+          latitude: number | null
+          longitude: number | null
+          phone: string | null
+          profile_photo_url: string | null
+          salon_name: string | null
+          state: string | null
+          updated_at: string | null
+          user_id: string
+          zip_code: string | null
         }
         Insert: {
-          id?: string;
-          user_id: string;
-          display_name: string;
-          bio?: string | null;
-          profile_photo_url?: string | null;
-          salon_name?: string | null;
-          city?: string | null;
-          state?: string | null;
-          country?: string | null;
-          latitude?: number | null;
-          longitude?: number | null;
-          contact_email?: string | null;
-          phone?: string | null;
-          instagram_handle?: string | null;
-          booking_url?: string | null;
-          is_public?: boolean | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          bio?: string | null
+          booking_url?: string | null
+          city?: string | null
+          contact_email?: string | null
+          country?: string | null
+          created_at?: string | null
+          display_name: string
+          id?: string
+          instagram_handle?: string | null
+          is_public?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          phone?: string | null
+          profile_photo_url?: string | null
+          salon_name?: string | null
+          state?: string | null
+          updated_at?: string | null
+          user_id: string
+          zip_code?: string | null
         }
         Update: {
-          id?: string;
-          user_id?: string;
-          display_name?: string;
-          bio?: string | null;
-          profile_photo_url?: string | null;
-          salon_name?: string | null;
-          city?: string | null;
-          state?: string | null;
-          country?: string | null;
-          latitude?: number | null;
-          longitude?: number | null;
-          contact_email?: string | null;
-          phone?: string | null;
-          instagram_handle?: string | null;
-          booking_url?: string | null;
-          is_public?: boolean | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          bio?: string | null
+          booking_url?: string | null
+          city?: string | null
+          contact_email?: string | null
+          country?: string | null
+          created_at?: string | null
+          display_name?: string
+          id?: string
+          instagram_handle?: string | null
+          is_public?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          phone?: string | null
+          profile_photo_url?: string | null
+          salon_name?: string | null
+          state?: string | null
+          updated_at?: string | null
+          user_id?: string
+          zip_code?: string | null
         }
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "stylist_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_plans: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          id: string
+          interval: string
+          is_active: boolean
+          plan: string
+          stripe_price_id: string
+          stripe_product_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          id?: string
+          interval?: string
+          is_active?: boolean
+          plan: string
+          stripe_price_id: string
+          stripe_product_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          interval?: string
+          is_active?: boolean
+          plan?: string
+          stripe_price_id?: string
+          stripe_product_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_certifications: {
         Row: {
-          id: string;
-          user_id: string;
-          status: string | null;
-          submission_video_url: string | null;
-          feedback: string | null;
-          attempt_number: number | null;
-          submitted_at: string | null;
-          reviewed_at: string | null;
-          reviewed_by: string | null;
-          approved_at: string | null;
-          created_at: string | null;
-          updated_at: string | null;
+          approved_at: string | null
+          attempt_number: number | null
+          created_at: string | null
+          feedback: string | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          submission_video_url: string | null
+          submitted_at: string | null
+          updated_at: string | null
+          user_id: string
         }
         Insert: {
-          id?: string;
-          user_id: string;
-          status?: string | null;
-          submission_video_url?: string | null;
-          feedback?: string | null;
-          attempt_number?: number | null;
-          submitted_at?: string | null;
-          reviewed_at?: string | null;
-          reviewed_by?: string | null;
-          approved_at?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          approved_at?: string | null
+          attempt_number?: number | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submission_video_url?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id: string
         }
         Update: {
-          id?: string;
-          user_id?: string;
-          status?: string | null;
-          submission_video_url?: string | null;
-          feedback?: string | null;
-          attempt_number?: number | null;
-          submitted_at?: string | null;
-          reviewed_at?: string | null;
-          reviewed_by?: string | null;
-          approved_at?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          approved_at?: string | null
+          attempt_number?: number | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submission_video_url?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "user_certifications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_certifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       video_library: {
         Row: {
-          id: string;
-          title: string;
-          filename: string | null;
-          mux_asset_id: string | null;
-          mux_playback_id: string | null;
-          duration_seconds: number | null;
-          thumbnail_url: string | null;
-          created_at: string | null;
-          updated_at: string | null;
+          created_at: string | null
+          duration_seconds: number | null
+          filename: string | null
+          id: string
+          mux_asset_id: string | null
+          mux_playback_id: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
         }
         Insert: {
-          id?: string;
-          title: string;
-          filename?: string | null;
-          mux_asset_id?: string | null;
-          mux_playback_id?: string | null;
-          duration_seconds?: number | null;
-          thumbnail_url?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          created_at?: string | null
+          duration_seconds?: number | null
+          filename?: string | null
+          id?: string
+          mux_asset_id?: string | null
+          mux_playback_id?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
         }
         Update: {
-          id?: string;
-          title?: string;
-          filename?: string | null;
-          mux_asset_id?: string | null;
-          mux_playback_id?: string | null;
-          duration_seconds?: number | null;
-          thumbnail_url?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
+          created_at?: string | null
+          duration_seconds?: number | null
+          filename?: string | null
+          id?: string
+          mux_asset_id?: string | null
+          mux_playback_id?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
         }
-        Relationships: [];
+        Relationships: []
       }
       video_progress: {
         Row: {
-          id: string;
-          user_id: string;
-          video_id: string;
-          watched_seconds: number | null;
-          duration_seconds: number | null;
-          completed: boolean | null;
-          completed_at: string | null;
-          last_watched_at: string | null;
-          created_at: string | null;
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          duration_seconds: number | null
+          id: string
+          last_watched_at: string | null
+          user_id: string
+          video_id: string
+          watched_seconds: number | null
         }
         Insert: {
-          id?: string;
-          user_id: string;
-          video_id: string;
-          watched_seconds?: number | null;
-          duration_seconds?: number | null;
-          completed?: boolean | null;
-          completed_at?: string | null;
-          last_watched_at?: string | null;
-          created_at?: string | null;
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          last_watched_at?: string | null
+          user_id: string
+          video_id: string
+          watched_seconds?: number | null
         }
         Update: {
-          id?: string;
-          user_id?: string;
-          video_id?: string;
-          watched_seconds?: number | null;
-          duration_seconds?: number | null;
-          completed?: boolean | null;
-          completed_at?: string | null;
-          last_watched_at?: string | null;
-          created_at?: string | null;
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          last_watched_at?: string | null
+          user_id?: string
+          video_id?: string
+          watched_seconds?: number | null
         }
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "video_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_progress_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       videos: {
         Row: {
-          id: string;
-          module_id: string | null;
-          title: string;
-          description: string | null;
-          video_url: string | null;
-          thumbnail_url: string | null;
-          duration_seconds: number | null;
-          sort_order: number | null;
-          is_free: boolean | null;
-          is_published: boolean | null;
-          transcript: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-          mux_playback_id: string | null;
-          mux_asset_id: string | null;
-          drip_days: number | null;
-          type: string | null;
-          text_content: string | null;
-          video_library_id: string | null;
-          content_json: Record<string, any> | null;
+          content_json: Json | null
+          created_at: string | null
+          description: string | null
+          drip_days: number | null
+          duration_seconds: number | null
+          id: string
+          is_free: boolean | null
+          is_published: boolean | null
+          module_id: string | null
+          mux_asset_id: string | null
+          mux_playback_id: string | null
+          sort_order: number | null
+          text_content: string | null
+          thumbnail_url: string | null
+          title: string
+          transcript: string | null
+          type: string | null
+          updated_at: string | null
+          video_library_id: string | null
+          video_url: string | null
         }
         Insert: {
-          id?: string;
-          module_id?: string | null;
-          title: string;
-          description?: string | null;
-          video_url?: string | null;
-          thumbnail_url?: string | null;
-          duration_seconds?: number | null;
-          sort_order?: number | null;
-          is_free?: boolean | null;
-          is_published?: boolean | null;
-          transcript?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          mux_playback_id?: string | null;
-          mux_asset_id?: string | null;
-          drip_days?: number | null;
-          type?: string | null;
-          text_content?: string | null;
-          video_library_id?: string | null;
-          content_json?: Record<string, any> | null;
+          content_json?: Json | null
+          created_at?: string | null
+          description?: string | null
+          drip_days?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_free?: boolean | null
+          is_published?: boolean | null
+          module_id?: string | null
+          mux_asset_id?: string | null
+          mux_playback_id?: string | null
+          sort_order?: number | null
+          text_content?: string | null
+          thumbnail_url?: string | null
+          title: string
+          transcript?: string | null
+          type?: string | null
+          updated_at?: string | null
+          video_library_id?: string | null
+          video_url?: string | null
         }
         Update: {
-          id?: string;
-          module_id?: string | null;
-          title?: string;
-          description?: string | null;
-          video_url?: string | null;
-          thumbnail_url?: string | null;
-          duration_seconds?: number | null;
-          sort_order?: number | null;
-          is_free?: boolean | null;
-          is_published?: boolean | null;
-          transcript?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          mux_playback_id?: string | null;
-          mux_asset_id?: string | null;
-          drip_days?: number | null;
-          type?: string | null;
-          text_content?: string | null;
-          video_library_id?: string | null;
-          content_json?: Record<string, any> | null;
+          content_json?: Json | null
+          created_at?: string | null
+          description?: string | null
+          drip_days?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_free?: boolean | null
+          is_published?: boolean | null
+          module_id?: string | null
+          mux_asset_id?: string | null
+          mux_playback_id?: string | null
+          sort_order?: number | null
+          text_content?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          transcript?: string | null
+          type?: string | null
+          updated_at?: string | null
+          video_library_id?: string | null
+          video_url?: string | null
         }
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "videos_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "videos_video_library_id_fkey"
+            columns: ["video_library_id"]
+            isOneToOne: false
+            referencedRelation: "video_library"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
-    Views: {}
-    Functions: {}
-    Enums: {}
-    CompositeTypes: {}
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
 
-export type Video = Database['public']['Tables']['videos']['Row'];
-export type VideoProgress = Database['public']['Tables']['video_progress']['Row'];
-export type Module = Database['public']['Tables']['modules']['Row'];
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-export interface VideoWithProgress extends Video {
-  video_progress: VideoProgress | null;
-  module?: Module | null;
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
 }
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : never
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

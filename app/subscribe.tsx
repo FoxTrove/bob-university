@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, Alert, Platform, Linking } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeContainer } from '../components/layout/SafeContainer';
 import { Card } from '../components/ui/Card';
@@ -7,6 +7,8 @@ import { Button } from '../components/ui/Button';
 import { useStripe } from '@stripe/stripe-react-native';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../lib/supabase';
+import * as LinkingExpo from 'expo-linking';
 
 interface PlanFeature {
   text: string;
@@ -41,30 +43,32 @@ const plans: Plan[] = [
   {
     id: 'individual',
     name: 'Individual',
-    price: '$19.99',
+    price: '$49',
     period: '/month',
     description: 'Full access for solo stylists',
     features: [
       { text: 'Access to free videos', included: true },
       { text: 'All premium courses', included: true },
-      { text: 'Earn certifications', included: true },
+      { text: 'Certification eligibility', included: true },
       { text: 'Stylist directory listing', included: true },
+      { text: 'Progress tracking', included: true },
       { text: 'Team management', included: false },
+      { text: 'Event discounts', included: true },
     ],
     popular: true,
   },
   {
     id: 'salon',
     name: 'Salon',
-    price: '$49.99',
+    price: '$97',
     period: '/month',
     description: 'Train your entire team',
     features: [
       { text: 'Everything in Individual', included: true },
       { text: 'Up to 5 team members', included: true },
+      { text: 'Staff access codes', included: true },
       { text: 'Team progress tracking', included: true },
-      { text: 'Priority support', included: true },
-      { text: 'Custom branding', included: true },
+      { text: 'Event discounts (15%)', included: true },
     ],
   },
 ];
@@ -126,39 +130,55 @@ export default function Subscribe() {
 
   const handleSelectPlan = async (planId: string) => {
     if (planId === 'free') return;
+
+    if (Platform.OS === 'ios') {
+      Alert.alert('Apple IAP Required', 'Subscriptions on iOS are handled via Apple In-App Purchases.');
+      return;
+    }
     
     setLoading(true);
     
     try {
-      // 1. Fetch PaymentIntent from your backend
-      // TODO: Replace with actual backend call
-      // const response = await fetch(`${API_URL}/create-payment-subscription`, {
-      //   method: 'POST',
-      //   body: JSON.stringify({ planId }),
-      // });
-      // const { paymentIntent, ephemeralKey, customer } = await response.json();
+      const returnUrl = LinkingExpo.createURL('stripe-redirect');
 
-      // Placeholder for now
-      Alert.alert("Backend Required", "Payment integration requires backend setup for Stripe Payment Sheet.");
-      
-      // 2. Initialize Payment Sheet
-      // const { error: initError } = await initPaymentSheet({
-      //   merchantDisplayName: "Bob University",
-      //   customerId: customer,
-      //   customerEphemeralKeySecret: ephemeralKey,
-      //   paymentIntentClientSecret: paymentIntent,
-      //   allowsDelayedPaymentMethods: true,
-      //   defaultBillingDetails: {
-      //     name: 'Jane Doe',
-      //   }
-      // });
-      // if (initError) throw new Error(initError.message);
+      const { data, error } = await supabase.functions.invoke('create-subscription', {
+        body: {
+          plan: planId,
+          platform: Platform.OS === 'web' ? 'web' : 'mobile',
+          successUrl: returnUrl,
+          cancelUrl: returnUrl,
+          returnUrl,
+        },
+      });
 
-      // 3. Present Payment Sheet
-      // const { error: presentError } = await presentPaymentSheet();
-      // if (presentError) throw new Error(presentError.message);
-      
-      // Alert.alert("Success", "Subscription active!");
+      if (error || !data) {
+        throw new Error(error?.message || 'Failed to initialize subscription');
+      }
+
+      if (Platform.OS === 'web') {
+        if (data.checkoutUrl) {
+          await Linking.openURL(data.checkoutUrl);
+          return;
+        }
+        throw new Error('Missing checkout URL');
+      }
+
+      const { paymentIntent, ephemeralKey, customer } = data;
+
+      const { error: initError } = await initPaymentSheet({
+        merchantDisplayName: "Bob University",
+        customerId: customer,
+        customerEphemeralKeySecret: ephemeralKey,
+        paymentIntentClientSecret: paymentIntent,
+        allowsDelayedPaymentMethods: false,
+        returnURL: returnUrl,
+      });
+      if (initError) throw new Error(initError.message);
+
+      const { error: presentError } = await presentPaymentSheet();
+      if (presentError) throw new Error(presentError.message);
+
+      Alert.alert("Success", "Subscription active!");
       
     } catch (error) {
       console.error(error);

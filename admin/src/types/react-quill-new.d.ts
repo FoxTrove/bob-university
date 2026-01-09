@@ -2,7 +2,7 @@ declare module 'react-quill-new' {
     import React from 'react';
     export interface ReactQuillProps {
         theme?: string;
-        modules?: any;
+        modules?: Record<string, unknown>;
         formats?: string[];
         value?: string;
         onChange?: (value: string) => void;
