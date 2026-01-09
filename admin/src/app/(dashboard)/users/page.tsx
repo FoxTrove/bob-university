@@ -1,12 +1,33 @@
 import { createAdminClient, createClient } from '@/lib/supabase/server';
 import { Header } from '@/components/Header';
 import Link from 'next/link';
-import { Users, Crown, Clock } from 'lucide-react';
+import { Users, Crown, Clock, AlertTriangle, XCircle } from 'lucide-react';
 import { formatCurrency } from '@/lib/analytics';
 
-async function getUsers() {
+interface UserWithEntitlement {
+  id: string;
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  role: string | null;
+  created_at: string | null;
+  entitlements: Array<{
+    plan: string | null;
+    status: string | null;
+    current_period_start: string | null;
+    current_period_end: string | null;
+  }>;
+  ltv_cents: number;
+}
+
+async function getUsers(): Promise<{ users: UserWithEntitlement[]; error: string | null; usingServiceRole: boolean }> {
   const adminClient = createAdminClient();
   const supabase = adminClient ?? await createClient();
+  const usingServiceRole = adminClient !== null;
+
+  if (!usingServiceRole) {
+    console.warn('Users page: SUPABASE_SERVICE_ROLE_KEY not set, falling back to anon client. Some profiles may be hidden by RLS.');
+  }
 
   const { data: profiles, error } = await supabase
     .from('profiles')
@@ -14,8 +35,12 @@ async function getUsers() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching users:', error);
-    return [];
+    console.error('Error fetching profiles:', error);
+    return { users: [], error: `Failed to fetch profiles: ${error.message}`, usingServiceRole };
+  }
+
+  if (!profiles || profiles.length === 0) {
+    return { users: [], error: null, usingServiceRole };
   }
 
   const userIds = (profiles || []).map((profile) => profile.id);
@@ -66,13 +91,15 @@ async function getUsers() {
     }
   }
 
-  return (profiles || []).map((profile) => ({
+  const users = profiles.map((profile) => ({
     ...profile,
     entitlements: entitlementsByUser.get(profile.id)
-      ? [entitlementsByUser.get(profile.id)]
+      ? [entitlementsByUser.get(profile.id)!]
       : [],
     ltv_cents: ltvByUser.get(profile.id) ?? 0,
   }));
+
+  return { users, error: null, usingServiceRole };
 }
 
 function formatDate(dateString: string | null) {
@@ -87,7 +114,7 @@ function formatDate(dateString: string | null) {
 export default async function UsersPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const users = await getUsers();
+  const { users, error, usingServiceRole } = await getUsers();
 
   const premiumCount = users.filter((u) => {
     const entitlement = u.entitlements?.[0];
@@ -100,6 +127,26 @@ export default async function UsersPage() {
     <>
       <Header user={user} title="Users" />
       <div className="p-6">
+        {/* Error/Warning banners */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center">
+            <XCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+            <div>
+              <p className="font-medium">Error loading users</p>
+              <p className="text-sm">{error}</p>
+            </div>
+          </div>
+        )}
+        {!usingServiceRole && !error && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg flex items-center">
+            <AlertTriangle className="w-5 h-5 mr-3 flex-shrink-0" />
+            <div>
+              <p className="font-medium">Limited visibility</p>
+              <p className="text-sm">SUPABASE_SERVICE_ROLE_KEY not configured. Some users may be hidden by RLS policies.</p>
+            </div>
+          </div>
+        )}
+
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow p-4 flex items-center">
