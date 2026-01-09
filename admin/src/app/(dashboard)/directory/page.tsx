@@ -55,7 +55,9 @@ async function getStylistProfiles(): Promise<StylistProfile[]> {
   }
 
   return (profiles || []).map(p => {
-    const certifications = Array.isArray(p.certifications) ? p.certifications : [];
+    const certifications = (Array.isArray(p.certifications)
+      ? p.certifications
+      : []) as StylistProfile['certifications'];
     const approved = certifications.find((c) => c.status === 'approved') || null;
     return {
       ...p,
