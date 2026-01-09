@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       ) || 0;
     const totalNet =
       currentRevenueResult.data?.reduce(
-        (sum, p) => sum + (p.net_cents ?? p.amount_cents || 0),
+        (sum, p) => sum + ((p.net_cents ?? p.amount_cents) || 0),
         0
       ) || 0;
     const previousRevenue =
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       ) || 0;
     const previousNet =
       previousRevenueResult.data?.reduce(
-        (sum, p) => sum + (p.net_cents ?? p.amount_cents || 0),
+        (sum, p) => sum + ((p.net_cents ?? p.amount_cents) || 0),
         0
       ) || 0;
 
