@@ -1,21 +1,21 @@
-import { View, Text, Pressable, ScrollView, Alert, Platform, Linking } from 'react-native';
+import { View, Text, Pressable, ScrollView, Alert, Platform, Linking, ActivityIndicator } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeContainer } from '../components/layout/SafeContainer';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { useStripe } from '@stripe/stripe-react-native';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import * as LinkingExpo from 'expo-linking';
+import { useSubscriptionPlans, formatPlanPrice } from '../lib/hooks/useSubscriptionPlans';
 
 interface PlanFeature {
   text: string;
   included: boolean;
 }
 
-interface Plan {
+interface DisplayPlan {
   id: string;
   name: string;
   price: string;
@@ -23,65 +23,34 @@ interface Plan {
   description: string;
   features: PlanFeature[];
   popular?: boolean;
+  appleProductId?: string | null;
 }
 
-const plans: Plan[] = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: '$0',
-    period: 'forever',
-    description: 'Get started with basic content',
-    features: [
-      { text: 'Access to free videos', included: true },
-      { text: 'Basic tutorials', included: true },
-      { text: 'Premium courses', included: false },
-      { text: 'Certifications', included: false },
-      { text: 'Stylist directory listing', included: false },
-    ],
-  },
-  {
-    id: 'individual',
-    name: 'Individual',
-    price: '$49',
-    period: '/month',
-    description: 'Full access for solo stylists',
-    features: [
-      { text: 'Access to free videos', included: true },
-      { text: 'All premium courses', included: true },
-      { text: 'Certification eligibility', included: true },
-      { text: 'Stylist directory listing', included: true },
-      { text: 'Progress tracking', included: true },
-      { text: 'Team management', included: false },
-      { text: 'Event discounts', included: true },
-    ],
-    popular: true,
-  },
-  {
-    id: 'salon',
-    name: 'Salon',
-    price: '$97',
-    period: '/month',
-    description: 'Train your entire team',
-    features: [
-      { text: 'Everything in Individual', included: true },
-      { text: 'Up to 5 team members', included: true },
-      { text: 'Staff access codes', included: true },
-      { text: 'Team progress tracking', included: true },
-      { text: 'Event discounts (15%)', included: true },
-    ],
-  },
-];
+// Free plan is static (not stored in database)
+const freePlan: DisplayPlan = {
+  id: 'free',
+  name: 'Free',
+  price: '$0',
+  period: 'forever',
+  description: 'Get started with basic content',
+  features: [
+    { text: 'Access to free videos', included: true },
+    { text: 'Basic tutorials', included: true },
+    { text: 'Premium courses', included: false },
+    { text: 'Certifications', included: false },
+    { text: 'Stylist directory listing', included: false },
+  ],
+};
 
-function PlanCard({ plan, onSelect, loading }: { plan: Plan; onSelect: () => void; loading: boolean }) {
-  const isSelected = plan.popular;
-  
+function PlanCard({ plan, onSelect, loading }: { plan: DisplayPlan; onSelect: () => void; loading: boolean }) {
+  const isPopular = plan.popular;
+
   return (
-    <Card 
-      className={`p-6 mb-6 border-2 ${isSelected ? 'border-primary bg-surfaceHighlight' : 'border-border bg-surface'}`}
+    <Card
+      className={`p-6 mb-6 border-2 ${isPopular ? 'border-primary bg-surfaceHighlight' : 'border-border bg-surface'}`}
       padding="none"
     >
-      {plan.popular && (
+      {isPopular && (
         <View className="absolute -top-3 right-6 bg-primary px-3 py-1 rounded-full">
           <Text className="text-white text-xs font-bold uppercase tracking-wide">Most Popular</Text>
         </View>
@@ -97,10 +66,10 @@ function PlanCard({ plan, onSelect, loading }: { plan: Plan; onSelect: () => voi
       <View className="space-y-3 mb-6">
         {plan.features.map((feature, index) => (
           <View key={index} className="flex-row items-center gap-3">
-            <Ionicons 
-              name={feature.included ? "checkmark-circle" : "close-circle"} 
-              size={20} 
-              color={feature.included ? "#3b82f6" : "#52525b"} 
+            <Ionicons
+              name={feature.included ? "checkmark-circle" : "close-circle"}
+              size={20}
+              color={feature.included ? "#3b82f6" : "#52525b"}
             />
             <Text
               className={`flex-1 ${feature.included ? 'text-text' : 'text-textMuted'}`}
@@ -114,7 +83,7 @@ function PlanCard({ plan, onSelect, loading }: { plan: Plan; onSelect: () => voi
       <Button
         title={plan.id === 'free' ? 'Current Plan' : 'Subscribe Now'}
         onPress={onSelect}
-        variant={plan.popular ? 'primary' : 'outline'}
+        variant={isPopular ? 'primary' : 'outline'}
         disabled={plan.id === 'free' || loading}
         loading={loading}
         fullWidth
@@ -126,24 +95,57 @@ function PlanCard({ plan, onSelect, loading }: { plan: Plan; onSelect: () => voi
 export default function Subscribe() {
   const router = useRouter();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
-  const [loading, setLoading] = useState(false);
+  const [processingPlan, setProcessingPlan] = useState<string | null>(null);
 
-  const handleSelectPlan = async (planId: string) => {
-    if (planId === 'free') return;
+  // Fetch plans from database
+  const { plans: dbPlans, loading: plansLoading, error: plansError } = useSubscriptionPlans();
 
+  // Transform database plans to display format
+  const displayPlans: DisplayPlan[] = [
+    freePlan,
+    ...dbPlans.map((plan) => ({
+      id: plan.plan,
+      name: plan.plan.charAt(0).toUpperCase() + plan.plan.slice(1),
+      price: formatPlanPrice(plan.amount_cents, plan.currency),
+      period: `/${plan.interval}`,
+      description: plan.description || '',
+      features: (plan.features || []).map((f) => ({ text: f, included: true })),
+      popular: plan.plan === 'individual',
+      appleProductId: plan.apple_product_id,
+    })),
+  ];
+
+  const handleSelectPlan = async (plan: DisplayPlan) => {
+    if (plan.id === 'free') return;
+
+    // iOS: Use Apple IAP for subscriptions
     if (Platform.OS === 'ios') {
-      Alert.alert('Apple IAP Required', 'Subscriptions on iOS are handled via Apple In-App Purchases.');
+      if (plan.appleProductId) {
+        // TODO: Implement Apple IAP purchase flow using StoreKit
+        // For now, show placeholder alert
+        Alert.alert(
+          'Apple In-App Purchase',
+          `Subscription will be processed through Apple.\n\nProduct ID: ${plan.appleProductId}`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert(
+          'Coming Soon',
+          'iOS subscriptions will be available through Apple In-App Purchases.'
+        );
+      }
       return;
     }
-    
-    setLoading(true);
-    
+
+    // Android/Web: Use Stripe
+    setProcessingPlan(plan.id);
+
     try {
       const returnUrl = LinkingExpo.createURL('stripe-redirect');
 
       const { data, error } = await supabase.functions.invoke('create-subscription', {
         body: {
-          plan: planId,
+          plan: plan.id,
           platform: Platform.OS === 'web' ? 'web' : 'mobile',
           successUrl: returnUrl,
           cancelUrl: returnUrl,
@@ -179,12 +181,12 @@ export default function Subscribe() {
       if (presentError) throw new Error(presentError.message);
 
       Alert.alert("Success", "Subscription active!");
-      
+
     } catch (error) {
       console.error(error);
       Alert.alert("Error", "Something went wrong. Please try again.");
     } finally {
-      setLoading(false);
+      setProcessingPlan(null);
     }
   };
 
@@ -218,17 +220,33 @@ export default function Subscribe() {
               </Text>
             </View>
 
-            {plans.map((plan) => (
-              <PlanCard
-                key={plan.id}
-                plan={plan}
-                onSelect={() => handleSelectPlan(plan.id)}
-                loading={loading}
-              />
-            ))}
+            {plansLoading ? (
+              <View className="py-12 items-center">
+                <ActivityIndicator size="large" color="#3b82f6" />
+                <Text className="text-textMuted mt-4">Loading plans...</Text>
+              </View>
+            ) : plansError ? (
+              <View className="py-12 items-center">
+                <Ionicons name="alert-circle" size={48} color="#ef4444" />
+                <Text className="text-red-500 mt-4 text-center">
+                  Failed to load plans. Please try again.
+                </Text>
+              </View>
+            ) : (
+              displayPlans.map((plan) => (
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  onSelect={() => handleSelectPlan(plan)}
+                  loading={processingPlan === plan.id}
+                />
+              ))
+            )}
 
             <Text className="text-textMuted text-xs text-center mt-6 mb-8">
-              Payments are processed securely by Stripe. You can cancel at any time in your account settings.
+              {Platform.OS === 'ios'
+                ? 'Subscriptions are processed through Apple. You can cancel anytime in your Apple ID settings.'
+                : 'Payments are processed securely by Stripe. You can cancel at any time in your account settings.'}
             </Text>
           </View>
         </ScrollView>

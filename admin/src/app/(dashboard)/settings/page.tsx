@@ -13,7 +13,13 @@ import {
   AlertTriangle,
   DollarSign,
   Users,
-  Building
+  Building,
+  Pencil,
+  X,
+  Apple,
+  Smartphone,
+  Plus,
+  Trash2
 } from 'lucide-react';
 
 interface Profile {
@@ -33,6 +39,10 @@ interface SubscriptionPlan {
   currency: string;
   interval: string;
   is_active: boolean;
+  apple_product_id: string | null;
+  google_product_id: string | null;
+  description: string | null;
+  features: string[] | null;
 }
 
 interface IntegrationStatus {
@@ -53,6 +63,19 @@ export default function SettingsPage() {
 
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
+
+  // Plan editing state
+  const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
+  const [editForm, setEditForm] = useState({
+    description: '',
+    features: [] as string[],
+    apple_product_id: '',
+    google_product_id: '',
+    amount_cents: 0,
+    is_active: true,
+  });
+  const [newFeature, setNewFeature] = useState('');
+  const [savingPlan, setSavingPlan] = useState(false);
 
   const [integrations, setIntegrations] = useState<IntegrationStatus>({
     stripe: false,
@@ -135,6 +158,100 @@ export default function SettingsPage() {
       style: 'currency',
       currency: currency.toUpperCase(),
     }).format(cents / 100);
+  };
+
+  const openEditModal = (plan: SubscriptionPlan) => {
+    setEditingPlan(plan);
+    setEditForm({
+      description: plan.description || '',
+      features: plan.features || [],
+      apple_product_id: plan.apple_product_id || '',
+      google_product_id: plan.google_product_id || '',
+      amount_cents: plan.amount_cents,
+      is_active: plan.is_active,
+    });
+    setNewFeature('');
+  };
+
+  const closeEditModal = () => {
+    setEditingPlan(null);
+    setEditForm({
+      description: '',
+      features: [],
+      apple_product_id: '',
+      google_product_id: '',
+      amount_cents: 0,
+      is_active: true,
+    });
+    setNewFeature('');
+  };
+
+  const addFeature = () => {
+    if (newFeature.trim()) {
+      setEditForm(prev => ({
+        ...prev,
+        features: [...prev.features, newFeature.trim()],
+      }));
+      setNewFeature('');
+    }
+  };
+
+  const removeFeature = (index: number) => {
+    setEditForm(prev => ({
+      ...prev,
+      features: prev.features.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleSavePlan = async () => {
+    if (!editingPlan) return;
+
+    setSavingPlan(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await supabase.functions.invoke('update-plan-pricing', {
+        body: {
+          plan_id: editingPlan.id,
+          description: editForm.description || null,
+          features: editForm.features,
+          apple_product_id: editForm.apple_product_id || null,
+          google_product_id: editForm.google_product_id || null,
+          amount_cents: editForm.amount_cents !== editingPlan.amount_cents ? editForm.amount_cents : undefined,
+          is_active: editForm.is_active,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to update plan');
+      }
+
+      const result = response.data;
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      // Update local state
+      setPlans(prev => prev.map(p =>
+        p.id === editingPlan.id ? { ...p, ...result.plan } : p
+      ));
+
+      setSuccessMessage(
+        result.stripe_price_created
+          ? `Plan updated. New Stripe price created: ${result.stripe_price_created}`
+          : 'Plan updated successfully.'
+      );
+      closeEditModal();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to update plan';
+      setError(message);
+    } finally {
+      setSavingPlan(false);
+    }
   };
 
   return (
@@ -265,15 +382,24 @@ export default function SettingsPage() {
                         {plan.plan}
                       </h3>
                     </div>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        plan.is_active
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-200 text-gray-600'
-                      }`}
-                    >
-                      {plan.is_active ? 'Active' : 'Inactive'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          plan.is_active
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {plan.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                      <button
+                        onClick={() => openEditModal(plan)}
+                        className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded"
+                        title="Edit plan"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                   <div className="text-2xl font-bold text-gray-900 mb-1">
                     {formatCurrency(plan.amount_cents, plan.currency)}
@@ -281,9 +407,38 @@ export default function SettingsPage() {
                       /{plan.interval}
                     </span>
                   </div>
-                  <div className="text-xs text-gray-500 space-y-1 mt-3">
-                    <p>Stripe Price: <code className="bg-gray-100 px-1 rounded">{plan.stripe_price_id}</code></p>
-                    <p>Product: <code className="bg-gray-100 px-1 rounded">{plan.stripe_product_id}</code></p>
+                  {plan.description && (
+                    <p className="text-sm text-gray-600 mt-2">{plan.description}</p>
+                  )}
+                  {plan.features && plan.features.length > 0 && (
+                    <ul className="mt-2 space-y-1">
+                      {plan.features.slice(0, 3).map((feature, i) => (
+                        <li key={i} className="text-xs text-gray-600 flex items-center">
+                          <CheckCircle className="w-3 h-3 text-green-500 mr-1.5 flex-shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                      {plan.features.length > 3 && (
+                        <li className="text-xs text-gray-400">
+                          +{plan.features.length - 3} more features
+                        </li>
+                      )}
+                    </ul>
+                  )}
+                  <div className="text-xs text-gray-500 space-y-1 mt-3 pt-3 border-t border-gray-200">
+                    <p>Stripe: <code className="bg-gray-100 px-1 rounded text-xs">{plan.stripe_price_id}</code></p>
+                    {plan.apple_product_id && (
+                      <p className="flex items-center">
+                        <Apple className="w-3 h-3 mr-1" />
+                        <code className="bg-gray-100 px-1 rounded text-xs">{plan.apple_product_id}</code>
+                      </p>
+                    )}
+                    {plan.google_product_id && (
+                      <p className="flex items-center">
+                        <Smartphone className="w-3 h-3 mr-1" />
+                        <code className="bg-gray-100 px-1 rounded text-xs">{plan.google_product_id}</code>
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -291,7 +446,7 @@ export default function SettingsPage() {
           )}
 
           <p className="text-xs text-gray-400 mt-4">
-            To modify pricing, update the subscription_plans table or create new prices in Stripe.
+            Click the edit button to modify plan details. Price changes will automatically create a new Stripe price.
           </p>
         </div>
 
@@ -361,6 +516,175 @@ export default function SettingsPage() {
           </p>
         </div>
       </div>
+
+      {/* Edit Plan Modal */}
+      {editingPlan && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Edit {editingPlan.plan.charAt(0).toUpperCase() + editingPlan.plan.slice(1)} Plan
+              </h3>
+              <button
+                onClick={closeEditModal}
+                className="p-1 text-gray-500 hover:text-gray-700 rounded"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {/* Price */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Price ({editingPlan.currency.toUpperCase()})
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-500">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={editForm.amount_cents / 100}
+                    onChange={(e) => setEditForm(prev => ({
+                      ...prev,
+                      amount_cents: Math.round(parseFloat(e.target.value || '0') * 100),
+                    }))}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="text-gray-500">/{editingPlan.interval}</span>
+                </div>
+                {editForm.amount_cents !== editingPlan.amount_cents && (
+                  <p className="text-xs text-amber-600 mt-1 flex items-center">
+                    <AlertTriangle className="w-3 h-3 mr-1" />
+                    Changing price will create a new Stripe price and archive the old one
+                  </p>
+                )}
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="Brief description of the plan..."
+                />
+              </div>
+
+              {/* Features */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Features
+                </label>
+                <div className="space-y-2 mb-2">
+                  {editForm.features.map((feature, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <span className="flex-1 text-sm text-gray-700">{feature}</span>
+                      <button
+                        onClick={() => removeFeature(index)}
+                        className="p-1 text-gray-400 hover:text-red-500"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newFeature}
+                    onChange={(e) => setNewFeature(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                    placeholder="Add a feature..."
+                  />
+                  <button
+                    onClick={addFeature}
+                    disabled={!newFeature.trim()}
+                    className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* IAP Product IDs */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                    <Apple className="w-4 h-4 mr-1" />
+                    Apple Product ID
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.apple_product_id}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, apple_product_id: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                    placeholder="com.app.subscription"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                    <Smartphone className="w-4 h-4 mr-1" />
+                    Google Product ID
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.google_product_id}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, google_product_id: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                    placeholder="subscription_monthly"
+                  />
+                </div>
+              </div>
+
+              {/* Active Status */}
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Active</label>
+                  <p className="text-xs text-gray-500">Inactive plans won't appear in the app</p>
+                </div>
+                <button
+                  onClick={() => setEditForm(prev => ({ ...prev, is_active: !prev.is_active }))}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    editForm.is_active ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      editForm.is_active ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 p-4 border-t bg-gray-50">
+              <button
+                onClick={closeEditModal}
+                disabled={savingPlan}
+                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSavePlan}
+                disabled={savingPlan}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {savingPlan ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

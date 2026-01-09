@@ -650,8 +650,10 @@ export type Database = {
           created_at: string | null
           currency: string
           external_id: string | null
+          fee_cents: number | null
           id: string
           metadata: Json | null
+          net_cents: number | null
           occurred_at: string
           payment_intent_id: string | null
           plan: string | null
@@ -668,8 +670,10 @@ export type Database = {
           created_at?: string | null
           currency?: string
           external_id?: string | null
+          fee_cents?: number | null
           id?: string
           metadata?: Json | null
+          net_cents?: number | null
           occurred_at?: string
           payment_intent_id?: string | null
           plan?: string | null
@@ -686,8 +690,10 @@ export type Database = {
           created_at?: string | null
           currency?: string
           external_id?: string | null
+          fee_cents?: number | null
           id?: string
           metadata?: Json | null
+          net_cents?: number | null
           occurred_at?: string
           payment_intent_id?: string | null
           plan?: string | null
@@ -864,8 +870,12 @@ export type Database = {
       subscription_plans: {
         Row: {
           amount_cents: number
+          apple_product_id: string | null
           created_at: string
           currency: string
+          description: string | null
+          features: Json | null
+          google_product_id: string | null
           id: string
           interval: string
           is_active: boolean
@@ -876,8 +886,12 @@ export type Database = {
         }
         Insert: {
           amount_cents: number
+          apple_product_id?: string | null
           created_at?: string
           currency?: string
+          description?: string | null
+          features?: Json | null
+          google_product_id?: string | null
           id?: string
           interval?: string
           is_active?: boolean
@@ -888,8 +902,12 @@ export type Database = {
         }
         Update: {
           amount_cents?: number
+          apple_product_id?: string | null
           created_at?: string
           currency?: string
+          description?: string | null
+          features?: Json | null
+          google_product_id?: string | null
           id?: string
           interval?: string
           is_active?: boolean
@@ -1140,7 +1158,7 @@ export type Database = {
           content_json?: Json | null
           created_at?: string | null
           description?: string | null
-          drip_days?: string | null
+          drip_days?: number | null
           duration_seconds?: number | null
           id?: string
           is_free?: boolean | null
@@ -1162,7 +1180,7 @@ export type Database = {
           content_json?: Json | null
           created_at?: string | null
           description?: string | null
-          drip_days?: string | null
+          drip_days?: number | null
           duration_seconds?: number | null
           id?: string
           is_free?: boolean | null
@@ -1335,3 +1353,11 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
+// Custom type exports for convenience
+export type Entitlement = Tables<'entitlements'>
+export type Profile = Tables<'profiles'>
+export type Video = Tables<'videos'>
+export type Module = Tables<'modules'>
+export type SubscriptionPlan = Tables<'subscription_plans'>
+export type PlanType = 'free' | 'individual' | 'salon'
