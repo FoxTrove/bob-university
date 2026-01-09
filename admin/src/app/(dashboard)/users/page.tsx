@@ -208,10 +208,10 @@ export default async function UsersPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {formatDate(entitlement?.current_period_start)}
+                      {formatDate(entitlement?.current_period_start ?? null)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {formatDate(entitlement?.current_period_end)}
+                      {formatDate(entitlement?.current_period_end ?? null)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       {formatDate(profile.created_at)}
