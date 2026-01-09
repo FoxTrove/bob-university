@@ -241,6 +241,9 @@ export async function getOverviewMetrics(
 // Revenue Queries
 // ============================================================================
 
+const getStatusFilter = (filters: RevenueFilters) =>
+  filters.statuses && filters.statuses.length > 0 ? filters.statuses : ['completed'];
+
 export async function getRevenueOverTime(
   supabase: SupabaseClient,
   range: DateRange,
@@ -253,7 +256,7 @@ export async function getRevenueOverTime(
     .select('amount_cents, occurred_at, source, product_type, plan, status')
     .gte('occurred_at', start.toISOString())
     .lte('occurred_at', end.toISOString())
-    .eq('status', 'completed');
+    .in('status', getStatusFilter(filters));
 
   if (filters.sources && filters.sources.length > 0) {
     query = query.in('source', filters.sources);
@@ -263,9 +266,6 @@ export async function getRevenueOverTime(
   }
   if (filters.plans && filters.plans.length > 0) {
     query = query.in('plan', filters.plans);
-  }
-  if (filters.statuses && filters.statuses.length > 0) {
-    query = query.in('status', filters.statuses);
   }
 
   const { data: purchases } = await query;
@@ -315,16 +315,16 @@ export async function getRevenueByProduct(
     .select('product_type, amount_cents, source, plan, status')
     .gte('occurred_at', start.toISOString())
     .lte('occurred_at', end.toISOString())
-    .eq('status', 'completed');
+    .in('status', getStatusFilter(filters));
 
   if (filters.sources && filters.sources.length > 0) {
     query = query.in('source', filters.sources);
   }
+  if (filters.productTypes && filters.productTypes.length > 0) {
+    query = query.in('product_type', filters.productTypes);
+  }
   if (filters.plans && filters.plans.length > 0) {
     query = query.in('plan', filters.plans);
-  }
-  if (filters.statuses && filters.statuses.length > 0) {
-    query = query.in('status', filters.statuses);
   }
 
   const { data: purchases } = await query;
@@ -362,16 +362,16 @@ export async function getRevenueBySource(
     .select('source, amount_cents, product_type, plan, status')
     .gte('occurred_at', start.toISOString())
     .lte('occurred_at', end.toISOString())
-    .eq('status', 'completed');
+    .in('status', getStatusFilter(filters));
 
+  if (filters.sources && filters.sources.length > 0) {
+    query = query.in('source', filters.sources);
+  }
   if (filters.productTypes && filters.productTypes.length > 0) {
     query = query.in('product_type', filters.productTypes);
   }
   if (filters.plans && filters.plans.length > 0) {
     query = query.in('plan', filters.plans);
-  }
-  if (filters.statuses && filters.statuses.length > 0) {
-    query = query.in('status', filters.statuses);
   }
 
   const { data: purchases } = await query;

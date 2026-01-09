@@ -47,10 +47,14 @@ export async function POST(request: NextRequest) {
       if (filters?.plans?.length) {
         query = query.in('plan', filters.plans);
       }
-      if (filters?.statuses?.length) {
-        query = query.in('status', filters.statuses);
-      }
       return query;
+    };
+
+    const applyStatusFilter = (query: any) => {
+      if (filters?.statuses?.length) {
+        return query.in('status', filters.statuses);
+      }
+      return query.eq('status', 'completed');
     };
 
     const [
@@ -59,26 +63,29 @@ export async function POST(request: NextRequest) {
       revenueChart,
       revenueByProduct,
       revenueBySource,
+      revenueBySourceSummary,
       transactions,
     ] = await Promise.all([
       // Current period total
-      applyFilters(
-        supabase
+      applyStatusFilter(
+        applyFilters(
+          supabase
         .from('revenue_ledger')
         .select('amount_cents, fee_cents, net_cents')
         .gte('occurred_at', range.start.toISOString())
         .lte('occurred_at', range.end.toISOString())
-        .eq('status', 'completed')
+        )
       ),
 
       // Previous period total
-      applyFilters(
-        supabase
+      applyStatusFilter(
+        applyFilters(
+          supabase
         .from('revenue_ledger')
         .select('amount_cents, fee_cents, net_cents')
         .gte('occurred_at', comparisonRange.start.toISOString())
         .lte('occurred_at', comparisonRange.end.toISOString())
-        .eq('status', 'completed')
+        )
       ),
 
       // Chart data
@@ -89,6 +96,17 @@ export async function POST(request: NextRequest) {
 
       // By source
       getRevenueBySource(supabase, range, filters),
+
+      // Source summary
+      applyStatusFilter(
+        applyFilters(
+          supabase
+            .from('revenue_ledger')
+            .select('source, amount_cents, fee_cents, net_cents')
+            .gte('occurred_at', range.start.toISOString())
+            .lte('occurred_at', range.end.toISOString())
+        )
+      ),
 
       // Recent transactions
       getTransactions(supabase, range, 50, filters),
@@ -151,18 +169,53 @@ export async function POST(request: NextRequest) {
         .eq('status', 'refunded')
     );
 
+    const refundRateStatuses = filters?.statuses?.length
+      ? filters.statuses
+      : ['completed', 'refunded'];
+
     const { count: totalPurchases } = await applyFilters(
       supabase
         .from('revenue_ledger')
         .select('*', { count: 'exact', head: true })
         .gte('occurred_at', range.start.toISOString())
         .lte('occurred_at', range.end.toISOString())
+        .in('status', refundRateStatuses)
     );
 
     const refundRate =
       totalPurchases && totalPurchases > 0
         ? ((refundedCount || 0) / totalPurchases) * 100
         : 0;
+
+    const sourceSummaryMap = new Map<string, { gross: number; fees: number; net: number; count: number }>();
+    (revenueBySourceSummary.data || []).forEach((row: { source: string | null; amount_cents?: number | null; fee_cents?: number | null; net_cents?: number | null; }) => {
+      const source = row.source || 'unknown';
+      const existing = sourceSummaryMap.get(source) || { gross: 0, fees: 0, net: 0, count: 0 };
+      const amount = row.amount_cents || 0;
+      const fee = row.fee_cents || 0;
+      const net = row.net_cents ?? amount;
+      sourceSummaryMap.set(source, {
+        gross: existing.gross + amount,
+        fees: existing.fees + fee,
+        net: existing.net + net,
+        count: existing.count + 1,
+      });
+    });
+
+    const sourceSummary = Array.from(sourceSummaryMap.entries()).map(([source, summary]) => {
+      const label = source === 'apple'
+        ? 'iOS (Apple)'
+        : source === 'google'
+          ? 'Android (Google)'
+          : source === 'stripe'
+            ? 'Web (Stripe)'
+            : source;
+      return {
+        source,
+        label,
+        ...summary,
+      };
+    });
 
     return NextResponse.json({
       metrics: {
@@ -182,6 +235,7 @@ export async function POST(request: NextRequest) {
       revenueChart,
       revenueByProduct,
       revenueBySource,
+      sourceSummary,
       transactions,
     });
   } catch (error) {

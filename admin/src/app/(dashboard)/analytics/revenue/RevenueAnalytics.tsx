@@ -47,6 +47,14 @@ interface RevenueData {
   revenueChart: { date: string; revenue: number }[];
   revenueByProduct: { name: string; value: number; color: string }[];
   revenueBySource: { name: string; value: number; color: string }[];
+  sourceSummary: {
+    source: string;
+    label: string;
+    gross: number;
+    fees: number;
+    net: number;
+    count: number;
+  }[];
   transactions: {
     id: string;
     date: string;
@@ -321,6 +329,64 @@ export function RevenueAnalytics() {
           )}
         </ChartCard>
       </div>
+
+      <ChartCard
+        title="Platform Breakdown"
+        subtitle="Gross, fees, and net totals per source"
+      >
+        {loading ? (
+          <div className="animate-pulse space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-10 bg-gray-100 rounded" />
+            ))}
+          </div>
+        ) : data && data.sourceSummary.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Source
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Gross
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Fees
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Net
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Txn Count
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {data.sourceSummary.map((row) => (
+                  <tr key={row.source} className="text-sm text-gray-700">
+                    <td className="px-4 py-3">{row.label}</td>
+                    <td className="px-4 py-3 text-right">
+                      {formatCurrency(row.gross)}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {formatCurrency(row.fees)}
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium">
+                      {formatCurrency(row.net)}
+                    </td>
+                    <td className="px-4 py-3 text-right">{row.count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            No platform data in selected period
+          </div>
+        )}
+      </ChartCard>
 
       {/* Transactions Table */}
       <ChartCard

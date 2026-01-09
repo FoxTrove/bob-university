@@ -51,16 +51,17 @@ async function getUsers() {
 
     const { data: ledgerRows, error: ledgerError } = await supabase
       .from('revenue_ledger')
-      .select('user_id, net_cents')
+      .select('user_id, net_cents, amount_cents, status')
       .in('user_id', userIds)
-      .eq('status', 'completed');
+      .in('status', ['completed', 'refunded']);
 
     if (ledgerError) {
       console.error('Error fetching revenue ledger:', ledgerError);
     } else if (ledgerRows) {
       ledgerRows.forEach((row) => {
         const current = ltvByUser.get(row.user_id) ?? 0;
-        ltvByUser.set(row.user_id, current + (row.net_cents ?? 0));
+        const net = row.net_cents ?? row.amount_cents ?? 0;
+        ltvByUser.set(row.user_id, current + net);
       });
     }
   }

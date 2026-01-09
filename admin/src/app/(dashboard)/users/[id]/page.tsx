@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { createClient } from '@/lib/supabase/client';
+import { formatCurrency } from '@/lib/analytics';
 import { User } from '@supabase/supabase-js';
 import { ArrowLeft, CheckCircle, Save, XCircle } from 'lucide-react';
 
@@ -27,6 +28,27 @@ interface Entitlement {
   cancel_at_period_end: boolean | null;
 }
 
+interface RevenueLedgerRow {
+  id: string;
+  source: string;
+  product_type: string | null;
+  plan: string | null;
+  status: 'completed' | 'refunded' | 'pending' | 'failed';
+  amount_cents: number | null;
+  fee_cents: number | null;
+  net_cents: number | null;
+  currency: string;
+  occurred_at: string;
+  external_id: string | null;
+}
+
+interface LedgerSummary {
+  net: number;
+  gross: number;
+  fees: number;
+  refunds: number;
+}
+
 function toDateTimeInput(value: string | null): string {
   if (!value) return '';
   return new Date(value).toISOString().slice(0, 16);
@@ -41,6 +63,14 @@ export default function UserDetailPage() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [entitlement, setEntitlement] = useState<Entitlement | null>(null);
+  const [ledgerRows, setLedgerRows] = useState<RevenueLedgerRow[]>([]);
+  const [ledgerSummary, setLedgerSummary] = useState<LedgerSummary>({
+    net: 0,
+    gross: 0,
+    fees: 0,
+    refunds: 0,
+  });
+  const [ledgerError, setLedgerError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -95,6 +125,39 @@ export default function UserDetailPage() {
       setPeriodStart(toDateTimeInput(nextEntitlement.current_period_start));
       setPeriodEnd(toDateTimeInput(nextEntitlement.current_period_end));
       setCancelAtPeriodEnd(Boolean(nextEntitlement.cancel_at_period_end));
+
+      const { data: ledgerData, error: ledgerFetchError } = await supabase
+        .from('revenue_ledger')
+        .select('id, source, product_type, plan, status, amount_cents, fee_cents, net_cents, currency, occurred_at, external_id')
+        .eq('user_id', userId)
+        .in('status', ['completed', 'refunded'])
+        .order('occurred_at', { ascending: false })
+        .limit(20);
+
+      if (ledgerFetchError) {
+        setLedgerError(ledgerFetchError.message);
+      } else {
+        const rows = (ledgerData || []) as RevenueLedgerRow[];
+        const summary = rows.reduce<LedgerSummary>(
+          (acc, row) => {
+            const amount = row.amount_cents || 0;
+            const fee = row.fee_cents || 0;
+            const net = row.net_cents ?? amount;
+            acc.net += net;
+            if (row.status === 'refunded') {
+              acc.refunds += Math.abs(net);
+            } else {
+              acc.gross += amount;
+              acc.fees += fee;
+            }
+            return acc;
+          },
+          { net: 0, gross: 0, fees: 0, refunds: 0 }
+        );
+
+        setLedgerRows(rows);
+        setLedgerSummary(summary);
+      }
 
       setLoading(false);
     }
@@ -207,6 +270,91 @@ export default function UserDetailPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6 space-y-6">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Financials</h2>
+            <p className="text-sm text-gray-500">
+              Recent revenue activity and lifetime value for this user.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-lg border border-gray-200 p-4">
+              <p className="text-xs uppercase tracking-wide text-gray-500">Net LTV</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {formatCurrency(ledgerSummary.net)}
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200 p-4">
+              <p className="text-xs uppercase tracking-wide text-gray-500">Gross Revenue</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {formatCurrency(ledgerSummary.gross)}
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200 p-4">
+              <p className="text-xs uppercase tracking-wide text-gray-500">Fees</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {formatCurrency(ledgerSummary.fees)}
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200 p-4">
+              <p className="text-xs uppercase tracking-wide text-gray-500">Refunds</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {formatCurrency(ledgerSummary.refunds)}
+              </p>
+            </div>
+          </div>
+
+          {ledgerError ? (
+            <div className="text-sm text-red-600">{ledgerError}</div>
+          ) : ledgerRows.length === 0 ? (
+            <div className="text-sm text-gray-500">No revenue entries yet.</div>
+          ) : (
+            <div className="overflow-hidden rounded-lg border border-gray-200">
+              <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <thead className="bg-gray-50 text-gray-500">
+                  <tr>
+                    <th className="px-4 py-2 text-left font-medium">Date</th>
+                    <th className="px-4 py-2 text-left font-medium">Source</th>
+                    <th className="px-4 py-2 text-left font-medium">Type</th>
+                    <th className="px-4 py-2 text-left font-medium">Status</th>
+                    <th className="px-4 py-2 text-right font-medium">Gross</th>
+                    <th className="px-4 py-2 text-right font-medium">Net</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {ledgerRows.map((row) => {
+                    const gross = row.amount_cents || 0;
+                    const net = row.net_cents ?? gross;
+                    const sourceLabel = row.source === 'stripe'
+                      ? 'Web (Stripe)'
+                      : row.source === 'apple'
+                        ? 'iOS (Apple)'
+                        : row.source === 'google'
+                          ? 'Android (Google)'
+                          : row.source;
+
+                    return (
+                      <tr key={row.id} className="text-gray-700">
+                        <td className="px-4 py-2">
+                          {new Date(row.occurred_at).toLocaleDateString('en-US')}
+                        </td>
+                        <td className="px-4 py-2">{sourceLabel}</td>
+                        <td className="px-4 py-2">
+                          {(row.product_type || 'other').toUpperCase()}
+                        </td>
+                        <td className="px-4 py-2 capitalize">{row.status.replace('_', ' ')}</td>
+                        <td className="px-4 py-2 text-right">{formatCurrency(gross)}</td>
+                        <td className="px-4 py-2 text-right">{formatCurrency(net)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
