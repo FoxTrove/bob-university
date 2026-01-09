@@ -95,36 +95,30 @@ export async function POST(request: NextRequest) {
     ]);
 
     // Calculate totals
-    const totalRevenue =
-      currentRevenueResult.data?.reduce(
-        (sum, p) => sum + (p.amount_cents || 0),
+    type RevenueRow = {
+      amount_cents?: number | null;
+      fee_cents?: number | null;
+      net_cents?: number | null;
+    };
+
+    const sumAmount = (rows: RevenueRow[] | null | undefined) =>
+      rows?.reduce((sum: number, p: RevenueRow) => sum + (p.amount_cents || 0), 0) || 0;
+
+    const sumFees = (rows: RevenueRow[] | null | undefined) =>
+      rows?.reduce((sum: number, p: RevenueRow) => sum + (p.fee_cents || 0), 0) || 0;
+
+    const sumNet = (rows: RevenueRow[] | null | undefined) =>
+      rows?.reduce(
+        (sum: number, p: RevenueRow) => sum + ((p.net_cents ?? p.amount_cents) || 0),
         0
       ) || 0;
-    const totalFees =
-      currentRevenueResult.data?.reduce(
-        (sum, p) => sum + (p.fee_cents || 0),
-        0
-      ) || 0;
-    const totalNet =
-      currentRevenueResult.data?.reduce(
-        (sum, p) => sum + ((p.net_cents ?? p.amount_cents) || 0),
-        0
-      ) || 0;
-    const previousRevenue =
-      previousRevenueResult.data?.reduce(
-        (sum, p) => sum + (p.amount_cents || 0),
-        0
-      ) || 0;
-    const previousFees =
-      previousRevenueResult.data?.reduce(
-        (sum, p) => sum + (p.fee_cents || 0),
-        0
-      ) || 0;
-    const previousNet =
-      previousRevenueResult.data?.reduce(
-        (sum, p) => sum + ((p.net_cents ?? p.amount_cents) || 0),
-        0
-      ) || 0;
+
+    const totalRevenue = sumAmount(currentRevenueResult.data as RevenueRow[] | null);
+    const totalFees = sumFees(currentRevenueResult.data as RevenueRow[] | null);
+    const totalNet = sumNet(currentRevenueResult.data as RevenueRow[] | null);
+    const previousRevenue = sumAmount(previousRevenueResult.data as RevenueRow[] | null);
+    const previousFees = sumFees(previousRevenueResult.data as RevenueRow[] | null);
+    const previousNet = sumNet(previousRevenueResult.data as RevenueRow[] | null);
 
     // Get MRR from active subscriptions
     const { data: activeEntitlements } = await supabase
