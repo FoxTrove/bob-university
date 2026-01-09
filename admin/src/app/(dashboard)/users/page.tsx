@@ -2,6 +2,7 @@ import { createAdminClient, createClient } from '@/lib/supabase/server';
 import { Header } from '@/components/Header';
 import Link from 'next/link';
 import { Users, Crown, Clock } from 'lucide-react';
+import { formatCurrency } from '@/lib/analytics';
 
 async function getUsers() {
   const adminClient = createAdminClient();
@@ -18,6 +19,7 @@ async function getUsers() {
   }
 
   const userIds = (profiles || []).map((profile) => profile.id);
+  const ltvByUser = new Map<string, number>();
   let entitlementsByUser = new Map<string, {
     plan: string | null;
     status: string | null;
@@ -46,6 +48,21 @@ async function getUsers() {
         ])
       );
     }
+
+    const { data: ledgerRows, error: ledgerError } = await supabase
+      .from('revenue_ledger')
+      .select('user_id, net_cents')
+      .in('user_id', userIds)
+      .eq('status', 'completed');
+
+    if (ledgerError) {
+      console.error('Error fetching revenue ledger:', ledgerError);
+    } else if (ledgerRows) {
+      ledgerRows.forEach((row) => {
+        const current = ltvByUser.get(row.user_id) ?? 0;
+        ltvByUser.set(row.user_id, current + (row.net_cents ?? 0));
+      });
+    }
   }
 
   return (profiles || []).map((profile) => ({
@@ -53,6 +70,7 @@ async function getUsers() {
     entitlements: entitlementsByUser.get(profile.id)
       ? [entitlementsByUser.get(profile.id)]
       : [],
+    ltv_cents: ltvByUser.get(profile.id) ?? 0,
   }));
 }
 
@@ -133,6 +151,9 @@ export default async function UsersPage() {
                   Joined
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  LTV
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Role
                 </th>
               </tr>
@@ -195,6 +216,9 @@ export default async function UsersPage() {
                     <td className="px-6 py-4 text-sm text-gray-500">
                       {formatDate(profile.created_at)}
                     </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {formatCurrency(profile.ltv_cents || 0)}
+                    </td>
                     <td className="px-6 py-4">
                       {profile.role === 'admin' ? (
                         <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
@@ -209,7 +233,7 @@ export default async function UsersPage() {
               })}
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                     No users yet.
                   </td>
                 </tr>
