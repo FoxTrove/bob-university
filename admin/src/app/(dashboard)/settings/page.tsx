@@ -19,7 +19,11 @@ import {
   Apple,
   Smartphone,
   Plus,
-  Trash2
+  Trash2,
+  Mail,
+  RefreshCw,
+  ExternalLink,
+  Loader2
 } from 'lucide-react';
 
 interface Profile {
@@ -48,6 +52,13 @@ interface SubscriptionPlan {
 interface IntegrationStatus {
   stripe: boolean;
   mux: boolean;
+  ghl: 'unknown' | 'connected' | 'error' | 'not_configured';
+}
+
+interface GHLSyncResult {
+  synced: number;
+  errors: number;
+  message: string;
 }
 
 export default function SettingsPage() {
@@ -80,7 +91,13 @@ export default function SettingsPage() {
   const [integrations, setIntegrations] = useState<IntegrationStatus>({
     stripe: false,
     mux: false,
+    ghl: 'unknown',
   });
+
+  // GHL state
+  const [ghlTesting, setGhlTesting] = useState(false);
+  const [ghlSyncing, setGhlSyncing] = useState(false);
+  const [ghlSyncResult, setGhlSyncResult] = useState<GHLSyncResult | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -120,10 +137,11 @@ export default function SettingsPage() {
       // Check integrations (basic check - these are set server-side)
       // For now we check if plans have stripe IDs as a proxy
       const hasStripeConfig = plansData?.some(p => p.stripe_price_id) || false;
-      setIntegrations({
+      setIntegrations(prev => ({
+        ...prev,
         stripe: hasStripeConfig,
         mux: true, // Assume configured if admin is running
-      });
+      }));
     }
 
     loadData();
@@ -251,6 +269,68 @@ export default function SettingsPage() {
       setError(message);
     } finally {
       setSavingPlan(false);
+    }
+  };
+
+  // GHL Functions
+  const testGHLConnection = async () => {
+    setGhlTesting(true);
+    setError(null);
+
+    try {
+      const response = await supabase.functions.invoke('ghl-test-connection');
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Connection test failed');
+      }
+
+      const result = response.data;
+      if (result.success) {
+        setIntegrations(prev => ({ ...prev, ghl: 'connected' }));
+        setSuccessMessage(`GHL Connected: ${result.location_name || 'Connection verified'}`);
+      } else if (result.not_configured) {
+        setIntegrations(prev => ({ ...prev, ghl: 'not_configured' }));
+        setError('GHL not configured. Add GOHIGHLEVEL_API_KEY to Supabase secrets.');
+      } else {
+        throw new Error(result.error || 'Connection test failed');
+      }
+    } catch (err) {
+      setIntegrations(prev => ({ ...prev, ghl: 'error' }));
+      const message = err instanceof Error ? err.message : 'Connection test failed';
+      setError(`GHL Error: ${message}`);
+    } finally {
+      setGhlTesting(false);
+    }
+  };
+
+  const syncUsersToGHL = async () => {
+    setGhlSyncing(true);
+    setError(null);
+    setGhlSyncResult(null);
+
+    try {
+      const response = await supabase.functions.invoke('ghl-bulk-sync');
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Bulk sync failed');
+      }
+
+      const result = response.data;
+      if (result.success) {
+        setGhlSyncResult({
+          synced: result.synced || 0,
+          errors: result.errors || 0,
+          message: result.message || 'Sync complete',
+        });
+        setSuccessMessage(`Synced ${result.synced} users to GHL`);
+      } else {
+        throw new Error(result.error || 'Bulk sync failed');
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Bulk sync failed';
+      setError(`GHL Sync Error: ${message}`);
+    } finally {
+      setGhlSyncing(false);
     }
   };
 
@@ -514,6 +594,111 @@ export default function SettingsPage() {
           <p className="text-xs text-gray-400 mt-4">
             Integration credentials are configured via environment variables in .env.local
           </p>
+        </div>
+
+        {/* GoHighLevel Integration */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">GoHighLevel (CRM)</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Sync contacts, trigger email workflows, and manage marketing automation.
+              </p>
+            </div>
+            <Mail className="w-8 h-8 text-gray-400" />
+          </div>
+
+          <div className="border rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="bg-orange-100 p-2 rounded-lg mr-3">
+                  <Mail className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900">Connection Status</h3>
+                  <p className="text-sm text-gray-500">GHL API integration</p>
+                </div>
+              </div>
+              {integrations.ghl === 'connected' && (
+                <span className="flex items-center text-green-600 text-sm">
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                  Connected
+                </span>
+              )}
+              {integrations.ghl === 'not_configured' && (
+                <span className="flex items-center text-yellow-600 text-sm">
+                  <AlertTriangle className="w-4 h-4 mr-1" />
+                  Not configured
+                </span>
+              )}
+              {integrations.ghl === 'error' && (
+                <span className="flex items-center text-red-600 text-sm">
+                  <XCircle className="w-4 h-4 mr-1" />
+                  Error
+                </span>
+              )}
+              {integrations.ghl === 'unknown' && (
+                <span className="flex items-center text-gray-500 text-sm">
+                  Click test to check
+                </span>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={testGHLConnection}
+                disabled={ghlTesting}
+                className="inline-flex items-center px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+              >
+                {ghlTesting ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                )}
+                Test Connection
+              </button>
+
+              <button
+                onClick={syncUsersToGHL}
+                disabled={ghlSyncing || integrations.ghl !== 'connected'}
+                className="inline-flex items-center px-3 py-2 text-sm bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {ghlSyncing ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Users className="w-4 h-4 mr-2" />
+                )}
+                Bulk Sync Users
+              </button>
+
+              <a
+                href="https://supabase.com/dashboard/project/_/settings/vault/secrets"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900"
+              >
+                <ExternalLink className="w-4 h-4 mr-1" />
+                Configure Secrets
+              </a>
+            </div>
+
+            {ghlSyncResult && (
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
+                <p className="font-medium text-gray-900">{ghlSyncResult.message}</p>
+                <p className="text-gray-600">
+                  Synced: {ghlSyncResult.synced} | Errors: {ghlSyncResult.errors}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="text-xs text-gray-500 space-y-1">
+            <p><strong>Required secrets:</strong></p>
+            <ul className="list-disc list-inside ml-2 space-y-0.5">
+              <li><code className="bg-gray-100 px-1 rounded">GOHIGHLEVEL_API_KEY</code> - Your GHL Private Integration Token</li>
+              <li><code className="bg-gray-100 px-1 rounded">GOHIGHLEVEL_LOCATION_ID</code> - Your GHL Location ID</li>
+            </ul>
+          </div>
         </div>
       </div>
 

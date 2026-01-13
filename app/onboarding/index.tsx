@@ -187,10 +187,27 @@ export default function OnboardingWizard() {
   
   const handleAssessmentAnswer = (val: string | string[]) => {
       const currentQ = ASSESSMENT_QUESTIONS[assessmentIndex];
+      console.log('[Onboarding] Answer received:', currentQ.id, val);
       const newAnswers = { ...assessmentAnswers, [currentQ.id]: val };
       setAssessmentAnswers(newAnswers);
-      // Optional: Auto-advance for single choice? 
-      // User might want to change answer, so explicit Next button is improved UX validation
+      console.log('[Onboarding] New answers state:', newAnswers);
+
+      // Auto-advance for single choice questions after a brief delay
+      if (currentQ.type === 'single' && val) {
+        setTimeout(() => {
+          if (assessmentIndex < ASSESSMENT_QUESTIONS.length - 1) {
+            setAssessmentIndex(i => i + 1);
+          } else {
+            // Last question - save and move to next step
+            saveAssessmentProgress(newAnswers);
+            if (isPremium) {
+              setCurrentStep(3);
+            } else {
+              setCurrentStep(2);
+            }
+          }
+        }, 300);
+      }
   };
 
   const handleSubscribe = () => {
@@ -201,22 +218,27 @@ export default function OnboardingWizard() {
     if (!user?.id) return;
     setLoading(true);
     try {
-        // 1. Update DB
+        // 1. Update DB - prioritize has_completed_onboarding, assessment is optional
         const { error } = await supabase
             .from('profiles')
-            .update({ 
+            .update({
                 has_completed_onboarding: true,
-                skills_assessment: assessmentAnswers // Verify save again
+                skills_assessment: Object.keys(assessmentAnswers).length > 0 ? assessmentAnswers : null
             })
             .eq('id', user.id);
 
-        if (error) { 
-            console.error('Error finish onboarding:', error);
+        if (error) {
+            console.error('Error saving onboarding:', error);
+            // Try to at least mark onboarding as complete
+            await supabase
+                .from('profiles')
+                .update({ has_completed_onboarding: true })
+                .eq('id', user.id);
         }
-        
+
         // 2. Refresh Local State (CRITICAL to fix loop)
         await refreshProfile();
-        
+
         // 3. Close Modal
         if (router.canGoBack()) {
             router.back();
@@ -224,9 +246,19 @@ export default function OnboardingWizard() {
             router.replace('/(tabs)');
         }
     } catch (e) {
-        console.error(e);
+        console.error('Onboarding error:', e);
         // Force close even on error to unblock user
+        try {
+            await supabase
+                .from('profiles')
+                .update({ has_completed_onboarding: true })
+                .eq('id', user.id);
+            await refreshProfile();
+        } catch (retryError) {
+            console.error('Retry failed:', retryError);
+        }
         if (router.canGoBack()) router.back();
+        else router.replace('/(tabs)');
     } finally {
         setLoading(false);
     }
@@ -395,12 +427,20 @@ export default function OnboardingWizard() {
 
   // Helper for disabled state
   const isNextDisabled = () => {
-      if (loading) return true;
+      if (loading) {
+        console.log('[Onboarding] Next disabled: loading');
+        return true;
+      }
       if (currentStep === 1) {
           const currentQ = ASSESSMENT_QUESTIONS[assessmentIndex];
           const hasAnswer = assessmentAnswers[currentQ.id];
-          if (!hasAnswer || (Array.isArray(hasAnswer) && hasAnswer.length === 0)) return true;
+          console.log('[Onboarding] Checking answer for', currentQ.id, ':', hasAnswer, 'assessmentAnswers:', assessmentAnswers);
+          if (!hasAnswer || (Array.isArray(hasAnswer) && hasAnswer.length === 0)) {
+            console.log('[Onboarding] Next disabled: no answer');
+            return true;
+          }
       }
+      console.log('[Onboarding] Next enabled');
       return false;
   };
 
@@ -423,14 +463,15 @@ export default function OnboardingWizard() {
               </View>
             )}
 
-            {/* Skip Button */}
+            {/* Skip Button - larger touch area for better mobile UX */}
             {currentStep > 0 && currentStep !== 2 && (
               <TouchableOpacity
                 onPress={handleSkip}
-                className="absolute top-4 right-4 z-10 py-1 px-3"
+                className="absolute top-2 right-2 z-50 py-3 px-4"
                 disabled={loading}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Text className="text-gray-400 text-sm font-medium">Skip</Text>
+                <Text className="text-gray-300 text-sm font-semibold">Skip</Text>
               </TouchableOpacity>
             )}
 

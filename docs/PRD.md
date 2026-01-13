@@ -1,8 +1,8 @@
 # Bob University Mobile Application
 ## Product Requirements Document
 
-**Version 2.0**  
-**December 16, 2025**  
+**Version 2.1**
+**January 13, 2026**  
 **Prepared by FoxTrove.ai for Ray Hornback**
 
 | Metadata | Details |
@@ -390,6 +390,123 @@ location.
 - Analytics: Track delivery, open rates, and conversion by notification type.
 
 
+### 3.10 Community Feature
+
+#### 3.10.1 Overview
+The Community feature provides a social space within the app where stylists can share their work, ask questions, exchange tips, and request feedback from peers. This feature serves as a key selling point for the app, fostering engagement and creating a sense of belonging among Bob University members.
+
+**Key Value Propositions:**
+- Peer-to-peer learning and support
+- Showcase work for feedback and inspiration
+- Build relationships within the stylist community
+- Increase app engagement and retention
+
+#### 3.10.2 Access & Permissions
+| User Type | Capabilities |
+| :--- | :--- |
+| Free Users | Create posts, comment, react, report content |
+| Subscribers | Same as free (community is open to all) |
+| Certified Stylists | Same + verified badge on posts |
+| Admins | Full moderation capabilities |
+
+#### 3.10.3 Post Types & Categories
+Posts can be assigned to categories for easy filtering:
+- **Show Your Work**: Photos/videos of haircuts for inspiration
+- **Questions**: Technical questions seeking advice
+- **Tips & Tricks**: Sharing techniques and best practices
+- **General**: Open discussion
+
+**Feedback Request Mode:**
+Posts can be marked as "Requesting Feedback" to explicitly invite constructive critique and "roast-style" feedback from the community.
+
+#### 3.10.4 Content Support
+Posts support rich media content:
+- **Text**: Written content, descriptions, questions
+- **Images**: Multiple photo uploads (before/after, process shots)
+- **Videos**: Short video clips of techniques or results
+- Storage: Supabase Storage bucket (`community-media`)
+- File organization: `{user_id}/{timestamp}-{filename}`
+
+#### 3.10.5 Engagement Features
+| Feature | Description |
+| :--- | :--- |
+| Reactions | Multiple reaction types: ❤️ Like, 🔥 Fire, 💇 Haircut, 💡 Helpful |
+| Comments | Threaded comments with reply support |
+| Reporting | Users can flag inappropriate content |
+
+#### 3.10.6 Feed & Discovery
+- **Main Feed**: Chronological feed of all published posts
+- **Category Filters**: Filter by category or feedback requests
+- **Pull-to-Refresh**: Standard refresh pattern
+- **Infinite Scroll**: Paginated loading for performance
+
+#### 3.10.7 Moderation System
+**Post-Moderation Approach:**
+Content goes live immediately. Users can report violations, and admins review flagged content.
+
+**Report Reasons:**
+- Spam
+- Harassment
+- Inappropriate content
+- Misinformation
+- Other
+
+**Admin Actions:**
+- Dismiss report (content OK)
+- Hide content (soft delete with reason)
+- Ban user (temporary or permanent)
+
+#### 3.10.8 Mobile App Screens
+| Screen | Purpose |
+| :--- | :--- |
+| Community Tab | Main feed with category filters |
+| Post Detail | Full post view with comments |
+| Create Post | Compose new post with media |
+| My Posts | User's own post history |
+
+#### 3.10.9 Admin Dashboard
+**Moderation Queue (`/community`):**
+- List of reported content awaiting review
+- Content preview (text, images, video playback)
+- One-click approve/reject actions
+- User ban management
+
+**Community Analytics:**
+- Posts per day/week/month
+- Engagement metrics (reactions, comments)
+- Top contributors
+- Report volume and resolution rate
+
+#### 3.10.10 Data Model
+**Core Tables:**
+- `community_posts`: User posts with content and media
+- `community_comments`: Comments with threading support
+- `community_reactions`: User reactions on posts
+- `community_reports`: Flagged content for review
+- `community_bans`: Banned users
+
+**Key Fields (community_posts):**
+```
+id, user_id, content, media_urls (JSONB), category,
+is_feedback_request, is_published, is_hidden,
+likes_count, comments_count, created_at, updated_at
+```
+
+#### 3.10.11 Push Notifications
+| Trigger | Notification |
+| :--- | :--- |
+| New comment on your post | "{Name} commented on your post" |
+| New reaction on your post | "{Name} reacted to your post" |
+| Your report was actioned | "Thanks for reporting. We've taken action." |
+
+#### 3.10.12 Future Enhancements (Post-Launch)
+- Follow users to see their posts in a dedicated feed
+- Bookmark/save posts for later reference
+- Direct messaging between community members
+- Featured posts section curated by admin
+- Community challenges/contests
+
+
 ## 4. Technical Architecture
 
 ### 4.1 System Overview
@@ -426,6 +543,11 @@ Supabase backend, and key third-party integrations for payments, CRM, and AI cap
 - stylist_profiles: Public directory listings
 - staff_access_codes: Salon owner team management
 - ai_conversations: Chat history with AI assistant
+- community_posts: User-generated community posts
+- community_comments: Comments on community posts
+- community_reactions: Reactions (likes, fire, haircut, helpful)
+- community_reports: Flagged content for moderation
+- community_bans: Banned community users
 
 #### 4.3.2 Row Level Security (RLS)
 Supabase RLS policies will enforce data access at the database level:
@@ -835,6 +957,7 @@ by Week 5 to support content migration and soft launch preparation.
 
 | Date | Version | Description | Author |
 | :--- | :--- | :--- | :--- |
+| **Jan 13, 2026** | **2.1** | **Community Feature**<br>Added Section 3.10 Community Feature:<br>- Social feed with posts, comments, and reactions<br>- Media support (images, videos)<br>- "Requesting Feedback" mode for peer critique<br>- Category filters (Show Your Work, Questions, Tips)<br>- Post-moderation system with admin queue<br>- Database schema (5 tables) and storage bucket | FoxTrove.ai |
 | **Dec 16, 2025** | **2.0** | **Major V2 Update**<br>Integrated changes from Dec 12 & Dec 15 meetings:<br>- **Features:** Collections, Rich Media Lessons, Virtual Events, Certified Stylist Directory.<br>- **Monetization:** Defined subscription tiers, gating logic, and one-time purchases (Certifications/Events).<br>- **Admin:** Expanded analytics, event management, and notification center. | FoxTrove.ai |
 | **Initial** | **1.0** | Initial Draft Release | FoxTrove.ai |
 

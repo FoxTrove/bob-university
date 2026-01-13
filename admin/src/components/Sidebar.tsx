@@ -16,6 +16,7 @@ import {
   LogOut,
   MapPin,
   CreditCard,
+  MessageSquare,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -30,6 +31,7 @@ const navigation = [
   { name: 'Directory', href: '/directory', icon: MapPin },
   { name: 'Collections', href: '/collections', icon: Layers },
   { name: 'Events', href: '/events', icon: Calendar },
+  { name: 'Community', href: '/community', icon: MessageSquare },
   { name: 'Subscriptions', href: '/subscriptions', icon: CreditCard },
   { name: 'Notifications', href: '/notifications', icon: Bell },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },

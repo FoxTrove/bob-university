@@ -9,134 +9,143 @@ Bob University is a React Native mobile app for hair education, built with Expo.
 ## Development Commands
 
 ```bash
+# Mobile app (root directory)
 npm start          # Start Expo development server
 npm run ios        # Start on iOS simulator
 npm run android    # Start on Android emulator
 npm run web        # Start web version
+
+# Admin dashboard (from admin/ directory)
+cd admin
+npm run dev        # Start development server (localhost:3000)
+npm run build      # Build for production
+npm run lint       # Run ESLint
 ```
 
 ## Tech Stack
 
+### Mobile App
 - **Framework**: React Native with Expo SDK 54
 - **Routing**: Expo Router (file-based routing)
 - **Styling**: NativeWind (Tailwind CSS for React Native)
-- **Backend**: Supabase (PostgreSQL, Auth, Storage)
-- **State**: React Context for auth state
+- **Video**: expo-video with Mux playback
+- **Maps**: @rnmapbox/maps for stylist directory
+- **Auth**: Supabase Auth with Apple/Google social login
+- **Payments**: Stripe React Native SDK
+
+### Admin Dashboard
+- **Framework**: Next.js 16 with App Router
+- **Styling**: Tailwind CSS v4
+- **Video Upload**: Mux direct upload API
+- **Rich Text**: react-quill-new
+- **Charts**: Recharts
+- **Drag & Drop**: @dnd-kit for lesson ordering
+
+### Backend
+- **Database**: Supabase (PostgreSQL)
+- **Auth**: Supabase Auth
+- **Storage**: Supabase Storage (images bucket)
+- **Edge Functions**: Deno-based functions in `supabase/functions/`
 
 ## Architecture
 
-### File-based Routing (`app/`)
-- `app/_layout.tsx` - Root layout with AuthProvider and navigation guard
-- `app/(auth)/` - Authentication screens (sign-in, sign-up)
-- `app/(tabs)/` - Main app tabs (Home, Learn/Modules, Profile)
+### Mobile App File Structure
+- `app/_layout.tsx` - Root layout with AuthProvider, font loading, navigation guard
+- `app/(auth)/` - Sign-in, sign-up screens
+- `app/(tabs)/` - Main tabs: Home, Modules, Certification, Directory, Events, Profile
+- `app/module/[id].tsx` - Module detail with video list
+- `app/video/[id].tsx` - Video player screen
+- `app/onboarding/` - Skills assessment flow for new users
+- `lib/` - Core utilities and hooks
+- `components/` - Reusable UI components organized by domain
+
+### Admin Dashboard Structure
+- `admin/src/app/(dashboard)/` - All admin pages (modules, videos, users, analytics, etc.)
+- `admin/src/app/api/` - API routes for Mux uploads and analytics
+- `admin/src/components/` - Shared components (Sidebar, analytics charts, editors)
+- `admin/src/lib/supabase/` - Server/client/middleware Supabase clients
 
 ### Auth Flow
-The root layout (`app/_layout.tsx`) wraps the app in `AuthProvider` and handles routing:
-- Unauthenticated users redirect to `/(auth)/sign-in`
-- Authenticated users redirect to `/(tabs)`
+The root layout wraps the app in `AuthProvider` (`lib/auth.tsx`):
+- Checks `has_completed_onboarding` in profiles table
+- New users → `/(onboarding)` for skills assessment
+- Returning users → `/(tabs)` main app
+- Unauthenticated → `/(auth)/sign-in`
 
-### Core Libraries (`lib/`)
-- `lib/supabase.ts` - Supabase client with AsyncStorage for session persistence
-- `lib/auth.tsx` - React Context providing `session`, `user`, and `loading` state
+### Entitlement System
+- `lib/hooks/useEntitlement.ts` - Checks subscription status from `entitlements` table
+- Plans: `free`, `individual`, `salon`
+- `isPremium` = active subscription with `individual` or `salon` plan
+- `canAccessVideo(video)` - Returns true for free videos or premium users
 
 ## Environment Variables
 
-Required in `.env`:
+### Mobile App (`.env`)
 ```
 EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_ANON_KEY=
 ```
 
-## NativeWind Configuration
-
-Global styles imported via `global.css` in the root layout. Metro config in `metro.config.js` uses `withNativeWind` wrapper.
-
-## Admin Dashboard (`admin/`)
-
-The admin dashboard is a Next.js app for managing content, users, and app settings.
-
-### Admin Commands (from `admin/` directory)
-```bash
-npm run dev        # Start development server (localhost:3000)
-npm run build      # Build for production
-npm start          # Run production build
-```
-
-### Admin Tech Stack
-- **Framework**: Next.js 16 with App Router
-- **Styling**: Tailwind CSS
-- **Auth**: Supabase Auth with admin role verification
-- **Video Upload**: Mux direct upload API
-
-### Admin Features
-- Video upload with Mux integration
-- Module management (CRUD)
-- User management (view subscribers)
-- Events and Collections management
-- Certifications management (settings + review queue)
-- Stylist Directory management
-- Analytics dashboard with KPIs and charts
-
-### Analytics (`admin/src/app/(dashboard)/analytics/`)
-The analytics section provides business intelligence dashboards:
-
-**Pages:**
-- `/analytics` - Overview dashboard with KPIs
-- `/analytics/revenue` - Revenue deep-dive
-- `/analytics/users` - User growth and retention
-
-**Key Components (`admin/src/components/analytics/`):**
-- `DateRangeSelector` - Quick select (1d, 7d, 30d, 90d, 1y) + custom picker
-- `MetricCard` - Stat cards with period comparison (↑↓ indicators)
-- `AnalyticsLineChart`, `AnalyticsBarChart`, `AnalyticsPieChart` - Chart wrappers
-- `ExportCSVButton` - CSV export functionality
-
-**Libraries:**
-- `recharts` - Charting
-- `date-fns` - Date manipulation
-
-**Utilities (`admin/src/lib/`):**
-- `analytics.ts` - Date range helpers, formatters
-- `analytics-queries.ts` - Supabase query functions for metrics
-
-### Admin Environment Variables (`admin/.env.local`)
+### Admin Dashboard (`admin/.env.local`)
 ```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=     # For admin operations
 MUX_TOKEN_ID=
 MUX_TOKEN_SECRET=
 ```
 
-### Certifications (`admin/src/app/(dashboard)/certifications/`)
-Single certification system: "Ray-Certified Stylist" - one certification that endorses stylists in Ray's methods.
+## Database
 
-**Features:**
-- Settings: Configure title, description, price ($297), badge image, required modules
-- Review toggle: Enable/disable video submission review
-- Submissions table: View all certification applications with status filtering
-- Approve/reject workflow with feedback
-- CSV export
+### Key Tables
+- `profiles` - User profiles with `role` (admin check), `salon_id`, `has_completed_onboarding`
+- `modules` - Learning modules with `drip_buckets` for scheduled content release
+- `videos` - Lessons within modules, `is_free` flag, Mux playback IDs
+- `video_library` - Central video asset library, reusable across modules/collections
+- `entitlements` - Subscription status per user (Stripe integration)
+- `subscription_records` - Detailed subscription history
+- `revenue_ledger` - All revenue events for analytics
+- `certification_settings` - Singleton config for "Ray-Certified Stylist" certification
+- `user_certifications` - User certification applications and status
+- `stylist_profiles` - Public directory profiles with location data
+- `events` / `event_registrations` - In-person events management
+- `collections` / `collection_videos` / `collection_access` - Video collections with access control
 
-**Database Tables:**
-- `certification_settings` - Singleton config row
-- `certification_required_modules` - Which modules are prerequisites
-- `user_certifications` - User certification status and submissions
+### Type Generation
+Regenerate TypeScript types after schema changes:
+```bash
+npx supabase gen types typescript --project-id <project-id> > lib/database.types.ts
+```
 
-### Stylist Directory (`admin/src/app/(dashboard)/directory/`)
-Admin view of certified stylists who can be listed in the public directory.
+### Migrations
+Located in `supabase/migrations/`. Key migrations:
+- `001_initial_schema.sql` - Core tables
+- `021_revenue_ledger_and_subscriptions.sql` - Analytics data model
 
-**Features:**
-- View all stylist profiles with stats
-- Edit profile details (bio, location, contact info, social links)
-- Toggle public visibility
-- View certification status
+## Supabase Edge Functions
 
-**Database Table:**
-- `stylist_profiles` - Stylist directory profiles with location, contact, and visibility
+Located in `supabase/functions/`:
+- `payment-sheet` - Stripe payment intent creation
+- `create-subscription` - Stripe subscription setup
+- `stripe-webhook` - Handle Stripe events, update revenue_ledger
+- `admin-subscription` - Admin subscription management
+- `manage-event` - Event CRUD operations
+- `send-notification` - Push notifications
 
-**Future Features (not yet built):**
-- Public-facing directory pages with map (Mapbox)
-- Embeddable directory widget for Ray's websites
+## Admin Access
 
-### Admin Access
-Users must have `role = 'admin'` in the `profiles` table to access the admin dashboard.
+Users must have `role = 'admin'` in the `profiles` table. The admin dashboard middleware checks this via the `get_user_role()` RPC function.
+
+## Key Patterns
+
+### Supabase Client Usage
+- Mobile: Single client in `lib/supabase.ts` with AsyncStorage
+- Admin Server Components: `createClient()` from `lib/supabase/server.ts`
+- Admin Client Components: `createClient()` from `lib/supabase/client.ts`
+- Admin privileged operations: `createAdminClient()` with service role key
+
+### Video Playback
+Videos use Mux for streaming. The `mux_playback_id` is stored in `videos` table. The mobile app uses `MuxVideoPlayer` component wrapping expo-video.
+
+### Content Dripping
+Modules support `drip_buckets` (JSON) for scheduled content release. Videos have `drip_days` for delay after subscription start.

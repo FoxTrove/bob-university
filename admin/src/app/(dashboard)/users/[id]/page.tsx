@@ -7,7 +7,7 @@ import { Header } from '@/components/Header';
 import { createClient } from '@/lib/supabase/client';
 import { formatCurrency } from '@/lib/analytics';
 import { User } from '@supabase/supabase-js';
-import { ArrowLeft, CheckCircle, Save, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Save, XCircle, Shield, ShieldOff } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -73,8 +73,10 @@ export default function UserDetailPage() {
   const [ledgerError, setLedgerError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingRole, setSavingRole] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showRoleConfirm, setShowRoleConfirm] = useState(false);
 
   const [plan, setPlan] = useState<Entitlement['plan']>('free');
   const [status, setStatus] = useState<Entitlement['status']>('active');
@@ -126,37 +128,38 @@ export default function UserDetailPage() {
       setPeriodEnd(toDateTimeInput(nextEntitlement.current_period_end));
       setCancelAtPeriodEnd(Boolean(nextEntitlement.cancel_at_period_end));
 
-      const { data: ledgerData, error: ledgerFetchError } = await supabase
-        .from('revenue_ledger')
-        .select('id, source, product_type, plan, status, amount_cents, fee_cents, net_cents, currency, occurred_at, external_id')
-        .eq('user_id', userId)
-        .in('status', ['completed', 'refunded'])
-        .order('occurred_at', { ascending: false })
-        .limit(20);
+      // Fetch revenue data from API route (bypasses RLS)
+      try {
+        const response = await fetch(`/api/users/${userId}`);
+        if (response.ok) {
+          const { ledgerRows: ledgerData } = await response.json();
+          const rows = (ledgerData || []) as RevenueLedgerRow[];
+          const summary = rows.reduce<LedgerSummary>(
+            (acc, row) => {
+              const amount = row.amount_cents || 0;
+              const fee = row.fee_cents || 0;
+              // Use net_cents if available and non-zero, otherwise fall back to amount
+              const net = (row.net_cents && row.net_cents !== 0) ? row.net_cents : amount;
+              acc.net += net;
+              if (row.status === 'refunded') {
+                acc.refunds += Math.abs(net);
+              } else {
+                acc.gross += amount;
+                acc.fees += fee;
+              }
+              return acc;
+            },
+            { net: 0, gross: 0, fees: 0, refunds: 0 }
+          );
 
-      if (ledgerFetchError) {
-        setLedgerError(ledgerFetchError.message);
-      } else {
-        const rows = (ledgerData || []) as RevenueLedgerRow[];
-        const summary = rows.reduce<LedgerSummary>(
-          (acc, row) => {
-            const amount = row.amount_cents || 0;
-            const fee = row.fee_cents || 0;
-            const net = row.net_cents ?? amount;
-            acc.net += net;
-            if (row.status === 'refunded') {
-              acc.refunds += Math.abs(net);
-            } else {
-              acc.gross += amount;
-              acc.fees += fee;
-            }
-            return acc;
-          },
-          { net: 0, gross: 0, fees: 0, refunds: 0 }
-        );
-
-        setLedgerRows(rows);
-        setLedgerSummary(summary);
+          setLedgerRows(rows);
+          setLedgerSummary(summary);
+        } else {
+          const errorData = await response.json();
+          setLedgerError(errorData.error || 'Failed to fetch revenue data');
+        }
+      } catch (err) {
+        setLedgerError('Failed to fetch revenue data');
       }
 
       setLoading(false);
@@ -199,6 +202,37 @@ export default function UserDetailPage() {
     }
 
     setSaving(false);
+  };
+
+  const handleToggleRole = async () => {
+    if (!profile) return;
+
+    setSavingRole(true);
+    setError(null);
+    setSuccessMessage(null);
+    setShowRoleConfirm(false);
+
+    const newRole = profile.role === 'admin' ? 'user' : 'admin';
+
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole }),
+      });
+
+      if (response.ok) {
+        setProfile({ ...profile, role: newRole });
+        setSuccessMessage(`User ${newRole === 'admin' ? 'promoted to admin' : 'demoted to user'}.`);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to update role');
+      }
+    } catch (err) {
+      setError('Failed to update role');
+    }
+
+    setSavingRole(false);
   };
 
   if (loading) {
@@ -246,28 +280,88 @@ export default function UserDetailPage() {
 
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Profile</h2>
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-              {profile.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.full_name || profile.email}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-lg font-semibold text-gray-500">
-                  {(profile.full_name || profile.email || '?').charAt(0).toUpperCase()}
-                </span>
-              )}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                {profile.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.full_name || profile.email}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-lg font-semibold text-gray-500">
+                    {(profile.full_name || profile.email || '?').charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div>
+                <div className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                  {profile.full_name || 'No name'}
+                  {profile.role === 'admin' && (
+                    <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                      Admin
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm text-gray-500">{profile.email}</div>
+                <div className="text-xs text-gray-400 mt-1">
+                  Joined {new Date(profile.created_at).toLocaleDateString('en-US')}
+                </div>
+              </div>
             </div>
-            <div>
-              <div className="text-lg font-medium text-gray-900">
-                {profile.full_name || 'No name'}
-              </div>
-              <div className="text-sm text-gray-500">{profile.email}</div>
-              <div className="text-xs text-gray-400 mt-1">
-                Joined {new Date(profile.created_at).toLocaleDateString('en-US')}
-              </div>
+
+            {/* Admin Role Toggle */}
+            <div className="relative">
+              {showRoleConfirm ? (
+                <div className="absolute right-0 top-0 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-10 w-64">
+                  <p className="text-sm text-gray-700 mb-3">
+                    {profile.role === 'admin'
+                      ? 'Remove admin privileges from this user?'
+                      : 'Grant admin privileges to this user?'}
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleToggleRole}
+                      disabled={savingRole}
+                      className={`flex-1 px-3 py-1.5 text-sm font-medium rounded ${
+                        profile.role === 'admin'
+                          ? 'bg-red-600 text-white hover:bg-red-700'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                      } disabled:opacity-50`}
+                    >
+                      {savingRole ? 'Saving...' : 'Confirm'}
+                    </button>
+                    <button
+                      onClick={() => setShowRoleConfirm(false)}
+                      className="flex-1 px-3 py-1.5 text-sm font-medium rounded border border-gray-300 hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowRoleConfirm(true)}
+                  className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    profile.role === 'admin'
+                      ? 'bg-red-50 text-red-700 hover:bg-red-100'
+                      : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                  }`}
+                >
+                  {profile.role === 'admin' ? (
+                    <>
+                      <ShieldOff className="w-4 h-4 mr-2" />
+                      Remove Admin
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="w-4 h-4 mr-2" />
+                      Make Admin
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -327,7 +421,7 @@ export default function UserDetailPage() {
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {ledgerRows.map((row) => {
                     const gross = row.amount_cents || 0;
-                    const net = row.net_cents ?? gross;
+                    const net = (row.net_cents && row.net_cents !== 0) ? row.net_cents : gross;
                     const sourceLabel = row.source === 'stripe'
                       ? 'Web (Stripe)'
                       : row.source === 'apple'
