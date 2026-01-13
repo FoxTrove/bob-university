@@ -13,9 +13,9 @@ interface ProgressBarProps extends ViewProps {
 }
 
 const variantStyles: Record<ProgressBarVariant, string> = {
-  default: 'bg-gray-600',
-  success: 'bg-green-500',
-  brand: 'bg-black',
+  default: 'bg-textMuted',
+  success: 'bg-success',
+  brand: 'bg-primary',
 };
 
 const sizeStyles: Record<ProgressBarSize, { track: string; bar: string }> = {
@@ -49,13 +49,13 @@ export function ProgressBar({
     <View className={`w-full ${className}`} {...props}>
       {(showLabel || label) && (
         <View className="flex-row justify-between mb-1">
-          {label && <Text className="text-sm text-gray-600">{label}</Text>}
+          {label && <Text className="text-sm text-textMuted">{label}</Text>}
           {showLabel && (
-            <Text className="text-sm text-gray-600">{Math.round(clampedProgress)}%</Text>
+            <Text className="text-sm text-textMuted">{Math.round(clampedProgress)}%</Text>
           )}
         </View>
       )}
-      <View className={`w-full bg-gray-200 rounded-full ${sizeStyle.track}`}>
+      <View className={`w-full bg-surfaceHighlight rounded-full ${sizeStyle.track}`}>
         <View
           className={`${variantStyles[variant]} rounded-full ${sizeStyle.bar}`}
           style={{ width: `${clampedProgress}%` }}

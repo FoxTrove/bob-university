@@ -1,8 +1,10 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { View, Text, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator, Animated, Dimensions } from 'react-native';
 import { useVideoPlayer, VideoView, VideoViewProps } from 'expo-video';
 import { useEvent } from 'expo';
 import { Ionicons } from '@expo/vector-icons';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface MuxVideoPlayerProps {
   playbackId: string | null;
@@ -13,6 +15,7 @@ interface MuxVideoPlayerProps {
   onComplete?: () => void;
   onError?: (error: string) => void;
   autoPlay?: boolean;
+  canSeekFuture?: boolean;
 }
 
 function formatTime(seconds: number): string {
@@ -30,12 +33,22 @@ export function MuxVideoPlayer({
   onComplete,
   onError,
   autoPlay = false,
+  canSeekFuture = false,
 }: MuxVideoPlayerProps) {
   const videoRef = useRef<VideoView>(null);
   const [showControls, setShowControls] = useState(true);
   const [isBuffering, setIsBuffering] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+  const [maxWatched, setMaxWatched] = useState(initialPosition);
+  const [progressBarWidth, setProgressBarWidth] = useState(0);
+
+  // Double-tap state
+  const [doubleTapSide, setDoubleTapSide] = useState<'left' | 'right' | null>(null);
+  const doubleTapOpacity = useRef(new Animated.Value(0)).current;
+  const lastTapRef = useRef<{ time: number; x: number }>({ time: 0, x: 0 });
+
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasCompletedRef = useRef(false);
@@ -75,10 +88,17 @@ export function MuxVideoPlayer({
     if (isPlaying && !progressIntervalRef.current) {
       progressIntervalRef.current = setInterval(() => {
         if (player.currentTime && player.duration) {
-          onProgress?.(player.currentTime, player.duration);
+          const currentTime = player.currentTime;
+          
+          // Update max watched
+          if (currentTime > maxWatched) {
+            setMaxWatched(currentTime);
+          }
+          
+          onProgress?.(currentTime, player.duration);
 
           // Check for completion (90% watched)
-          const percentWatched = (player.currentTime / player.duration) * 100;
+          const percentWatched = (currentTime / player.duration) * 100;
           if (percentWatched >= 90 && !hasCompletedRef.current) {
             hasCompletedRef.current = true;
             onComplete?.();
@@ -96,7 +116,7 @@ export function MuxVideoPlayer({
         progressIntervalRef.current = null;
       }
     };
-  }, [isPlaying, player, onProgress, onComplete]);
+  }, [isPlaying, player, onProgress, onComplete, maxWatched]);
 
   // Auto-hide controls
   const hideControlsDelayed = useCallback(() => {
@@ -134,8 +154,13 @@ export function MuxVideoPlayer({
   };
 
   const skipForward = () => {
-    const newTime = Math.min(player.currentTime + 10, player.duration || player.currentTime);
-    player.currentTime = newTime;
+    // Only allow skipping forward if we can seek future or if the new time is within what we've watched
+    const targetTime = Math.min(player.currentTime + 10, player.duration || player.currentTime);
+    if (!canSeekFuture && targetTime > maxWatched && targetTime > player.currentTime) {
+        // Can't skip past max watched
+        return;
+    }
+    player.currentTime = targetTime;
   };
 
   const skipBackward = () => {
@@ -143,7 +168,48 @@ export function MuxVideoPlayer({
     player.currentTime = newTime;
   };
 
-  const handleVideoPress = () => {
+  // Show double-tap feedback animation
+  const showDoubleTapFeedback = (side: 'left' | 'right') => {
+    setDoubleTapSide(side);
+    doubleTapOpacity.setValue(1);
+    Animated.timing(doubleTapOpacity, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(() => setDoubleTapSide(null));
+  };
+
+  const handleVideoPress = (e: { nativeEvent: { locationX: number } }) => {
+    const now = Date.now();
+    const tapX = e.nativeEvent.locationX;
+    const timeDiff = now - lastTapRef.current.time;
+    const distanceDiff = Math.abs(tapX - lastTapRef.current.x);
+
+    // Check for double-tap (within 300ms and 50px of last tap)
+    if (timeDiff < 300 && distanceDiff < 50) {
+      // Double tap detected
+      const videoWidth = progressBarWidth || SCREEN_WIDTH;
+      const isLeftSide = tapX < videoWidth / 2;
+
+      if (isLeftSide) {
+        // Double-tap left = skip backward 10s
+        skipBackward();
+        showDoubleTapFeedback('left');
+      } else {
+        // Double-tap right = skip forward 10s (if allowed)
+        if (canSeekFuture || player.currentTime < maxWatched) {
+          skipForward();
+          showDoubleTapFeedback('right');
+        }
+      }
+
+      // Reset tap tracking
+      lastTapRef.current = { time: 0, x: 0 };
+      return;
+    }
+
+    // Single tap - toggle controls
+    lastTapRef.current = { time: now, x: tapX };
     setShowControls(!showControls);
     if (!showControls) {
       hideControlsDelayed();
@@ -161,6 +227,14 @@ export function MuxVideoPlayer({
 
   const handleFullscreenExit = () => {
     setIsFullscreen(false);
+  };
+  
+  const cyclePlaybackSpeed = () => {
+    const speeds = [0.5, 1.0, 1.25, 1.5, 2.0];
+    const currentIndex = speeds.indexOf(playbackSpeed);
+    const nextSpeed = speeds[(currentIndex + 1) % speeds.length];
+    setPlaybackSpeed(nextSpeed);
+    player.playbackRate = nextSpeed;
   };
 
   if (!videoUrl) {
@@ -180,12 +254,30 @@ export function MuxVideoPlayer({
           player={player}
           style={{ flex: 1 }}
           contentFit="contain"
-          nativeControls={isFullscreen}
+          nativeControls={isFullscreen} // Use native controls in fullscreen
           allowsFullscreen
           allowsPictureInPicture
           onFullscreenEnter={handleFullscreenEnter}
           onFullscreenExit={handleFullscreenExit}
         />
+
+        {/* Double-tap feedback overlay */}
+        {doubleTapSide && (
+          <Animated.View
+            className={`absolute top-0 bottom-0 ${doubleTapSide === 'left' ? 'left-0 right-1/2' : 'left-1/2 right-0'} items-center justify-center`}
+            style={{ opacity: doubleTapOpacity }}
+            pointerEvents="none"
+          >
+            <View className="bg-white/20 rounded-full p-4">
+              <Ionicons
+                name={doubleTapSide === 'left' ? 'play-back' : 'play-forward'}
+                size={32}
+                color="#fff"
+              />
+              <Text className="text-white text-xs font-bold mt-1 text-center">10s</Text>
+            </View>
+          </Animated.View>
+        )}
 
         {/* Buffering indicator */}
         {isBuffering && (
@@ -211,10 +303,18 @@ export function MuxVideoPlayer({
           <View className="absolute inset-0 bg-black/40">
             {/* Top bar with title */}
             {title && (
-              <View className="p-4">
-                <Text className="text-white font-medium text-lg" numberOfLines={1}>
+              <View className="p-4 flex-row justify-between items-start">
+                <Text className="text-white font-medium text-lg flex-1 mr-4" numberOfLines={1}>
                   {title}
                 </Text>
+                
+                {/* Speed Control */}
+                <Pressable 
+                    onPress={cyclePlaybackSpeed}
+                    className="bg-black/50 px-2 py-1 rounded border border-white/20"
+                >
+                    <Text className="text-white text-xs font-bold">{playbackSpeed}x</Text>
+                </Pressable>
               </View>
             )}
 
@@ -236,7 +336,11 @@ export function MuxVideoPlayer({
                 />
               </Pressable>
 
-              <Pressable onPress={skipForward} className="p-2">
+              <Pressable 
+                onPress={skipForward} 
+                className={`p-2 ${(!canSeekFuture && player.currentTime >= maxWatched) ? 'opacity-30' : ''}`}
+                disabled={!canSeekFuture && player.currentTime >= maxWatched}
+              >
                 <Ionicons name="play-forward" size={32} color="#fff" />
               </Pressable>
             </View>
@@ -254,17 +358,64 @@ export function MuxVideoPlayer({
               </View>
 
               {/* Progress bar */}
-              <View className="h-1 bg-white/30 rounded-full overflow-hidden mb-3">
-                <View
-                  className="h-full bg-white rounded-full"
-                  style={{
-                    width: `${
-                      player.duration
-                        ? (player.currentTime / player.duration) * 100
-                        : 0
-                    }%`,
-                  }}
-                />
+              <View 
+                className="h-6 justify-center mb-1 relative"
+                onLayout={(e) => setProgressBarWidth(e.nativeEvent.layout.width)}
+              >
+                  <Pressable
+                    className="h-full justify-center"
+                    onPress={(e) => {
+                        if (!player.duration || progressBarWidth === 0) return;
+                        const clickX = e.nativeEvent.locationX;
+                        const percentage = Math.max(0, Math.min(1, clickX / progressBarWidth));
+                        const targetTime = percentage * player.duration;
+
+                        if (!canSeekFuture && targetTime > maxWatched && targetTime > player.currentTime) {
+                            // Block seeking forward if not allowed
+                            return; 
+                        }
+                        
+                        player.currentTime = targetTime;
+                    }}
+                  >
+                        <View className="h-1 bg-white/30 rounded-full overflow-hidden relative pointer-events-none">
+                            <View
+                            className="h-full bg-primary rounded-full absolute left-0 top-0"
+                            style={{
+                                width: `${
+                                player.duration
+                                    ? (player.currentTime / player.duration) * 100
+                                    : 0
+                                }%`,
+                            }}
+                            />
+                            {!canSeekFuture && (
+                                <View 
+                                className="h-full bg-white/10 absolute top-0"
+                                style={{
+                                    left: `${
+                                        player.duration
+                                        ? (maxWatched / player.duration) * 100
+                                        : 0
+                                    }%`,
+                                    right: 0
+                                }}
+                                />
+                            )}
+                        </View>
+                        {/* Scrubber Knob */}
+                        <View 
+                            className="w-3 h-3 bg-white rounded-full absolute"
+                            style={{
+                                left: `${
+                                    player.duration
+                                    ? (player.currentTime / player.duration) * 100
+                                    : 0
+                                }%`,
+                                marginLeft: -6
+                            }}
+                        />
+                  </Pressable>
               </View>
 
               {/* Bottom controls */}

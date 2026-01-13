@@ -15,11 +15,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.bobuniversity.app",
+      "bundleIdentifier": "com.foxtrove.bobuniversity",
       "usesAppleSignIn": true
     },
     "android": {
-      "package": "com.bobuniversity.app",
+      "package": "com.foxtrove.bobuniversity",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -31,9 +31,21 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router",
       "expo-apple-authentication",
-      "@react-native-google-signin/google-signin"
-    ]
+      "@react-native-google-signin/google-signin",
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsImpl": "mapbox"
+        }
+      ],
+      "expo-router"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "30ff9fd3-6d93-4f3e-8588-d1776e1525a5"
+      }
+    }
   }
 }

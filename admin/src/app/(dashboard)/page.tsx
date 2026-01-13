@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { Header } from '@/components/Header';
+import Link from 'next/link';
 import { Video, Users, FolderOpen, TrendingUp } from 'lucide-react';
 
 async function getStats() {
@@ -87,27 +88,27 @@ export default async function DashboardPage() {
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
             <div className="space-y-3">
-              <a
+              <Link
                 href="/videos/upload"
                 className="flex items-center p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
               >
                 <Video className="w-5 h-5 text-blue-600 mr-3" />
                 <span className="text-sm font-medium text-blue-900">Upload New Video</span>
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/modules/new"
                 className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
               >
                 <FolderOpen className="w-5 h-5 text-purple-600 mr-3" />
                 <span className="text-sm font-medium text-purple-900">Create New Module</span>
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/notifications/new"
                 className="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
               >
                 <TrendingUp className="w-5 h-5 text-green-600 mr-3" />
                 <span className="text-sm font-medium text-green-900">Send Push Notification</span>
-              </a>
+              </Link>
             </div>
           </div>
 

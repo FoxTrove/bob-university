@@ -1,0 +1,5 @@
+[projects."/Users/kylerasmussen/Documents/Projects/bob-university"]
+trust_level = "trusted"
+
+[mcp_servers.supabase]
+url = "https://mcp.supabase.com/mcp?project_ref=lwofrjklqmanklbmbsgz"

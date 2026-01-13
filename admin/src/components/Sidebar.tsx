@@ -14,18 +14,25 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  MapPin,
+  CreditCard,
+  MessageSquare,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Videos', href: '/videos', icon: Video },
+  { name: 'Lessons', href: '/videos', icon: Video },
+  { name: 'Video Library', href: '/library', icon: Layers },
   { name: 'Modules', href: '/modules', icon: FolderOpen },
   { name: 'Users', href: '/users', icon: Users },
   { name: 'Certifications', href: '/certifications', icon: Award },
+  { name: 'Directory', href: '/directory', icon: MapPin },
   { name: 'Collections', href: '/collections', icon: Layers },
   { name: 'Events', href: '/events', icon: Calendar },
+  { name: 'Community', href: '/community', icon: MessageSquare },
+  { name: 'Subscriptions', href: '/subscriptions', icon: CreditCard },
   { name: 'Notifications', href: '/notifications', icon: Bell },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
@@ -42,7 +49,7 @@ export function Sidebar() {
   };
 
   return (
-    <div className="flex flex-col w-64 bg-gray-900 min-h-screen">
+    <div className="flex flex-col w-64 bg-gray-900 h-screen sticky top-0 overflow-y-auto">
       <div className="flex items-center justify-center h-16 border-b border-gray-800">
         <h1 className="text-xl font-bold text-white">Bob University</h1>
       </div>

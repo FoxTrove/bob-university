@@ -1,14 +1,21 @@
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView, Alert, Platform, Linking, ActivityIndicator } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeContainer } from '../components/layout/SafeContainer';
 import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { useStripe } from '@stripe/stripe-react-native';
+import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../lib/supabase';
+import * as LinkingExpo from 'expo-linking';
+import { useSubscriptionPlans, formatPlanPrice } from '../lib/hooks/useSubscriptionPlans';
 
 interface PlanFeature {
   text: string;
   included: boolean;
 }
 
-interface Plan {
+interface DisplayPlan {
   id: string;
   name: string;
   price: string;
@@ -16,78 +23,56 @@ interface Plan {
   description: string;
   features: PlanFeature[];
   popular?: boolean;
+  appleProductId?: string | null;
 }
 
-const plans: Plan[] = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: '$0',
-    period: 'forever',
-    description: 'Get started with basic content',
-    features: [
-      { text: 'Access to free videos', included: true },
-      { text: 'Basic tutorials', included: true },
-      { text: 'Premium courses', included: false },
-      { text: 'Certifications', included: false },
-      { text: 'Stylist directory listing', included: false },
-    ],
-  },
-  {
-    id: 'individual',
-    name: 'Individual',
-    price: '$19.99',
-    period: '/month',
-    description: 'Full access for solo stylists',
-    features: [
-      { text: 'Access to free videos', included: true },
-      { text: 'All premium courses', included: true },
-      { text: 'Earn certifications', included: true },
-      { text: 'Stylist directory listing', included: true },
-      { text: 'Team management', included: false },
-    ],
-    popular: true,
-  },
-  {
-    id: 'salon',
-    name: 'Salon',
-    price: '$49.99',
-    period: '/month',
-    description: 'Train your entire team',
-    features: [
-      { text: 'Everything in Individual', included: true },
-      { text: 'Up to 5 team members', included: true },
-      { text: 'Team progress tracking', included: true },
-      { text: 'Priority support', included: true },
-      { text: 'Custom branding', included: true },
-    ],
-  },
-];
+// Free plan is static (not stored in database)
+const freePlan: DisplayPlan = {
+  id: 'free',
+  name: 'Free',
+  price: '$0',
+  period: 'forever',
+  description: 'Get started with basic content',
+  features: [
+    { text: 'Access to free videos', included: true },
+    { text: 'Basic tutorials', included: true },
+    { text: 'Premium courses', included: false },
+    { text: 'Certifications', included: false },
+    { text: 'Stylist directory listing', included: false },
+  ],
+};
 
-function PlanCard({ plan, onSelect }: { plan: Plan; onSelect: () => void }) {
+function PlanCard({ plan, onSelect, loading }: { plan: DisplayPlan; onSelect: () => void; loading: boolean }) {
+  const isPopular = plan.popular;
+
   return (
-    <Card variant={plan.popular ? 'elevated' : 'outlined'} className="p-4 mb-4">
-      {plan.popular && (
-        <View className="absolute -top-3 right-4 bg-brand-accent px-3 py-1 rounded-full">
-          <Text className="text-white text-xs font-medium">Most Popular</Text>
+    <Card
+      className={`p-6 mb-6 border-2 ${isPopular ? 'border-primary bg-surfaceHighlight' : 'border-border bg-surface'}`}
+      padding="none"
+    >
+      {isPopular && (
+        <View className="absolute -top-3 right-6 bg-primary px-3 py-1 rounded-full">
+          <Text className="text-white text-xs font-bold uppercase tracking-wide">Most Popular</Text>
         </View>
       )}
 
-      <Text className="text-lg font-bold text-brand-primary">{plan.name}</Text>
-      <View className="flex-row items-baseline mt-1">
-        <Text className="text-3xl font-bold text-brand-primary">{plan.price}</Text>
-        <Text className="text-brand-muted ml-1">{plan.period}</Text>
+      <Text className="text-xl font-serifBold text-text mb-2">{plan.name}</Text>
+      <View className="flex-row items-baseline mb-4">
+        <Text className="text-4xl font-serifBold text-text">{plan.price}</Text>
+        <Text className="text-textMuted ml-1 font-medium">{plan.period}</Text>
       </View>
-      <Text className="text-brand-muted mt-2">{plan.description}</Text>
+      <Text className="text-textMuted mb-6 pb-6 border-b border-border">{plan.description}</Text>
 
-      <View className="mt-4 space-y-2">
+      <View className="space-y-3 mb-6">
         {plan.features.map((feature, index) => (
-          <View key={index} className="flex-row items-center gap-2">
-            <Text className={feature.included ? 'text-green-500' : 'text-brand-muted'}>
-              {feature.included ? '✓' : '✗'}
-            </Text>
+          <View key={index} className="flex-row items-center gap-3">
+            <Ionicons
+              name={feature.included ? "checkmark-circle" : "close-circle"}
+              size={20}
+              color={feature.included ? "#3b82f6" : "#52525b"}
+            />
             <Text
-              className={feature.included ? 'text-brand-primary' : 'text-brand-muted'}
+              className={`flex-1 ${feature.included ? 'text-text' : 'text-textMuted'}`}
             >
               {feature.text}
             </Text>
@@ -95,64 +80,173 @@ function PlanCard({ plan, onSelect }: { plan: Plan; onSelect: () => void }) {
         ))}
       </View>
 
-      <Pressable
+      <Button
+        title={plan.id === 'free' ? 'Current Plan' : 'Subscribe Now'}
         onPress={onSelect}
-        className={`mt-4 py-3 rounded-lg items-center ${
-          plan.popular ? 'bg-brand-accent' : 'bg-brand-primary'
-        }`}
-      >
-        <Text className="text-white font-semibold">
-          {plan.id === 'free' ? 'Current Plan' : 'Subscribe'}
-        </Text>
-      </Pressable>
+        variant={isPopular ? 'primary' : 'outline'}
+        disabled={plan.id === 'free' || loading}
+        loading={loading}
+        fullWidth
+      />
     </Card>
   );
 }
 
 export default function Subscribe() {
   const router = useRouter();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const [processingPlan, setProcessingPlan] = useState<string | null>(null);
 
-  const handleSelectPlan = (planId: string) => {
-    if (planId === 'free') {
-      router.back();
+  // Fetch plans from database
+  const { plans: dbPlans, loading: plansLoading, error: plansError } = useSubscriptionPlans();
+
+  // Transform database plans to display format
+  const displayPlans: DisplayPlan[] = [
+    freePlan,
+    ...dbPlans.map((plan) => ({
+      id: plan.plan,
+      name: plan.plan.charAt(0).toUpperCase() + plan.plan.slice(1),
+      price: formatPlanPrice(plan.amount_cents, plan.currency),
+      period: `/${plan.interval}`,
+      description: plan.description || '',
+      features: (plan.features || []).map((f) => ({ text: f, included: true })),
+      popular: plan.plan === 'individual',
+      appleProductId: plan.apple_product_id,
+    })),
+  ];
+
+  const handleSelectPlan = async (plan: DisplayPlan) => {
+    if (plan.id === 'free') return;
+
+    // iOS: Use Apple IAP for subscriptions
+    if (Platform.OS === 'ios') {
+      if (plan.appleProductId) {
+        // TODO: Implement Apple IAP purchase flow using StoreKit
+        // For now, show placeholder alert
+        Alert.alert(
+          'Apple In-App Purchase',
+          `Subscription will be processed through Apple.\n\nProduct ID: ${plan.appleProductId}`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert(
+          'Coming Soon',
+          'iOS subscriptions will be available through Apple In-App Purchases.'
+        );
+      }
       return;
     }
-    // TODO: Implement Apple IAP subscription flow in Sprint 6
-    console.log('Selected plan:', planId);
+
+    // Android/Web: Use Stripe
+    setProcessingPlan(plan.id);
+
+    try {
+      const returnUrl = LinkingExpo.createURL('stripe-redirect');
+
+      const { data, error } = await supabase.functions.invoke('create-subscription', {
+        body: {
+          plan: plan.id,
+          platform: Platform.OS === 'web' ? 'web' : 'mobile',
+          successUrl: returnUrl,
+          cancelUrl: returnUrl,
+          returnUrl,
+        },
+      });
+
+      if (error || !data) {
+        throw new Error(error?.message || 'Failed to initialize subscription');
+      }
+
+      if (Platform.OS === 'web') {
+        if (data.checkoutUrl) {
+          await Linking.openURL(data.checkoutUrl);
+          return;
+        }
+        throw new Error('Missing checkout URL');
+      }
+
+      const { paymentIntent, ephemeralKey, customer } = data;
+
+      const { error: initError } = await initPaymentSheet({
+        merchantDisplayName: "Bob University",
+        customerId: customer,
+        customerEphemeralKeySecret: ephemeralKey,
+        paymentIntentClientSecret: paymentIntent,
+        allowsDelayedPaymentMethods: false,
+        returnURL: returnUrl,
+      });
+      if (initError) throw new Error(initError.message);
+
+      const { error: presentError } = await presentPaymentSheet();
+      if (presentError) throw new Error(presentError.message);
+
+      Alert.alert("Success", "Subscription active!");
+
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    } finally {
+      setProcessingPlan(null);
+    }
   };
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: 'Choose Your Plan',
+          title: 'Upgrade Plan',
+          headerTitleStyle: { color: 'white' },
+          headerStyle: { backgroundColor: 'black' },
+          headerTintColor: '#3b82f6',
           headerLeft: () => (
             <Pressable onPress={() => router.back()}>
-              <Text className="text-brand-accent font-medium">Cancel</Text>
+              <Text className="text-white font-medium text-lg">Close</Text>
             </Pressable>
           ),
         }}
       />
       <SafeContainer edges={['bottom']}>
-        <ScrollView className="flex-1 bg-brand-background">
-          <View className="p-4">
-            <Text className="text-2xl font-bold text-brand-primary text-center">
-              Unlock Premium Content
-            </Text>
-            <Text className="text-brand-muted text-center mt-2 mb-6">
-              Get full access to all courses and certifications
-            </Text>
+        <ScrollView className="flex-1 bg-black">
+          <View className="p-6">
+            <View className="items-center mb-8">
+              <View className="bg-primary/20 w-16 h-16 rounded-full items-center justify-center mb-4">
+                <Ionicons name="star" size={32} color="#3b82f6" />
+              </View>
+              <Text className="text-3xl font-serifBold text-white text-center mb-2">
+                Unlock Premium
+              </Text>
+              <Text className="text-textMuted text-center px-4">
+                Get unlimited access to 150+ expert cutting tutorials and join the community.
+              </Text>
+            </View>
 
-            {plans.map((plan) => (
-              <PlanCard
-                key={plan.id}
-                plan={plan}
-                onSelect={() => handleSelectPlan(plan.id)}
-              />
-            ))}
+            {plansLoading ? (
+              <View className="py-12 items-center">
+                <ActivityIndicator size="large" color="#3b82f6" />
+                <Text className="text-textMuted mt-4">Loading plans...</Text>
+              </View>
+            ) : plansError ? (
+              <View className="py-12 items-center">
+                <Ionicons name="alert-circle" size={48} color="#ef4444" />
+                <Text className="text-red-500 mt-4 text-center">
+                  Failed to load plans. Please try again.
+                </Text>
+              </View>
+            ) : (
+              displayPlans.map((plan) => (
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  onSelect={() => handleSelectPlan(plan)}
+                  loading={processingPlan === plan.id}
+                />
+              ))
+            )}
 
-            <Text className="text-brand-muted text-xs text-center mt-4">
-              Subscriptions are managed through Apple. Cancel anytime.
+            <Text className="text-textMuted text-xs text-center mt-6 mb-8">
+              {Platform.OS === 'ios'
+                ? 'Subscriptions are processed through Apple. You can cancel anytime in your Apple ID settings.'
+                : 'Payments are processed securely by Stripe. You can cancel at any time in your account settings.'}
             </Text>
           </View>
         </ScrollView>

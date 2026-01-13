@@ -35,23 +35,39 @@ export function VideoCard({ video, isLocked = false, onPress }: VideoCardProps) 
     ? Math.round((progress.watched_seconds / progress.duration_seconds) * 100)
     : 0;
 
+  // Determine thumbnail source
+  let thumbnailUrl = video.thumbnail_url;
+  if (!thumbnailUrl && video.mux_playback_id) {
+    // Match admin dashboard format
+    thumbnailUrl = `https://image.mux.com/${video.mux_playback_id}/thumbnail.jpg?width=640&height=360&fit_mode=smartcrop`;
+  } else if (!thumbnailUrl) {
+     console.log('Missing thumbnail for video:', video.title, 'mux_id:', video.mux_playback_id);
+  }
+  if (video.video_progress) {
+     console.log(`[VideoCard] Rendering ${video.title}, completed: ${video.video_progress.completed}`);
+  }
+
   return (
     <Pressable
       onPress={handlePress}
       disabled={isLocked}
-      className="bg-brand-surface rounded-xl overflow-hidden border border-brand-border active:opacity-80"
+      className="bg-surface rounded-xl overflow-hidden border border-border active:opacity-80"
     >
       {/* Thumbnail */}
-      <View className="aspect-video bg-brand-muted/20 relative">
-        {video.thumbnail_url ? (
+      <View className="aspect-video bg-surfaceHighlight relative">
+        {thumbnailUrl ? (
           <Image
-            source={{ uri: video.thumbnail_url }}
+            source={{ uri: thumbnailUrl }}
             className="w-full h-full"
             resizeMode="cover"
           />
         ) : (
-          <View className="w-full h-full items-center justify-center">
-            <Text className="text-brand-muted text-4xl">🎬</Text>
+          <View className="w-full h-full items-center justify-center bg-surfaceHighlight">
+            <View className="items-center justify-center opacity-20">
+              <View className="w-16 h-12 rounded-lg border-2 border-text items-center justify-center mb-1">
+                <View className="w-0 h-0 border-t-8 border-t-transparent border-l-[16px] border-l-text border-b-8 border-b-transparent ml-1" />
+              </View>
+            </View>
           </View>
         )}
 
@@ -78,14 +94,14 @@ export function VideoCard({ video, isLocked = false, onPress }: VideoCardProps) 
       {/* Content */}
       <View className="p-3">
         <View className="flex-row items-start justify-between gap-2">
-          <Text className="text-brand-primary font-medium flex-1" numberOfLines={2}>
+          <Text className="text-text font-medium flex-1" numberOfLines={2}>
             {video.title}
           </Text>
           {video.is_free && <Badge label="Free" variant="success" size="sm" />}
         </View>
 
         {video.description && (
-          <Text className="text-brand-muted text-sm mt-1" numberOfLines={2}>
+          <Text className="text-textMuted text-sm mt-1" numberOfLines={2}>
             {video.description}
           </Text>
         )}

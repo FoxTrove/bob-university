@@ -39,3 +39,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# backups
+src_backup/
+docs/Bob Company Brand Guide 2026.pdf

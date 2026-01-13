@@ -66,7 +66,7 @@ export default function NewModulePage() {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 placeholder="e.g., Precision Cutting Fundamentals"
               />
             </div>
@@ -79,7 +79,7 @@ export default function NewModulePage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 placeholder="Describe what students will learn in this module..."
               />
             </div>
@@ -93,7 +93,7 @@ export default function NewModulePage() {
                 min="0"
                 value={sortOrder}
                 onChange={(e) => setSortOrder(parseInt(e.target.value) || 0)}
-                className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Lower numbers appear first
@@ -119,7 +119,7 @@ export default function NewModulePage() {
           <div className="flex justify-end space-x-4 mt-8 pt-6 border-t">
             <button
               onClick={() => router.push('/modules')}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 bg-white"
             >
               Cancel
             </button>

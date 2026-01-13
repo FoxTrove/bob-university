@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
-import type { Module, ModuleWithVideos } from '../database.types';
+import type { Module, ModuleWithVideos, ModuleWithProgress } from '../database.types';
 
 interface UseModulesResult {
-  modules: Module[];
+  modules: ModuleWithProgress[];
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -17,7 +17,7 @@ interface UseModuleResult {
 }
 
 export function useModules(): UseModulesResult {
-  const [modules, setModules] = useState<Module[]>([]);
+  const [modules, setModules] = useState<ModuleWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,17 +26,59 @@ export function useModules(): UseModulesResult {
       setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Fetch modules with their videos
+      const { data: modulesData, error: modulesError } = await supabase
         .from('modules')
-        .select('*')
+        .select(`
+          *,
+          videos (
+            id,
+            duration_seconds,
+            is_published
+          )
+        `)
         .eq('is_published', true)
         .order('sort_order', { ascending: true });
 
-      if (fetchError) {
-        throw fetchError;
+      if (modulesError) throw modulesError;
+
+      // If user is logged in, fetch their progress
+      let progressMap = new Map<string, boolean>();
+      if (user) {
+        const { data: progressData, error: progressError } = await supabase
+          .from('video_progress')
+          .select('video_id, completed')
+          .eq('user_id', user.id)
+          .eq('completed', true);
+
+        if (progressError) throw progressError;
+
+        if (progressData) {
+          progressData.forEach(p => progressMap.set(p.video_id, true));
+        }
       }
 
-      setModules(data || []);
+      // Process modules to add progress stats
+      const modulesWithProgress = (modulesData || []).map((module: any) => {
+        const videos = (module.videos || []).filter((v: any) => v.is_published);
+        const totalVideos = videos.length;
+        const completedVideos = videos.filter((v: any) => progressMap.has(v.id)).length;
+        const progressPercent = totalVideos > 0 
+          ? Math.round((completedVideos / totalVideos) * 100) 
+          : 0;
+
+        return {
+          ...module,
+          videos, // We keep the minimal video data here
+          totalVideos,
+          completedVideos,
+          progressPercent
+        };
+      });
+
+      setModules(modulesWithProgress);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch modules';
       setError(message);

@@ -1,3 +1,114 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand: Off-White Background */
+    --background: 0 11% 96%;
+    /* Brand: Charcoal Foreground */
+    --foreground: 0 0% 31%;
+ 
+    /* Brand: Unset Card (White) */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 31%;
+ 
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 31%;
+ 
+    /* Brand: Terra Cotta */
+    --primary: 14 43% 62%;
+    --primary-foreground: 0 0% 100%;
+ 
+    /* Brand: Beige/Tan */
+    --secondary: 25 43% 77%;
+    --secondary-foreground: 0 0% 31%;
+ 
+    /* Brand: Light Pink (Muted/Accent) */
+    --muted: 6 100% 95%;
+    --muted-foreground: 0 0% 45%;
+ 
+    --accent: 6 100% 95%;
+    --accent-foreground: 0 0% 31%;
+ 
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 25 43% 77%;
+    --input: 25 43% 77%;
+    --ring: 14 43% 62%;
+ 
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    --background: 0 0% 10%;
+    --foreground: 0 11% 96%;
+ 
+    --card: 0 0% 13%;
+    --card-foreground: 0 11% 96%;
+ 
+    --popover: 0 0% 13%;
+    --popover-foreground: 0 11% 96%;
+ 
+    --primary: 14 43% 62%; 
+    --primary-foreground: 0 0% 100%;
+ 
+    --secondary: 25 43% 77%;
+    --secondary-foreground: 0 0% 31%;
+ 
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 65%;
+ 
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 11% 96%;
+ 
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 11% 96%;
+ 
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 14 43% 62%;
+  }
+}
+
+@layer base {
+  :root {
+    --color-background: 246 243 243; /* Off-White #f6f3f3 */
+    --color-surface: 255 255 255; /* White */
+    --color-surface-highlight: 255 233 231; /* Tertiary #ffe9e7 */
+    --color-primary: 198 137 118; /* Terra Cotta #C68976 */
+    --color-primary-dark: 168 107 88; /* Darker Terra Cotta */
+    --color-text: 78 78 78; /* Dark Gray #4e4e4e */
+    --color-text-muted: 156 163 175; /* Gray */
+    --color-border: 223 192 171; /* Beige #DFC0AB */
+    --color-error: 235 139 139; /* Accent/Salmon #eb8b8b */
+    --color-success: 22 163 74; /* Green 600 */
+    --color-accent: 235 139 139; /* Accent/Salmon #eb8b8b */
+    
+    /* Tier colors */
+    --color-tier-free: 156 163 175;
+    --color-tier-individual: 198 137 118;
+    --color-tier-salon: 223 192 171;
+    --color-tier-gold: 235 139 139;
+  }
+
+  .dark {
+    /* Muted Dark Mode for Warmth */
+    --color-background: 40 35 35; /* Warm Black */
+    --color-surface: 50 45 45; /* Warm Gray */
+    --color-surface-highlight: 60 55 55; /* Lighter Warm Gray */
+    --color-primary: 223 192 171; /* Beige (readable on dark) */
+    --color-primary-dark: 198 137 118; /* Terra Cotta */
+    --color-text: 246 243 243; /* Off-White */
+    --color-text-muted: 180 170 170; /* Warm Muted */
+    --color-border: 60 55 55;
+    --color-error: 235 139 139;
+    --color-success: 34 197 94;
+    --color-accent: 235 139 139;
+  }
+
+  html, body {
+    @apply bg-background text-text;
+  }
+}

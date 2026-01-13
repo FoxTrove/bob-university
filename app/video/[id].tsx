@@ -6,7 +6,11 @@ import { useVideo, useVideoProgress } from '../../lib/hooks/useVideos';
 import { useEntitlement } from '../../lib/hooks/useEntitlement';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { Badge } from '../../components/ui/Badge';
+import { TranscriptSection } from '../../components/video/TranscriptSection';
 import { useCallback } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { RichMediaRenderer } from '../../components/video/RichMediaRenderer';
 
 export default function VideoPlayer() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -72,23 +76,23 @@ export default function VideoPlayer() {
     return (
       <>
         <Stack.Screen options={{ title: video.title }} />
-        <SafeContainer edges={[]}>
+      <SafeContainer edges={[]}>
           <View className="flex-1 bg-black">
             {/* Locked Video Preview */}
-            <View className="aspect-video bg-gray-900 items-center justify-center">
+            <View className="aspect-video bg-surface items-center justify-center">
               <View className="items-center p-6">
                 <Text className="text-6xl mb-4">🔒</Text>
-                <Text className="text-white text-xl font-bold text-center">
+                <Text className="text-white text-3xl font-serifBold text-center">
                   Premium Content
                 </Text>
-                <Text className="text-gray-400 text-center mt-2 mb-6">
+                <Text className="text-textMuted text-center mt-2 mb-6">
                   Subscribe to unlock this video and 150+ more
                 </Text>
                 <Pressable
                   onPress={handleSubscribe}
-                  className="bg-brand-accent px-8 py-4 rounded-xl"
+                  className="bg-white px-8 py-4 rounded-xl"
                 >
-                  <Text className="text-white font-bold text-lg">
+                  <Text className="text-black font-bold text-lg">
                     Subscribe Now
                   </Text>
                 </Pressable>
@@ -96,21 +100,21 @@ export default function VideoPlayer() {
             </View>
 
             {/* Video Info */}
-            <ScrollView className="flex-1 bg-brand-background">
+            <ScrollView className="flex-1 bg-background">
               <View className="p-4">
                 <View className="flex-row items-center gap-2 mb-2">
-                  <Text className="text-xl font-bold text-brand-primary flex-1">
+                  <Text className="text-2xl font-serif text-primary flex-1">
                     {video.title}
                   </Text>
                   <Badge label="Premium" variant="default" />
                 </View>
                 {video.description && (
-                  <Text className="text-brand-muted mt-2">
+                  <Text className="text-textMuted mt-2">
                     {video.description}
                   </Text>
                 )}
                 {video.duration_seconds && (
-                  <Text className="text-brand-muted text-sm mt-2">
+                  <Text className="text-textMuted text-sm mt-2">
                     Duration: {Math.floor(video.duration_seconds / 60)} min
                   </Text>
                 )}
@@ -136,20 +140,31 @@ export default function VideoPlayer() {
           {/* Video Player */}
           <MuxVideoPlayer
             playbackId={video.mux_playback_id}
-            fallbackUrl={video.video_url}
+            fallbackUrl={video.video_url || undefined}
             title={video.title}
             initialPosition={progress?.watched_seconds || 0}
             onProgress={handleProgress}
             onComplete={handleComplete}
             onError={handleError}
             autoPlay={false}
+            canSeekFuture={!!progress?.completed}
           />
 
+          {/* Explicit Back Button for Overlay */}
+          <SafeAreaView className="absolute top-0 left-0 p-4 z-50 pointer-events-box-none">
+             <Pressable 
+                onPress={() => router.back()}
+                className="w-10 h-10 rounded-full bg-black/50 items-center justify-center border border-white/20"
+             >
+                 <Ionicons name="arrow-back" size={24} color="white" />
+             </Pressable>
+          </SafeAreaView>
+
           {/* Video Info */}
-          <ScrollView className="flex-1 bg-brand-background">
+          <ScrollView className="flex-1 bg-background">
             <View className="p-4">
               <View className="flex-row items-center gap-2 mb-2">
-                <Text className="text-xl font-bold text-brand-primary flex-1">
+                <Text className="text-2xl font-serif text-primary flex-1">
                   {video.title}
                 </Text>
                 {video.is_free && <Badge label="Free" variant="success" />}
@@ -159,24 +174,32 @@ export default function VideoPlayer() {
               </View>
 
               {video.description && (
-                <Text className="text-brand-muted mt-2">
+                <Text className="text-textMuted mt-2">
                   {video.description}
                 </Text>
               )}
 
+              {/* Rich Media Content */}
+              {video.content_json && (
+                <RichMediaRenderer content={video.content_json} />
+              )}
+
               {/* Video metadata */}
-              <View className="flex-row items-center gap-4 mt-4 pt-4 border-t border-brand-border">
+              <View className="flex-row items-center gap-4 mt-4 pt-4 border-t border-border">
                 {video.duration_seconds && (
-                  <Text className="text-brand-muted text-sm">
+                  <Text className="text-textMuted text-sm">
                     {Math.floor(video.duration_seconds / 60)} min
                   </Text>
                 )}
-                {progress && !progress.completed && progress.watched_seconds > 0 && (
-                  <Text className="text-brand-muted text-sm">
-                    {Math.floor(progress.watched_seconds / 60)} min watched
+                {progress && !progress.completed && (progress.watched_seconds || 0) > 0 && (
+                  <Text className="text-textMuted text-sm">
+                    {Math.floor((progress.watched_seconds || 0) / 60)} min watched
                   </Text>
                 )}
               </View>
+
+              {/* Transcript Section */}
+              <TranscriptSection transcript={video.transcript} />
             </View>
           </ScrollView>
         </View>

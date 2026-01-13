@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeContainer } from '../../components/layout/SafeContainer';
 import { VideoList } from '../../components/videos';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
+import { ProgressBar } from '../../components/ui/ProgressBar';
 import { useModule } from '../../lib/hooks/useModules';
 import { useVideos } from '../../lib/hooks/useVideos';
 import { useEntitlement } from '../../lib/hooks/useEntitlement';
@@ -61,32 +62,23 @@ export default function ModuleDetail() {
         }}
       />
       <SafeContainer edges={[]}>
-        <View className="flex-1 bg-brand-background">
+        <View className="flex-1 bg-background">
           {/* Module Header */}
-          <View className="px-4 py-4 bg-brand-surface border-b border-brand-border">
-            <Text className="text-xl font-bold text-brand-primary">
+          <View className="px-4 py-4 bg-surface border-b border-border">
+            <Text className="text-2xl font-serifBold text-primary">
               {module.title}
             </Text>
             {module.description && (
-              <Text className="text-brand-muted mt-2">
+              <Text className="text-textMuted mt-2">
                 {module.description}
               </Text>
             )}
 
             {/* Progress info */}
             <View className="flex-row items-center mt-4 gap-4">
-              <View className="flex-row items-center">
-                <Text className="text-brand-muted text-sm">
-                  {totalVideos} {totalVideos === 1 ? 'video' : 'videos'}
-                </Text>
+              <View className="flex-row items-center flex-1">
+                 <ProgressBar progress={progressPercent} label={`${completedVideos}/${totalVideos} videos`} showLabel />
               </View>
-              {completedVideos > 0 && (
-                <View className="flex-row items-center">
-                  <Text className="text-brand-accent text-sm font-medium">
-                    {progressPercent}% complete
-                  </Text>
-                </View>
-              )}
             </View>
           </View>
 

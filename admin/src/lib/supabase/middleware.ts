@@ -61,9 +61,26 @@ export async function updateSession(request: NextRequest) {
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (!profile || profile.role !== 'admin') {
+    const { data: roleFromRpc } = await supabase.rpc('get_user_role');
+
+    const profileRole = profile?.role?.toLowerCase();
+    const rpcRole = typeof roleFromRpc === 'string'
+      ? roleFromRpc.toLowerCase()
+      : null;
+    const appMetadataRole = typeof user.app_metadata?.role === 'string'
+      ? user.app_metadata.role.toLowerCase()
+      : null;
+    const userMetadataRole = typeof user.user_metadata?.role === 'string'
+      ? user.user_metadata.role.toLowerCase()
+      : null;
+    const isAdmin = profileRole === 'admin'
+      || rpcRole === 'admin'
+      || appMetadataRole === 'admin'
+      || userMetadataRole === 'admin';
+
+    if (!isAdmin) {
       const url = request.nextUrl.clone();
       url.pathname = '/unauthorized';
       return NextResponse.redirect(url);

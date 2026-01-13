@@ -1,0 +1,932 @@
+{
+  "total": 1097,
+  "created": 49,
+  "skipped": 113,
+  "errors": 0,
+  "paying_members": 162,
+  "details": [
+    {
+      "email": "callabee03@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "tiffanysmoak@me.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "xtinemm@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "sunroomstudiosalon@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "jenacie.montoya@yahoo.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "brookelen@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "paintedbyshells@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "saquinn78@icloud.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "daniellesidor@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "matthew@killiansbarbersalon.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "maddiermiller19@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "paigenwear@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "shaina@extensionsbyshaina.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "chelsea.reslit19@yahoo.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "hairzona@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "meganmartino78@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "evelynmercado03@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "ray@thebobuniversity.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "snoozers000@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "jsharde48@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "laurenharlehair@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "jojorwilliams@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "kristenbill0422@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "powning@att.net",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "kcsatepauhoodle@yahoo.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "ch.conley23@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "bartschibraydn@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "kelbi_hughes@yahoo.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "axiegrace@icloud.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "makayla.m.curry@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "lunarae.elgin@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "ljsch36@aol.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "sweetvirginiamusic@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "kalirojo@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "kristinostyle@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "ashleygilsdorf@yahoo.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "jacksonerin28@yahoo.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "rayhornback27@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "raquel.overthetop@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "igotosteph@yahoo.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "laura.haussmann@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "tiffanybrascom@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "wildflowerhairsweet@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "hairjunkiessalon@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "stephaniewillits@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "kristinaraines@live.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "lisa_barba@sbcglobal.net",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "paigemhornback@gmail.com",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "lynn@lynnaireshair.co.uk",
+      "status": "created",
+      "is_paying": true
+    },
+    {
+      "email": "linzyyyy@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "tandemrootssuite@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "elizabethknapper@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "kayleescurls@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "kellimoir@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "mckenziefink6@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "monroe6847@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "richardryanmcgraw@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "raykelly1016@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "marisaponce328@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "cybellapw@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "missmaddie1295@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "degudgel@live.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "jessiesullivan01@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "luciabalmes@icloud.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "mateo.number1@yahoo.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "aryannatoth@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "kristinbriley2015@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "huffokat000@yahoo.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "suzannahbaptista@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "jessica.sandoval740@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "sydneyalexishair@outlook.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "mjeannecaldwell@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "katiemariehair@outlook.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "danimillerhair@outlook.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "jennjonesproducer@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "e8m3u62@duck.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "samanthabolin33@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "cordova.artistry@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "lindsey.fellin@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "fortitudesalon@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "mrsjessicawade19@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "alexandrasonsecond@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "thecollectedstylist@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "coppercohairstudio@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "danawadedesigns@outlook.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "christyrodack@yahoo.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "abigailvrba@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "laurasibold24@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "alissafmorris@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "weesecarly@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "th.nuno@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "riceshawna331@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "laurenwooly@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "genesisv45@outlook.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "studiosalon929@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "hairbymc@yahoo.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "espinoza.malena@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "nicole.atkinsonia4@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "hannah_wood3@hotmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "extensionaddict13@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "meredithgrund@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "alain.hair1@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "brittny.allsup82@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "glamourtech@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "cynthia@mysalonmood.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "mmraguseo@yahoo.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "monica@thebrowdetective.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "emily4life01@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "avedagirl1@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "lindseycc728@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "tillyjbeauty@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "bear.marie89@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "wildflowerstudio.dani@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "rutherna@icloud.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "hairbyaftondibrindisi@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "lunabeautystudio@yahoo.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "fran@studiothreesix.co.uk",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "kristenlouisejones@sbcglobal.net",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "andrea7112@yahoo.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "ejcstyles@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "emmasamples@icloud.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "michaela.r.winship@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "timikopacek@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "cperry.1217@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "sydneytanner99@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "kaileeharper@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "hawkinskelli4@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "ttotbronco@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "bstovall210@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "amiemdelong@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "samantha.flannery@yahoo.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "kerriclark811@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "carson.ray@outlook.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "maragreene03@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "deirdrewenaas@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "kassiablundenhair@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "johncandy1@hotmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "roduggins@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "laurenblauser@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "malloryherringstylist@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "lbm137@yahoo.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "abbeys0725@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "timms.caroline@yahoo.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "joe.mcenallay@live.com.au",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "tbspencer123@aol.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "thehairbar720@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "vtoribio2002@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "bellesalonwi@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "sophia.iding@yahoo.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "narvaezjuliana13@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "charlie.clausing@yahoo.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "elizabethscoppola@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "mwyatt96@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "catherinestewart0622@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "kaitlynskorik1@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "alondraquintanaperez@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "mel.holtzclaw@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "trimmingpetals@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "megan.mitchell89@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "thecurlyhairedstylist@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "stephanievbaum@yahoo.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    },
+    {
+      "email": "brantleykacie@gmail.com",
+      "status": "skipped",
+      "reason": "Already exists",
+      "is_paying": true
+    }
+  ]
+}

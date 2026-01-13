@@ -1,0 +1,193 @@
+certification_required_modules,id,uuid,uuid,false,true
+certification_required_modules,module_id,uuid,uuid,false,false
+certification_required_modules,created_at,timestamp with time zone,timestamptz,true,false
+certification_settings,id,uuid,uuid,false,true
+certification_settings,title,text,text,false,false
+certification_settings,description,text,text,true,false
+certification_settings,price_cents,integer,int4,false,false
+certification_settings,badge_image_url,text,text,true,false
+certification_settings,requires_review,boolean,bool,true,false
+certification_settings,is_active,boolean,bool,true,false
+certification_settings,created_at,timestamp with time zone,timestamptz,true,false
+certification_settings,updated_at,timestamp with time zone,timestamptz,true,false
+collection_access,id,uuid,uuid,false,true
+collection_access,collection_id,uuid,uuid,false,false
+collection_access,user_id,uuid,uuid,false,false
+collection_access,granted_at,timestamp with time zone,timestamptz,true,false
+collection_access,expires_at,timestamp with time zone,timestamptz,true,false
+collection_access,source,text,text,true,false
+collection_access,source_id,text,text,true,false
+collection_access,notes,text,text,true,false
+collection_access,created_at,timestamp with time zone,timestamptz,true,false
+collection_videos,id,uuid,uuid,false,true
+collection_videos,collection_id,uuid,uuid,false,false
+collection_videos,video_id,uuid,uuid,false,false
+collection_videos,sort_order,integer,int4,true,false
+collection_videos,custom_title,text,text,true,false
+collection_videos,custom_description,text,text,true,false
+collection_videos,created_at,timestamp with time zone,timestamptz,true,false
+collections,id,uuid,uuid,false,true
+collections,title,text,text,false,false
+collections,description,text,text,true,false
+collections,thumbnail_url,text,text,true,false
+collections,collection_type,text,text,true,false
+collections,event_date,timestamp with time zone,timestamptz,true,false
+collections,event_location,text,text,true,false
+collections,is_published,boolean,bool,true,false
+collections,access_starts_at,timestamp with time zone,timestamptz,true,false
+collections,access_ends_at,timestamp with time zone,timestamptz,true,false
+collections,sort_order,integer,int4,true,false
+collections,created_at,timestamp with time zone,timestamptz,true,false
+collections,updated_at,timestamp with time zone,timestamptz,true,false
+entitlements,id,uuid,uuid,false,true
+entitlements,user_id,uuid,uuid,false,false
+entitlements,plan,text,text,true,false
+entitlements,status,text,text,true,false
+entitlements,current_period_start,timestamp with time zone,timestamptz,true,false
+entitlements,current_period_end,timestamp with time zone,timestamptz,true,false
+entitlements,cancel_at_period_end,boolean,bool,true,false
+entitlements,created_at,timestamp with time zone,timestamptz,true,false
+entitlements,updated_at,timestamp with time zone,timestamptz,true,false
+event_registrations,id,uuid,uuid,false,true
+event_registrations,event_id,uuid,uuid,false,false
+event_registrations,user_id,uuid,uuid,false,false
+event_registrations,status,text,text,true,false
+event_registrations,ticket_type,text,text,true,false
+event_registrations,amount_paid_cents,integer,int4,true,false
+event_registrations,payment_id,text,text,true,false
+event_registrations,registered_at,timestamp with time zone,timestamptz,true,false
+event_registrations,confirmed_at,timestamp with time zone,timestamptz,true,false
+event_registrations,cancelled_at,timestamp with time zone,timestamptz,true,false
+event_registrations,notes,text,text,true,false
+events,id,uuid,uuid,false,true
+events,title,text,text,false,false
+events,description,text,text,true,false
+events,event_date,timestamp with time zone,timestamptz,false,false
+events,event_end_date,timestamp with time zone,timestamptz,true,false
+events,location,text,text,true,false
+events,venue_name,text,text,true,false
+events,venue_address,text,text,true,false
+events,max_capacity,integer,int4,true,false
+events,price_cents,integer,int4,true,false
+events,early_bird_price_cents,integer,int4,true,false
+events,early_bird_deadline,timestamp with time zone,timestamptz,true,false
+events,collection_id,uuid,uuid,true,false
+events,thumbnail_url,text,text,true,false
+events,is_published,boolean,bool,true,false
+events,registration_open,boolean,bool,true,false
+events,created_at,timestamp with time zone,timestamptz,true,false
+events,updated_at,timestamp with time zone,timestamptz,true,false
+events,stripe_product_id,text,text,true,false
+events,stripe_price_id,text,text,true,false
+modules,id,uuid,uuid,false,true
+modules,title,text,text,false,false
+modules,description,text,text,true,false
+modules,thumbnail_url,text,text,true,false
+modules,sort_order,integer,int4,true,false
+modules,is_published,boolean,bool,true,false
+modules,created_at,timestamp with time zone,timestamptz,true,false
+modules,updated_at,timestamp with time zone,timestamptz,true,false
+modules,drip_days,integer,int4,true,false
+modules,drip_buckets,jsonb,jsonb,true,false
+profiles,id,uuid,uuid,false,true
+profiles,email,text,text,false,false
+profiles,full_name,text,text,true,false
+profiles,avatar_url,text,text,true,false
+profiles,role,text,text,true,false
+profiles,salon_id,uuid,uuid,true,false
+profiles,years_experience,integer,int4,true,false
+profiles,location,text,text,true,false
+profiles,created_at,timestamp with time zone,timestamptz,true,false
+profiles,updated_at,timestamp with time zone,timestamptz,true,false
+profiles,stripe_customer_id,text,text,true,false
+purchases,id,uuid,uuid,false,true
+purchases,user_id,uuid,uuid,false,false
+purchases,source,text,text,false,false
+purchases,product_type,text,text,false,false
+purchases,product_id,text,text,false,false
+purchases,external_id,text,text,false,false
+purchases,status,text,text,true,false
+purchases,amount_cents,integer,int4,true,false
+purchases,currency,text,text,true,false
+purchases,metadata,jsonb,jsonb,true,false
+purchases,created_at,timestamp with time zone,timestamptz,true,false
+purchases,updated_at,timestamp with time zone,timestamptz,true,false
+push_tokens,id,uuid,uuid,false,true
+push_tokens,user_id,uuid,uuid,false,false
+push_tokens,token,text,text,false,false
+push_tokens,platform,text,text,true,false
+push_tokens,created_at,timestamp with time zone,timestamptz,true,false
+salons,id,uuid,uuid,false,true
+salons,name,text,text,false,false
+salons,owner_id,uuid,uuid,true,false
+salons,max_staff,integer,int4,true,false
+salons,created_at,timestamp with time zone,timestamptz,true,false
+salons,updated_at,timestamp with time zone,timestamptz,true,false
+stylist_profiles,id,uuid,uuid,false,true
+stylist_profiles,user_id,uuid,uuid,false,false
+stylist_profiles,display_name,text,text,false,false
+stylist_profiles,bio,text,text,true,false
+stylist_profiles,profile_photo_url,text,text,true,false
+stylist_profiles,salon_name,text,text,true,false
+stylist_profiles,city,text,text,true,false
+stylist_profiles,state,text,text,true,false
+stylist_profiles,country,text,text,true,false
+stylist_profiles,latitude,numeric,numeric,true,false
+stylist_profiles,longitude,numeric,numeric,true,false
+stylist_profiles,contact_email,text,text,true,false
+stylist_profiles,phone,text,text,true,false
+stylist_profiles,instagram_handle,text,text,true,false
+stylist_profiles,booking_url,text,text,true,false
+stylist_profiles,is_public,boolean,bool,true,false
+stylist_profiles,created_at,timestamp with time zone,timestamptz,true,false
+stylist_profiles,updated_at,timestamp with time zone,timestamptz,true,false
+user_certifications,id,uuid,uuid,false,true
+user_certifications,user_id,uuid,uuid,false,false
+user_certifications,status,text,text,true,false
+user_certifications,submission_video_url,text,text,true,false
+user_certifications,feedback,text,text,true,false
+user_certifications,attempt_number,integer,int4,true,false
+user_certifications,submitted_at,timestamp with time zone,timestamptz,true,false
+user_certifications,reviewed_at,timestamp with time zone,timestamptz,true,false
+user_certifications,reviewed_by,uuid,uuid,true,false
+user_certifications,approved_at,timestamp with time zone,timestamptz,true,false
+user_certifications,created_at,timestamp with time zone,timestamptz,true,false
+user_certifications,updated_at,timestamp with time zone,timestamptz,true,false
+video_library,id,uuid,uuid,false,true
+video_library,title,text,text,false,false
+video_library,filename,text,text,true,false
+video_library,mux_asset_id,text,text,true,false
+video_library,mux_playback_id,text,text,true,false
+video_library,duration_seconds,integer,int4,true,false
+video_library,thumbnail_url,text,text,true,false
+video_library,created_at,timestamp with time zone,timestamptz,true,false
+video_library,updated_at,timestamp with time zone,timestamptz,true,false
+video_progress,id,uuid,uuid,false,true
+video_progress,user_id,uuid,uuid,false,false
+video_progress,video_id,uuid,uuid,false,false
+video_progress,watched_seconds,integer,int4,true,false
+video_progress,duration_seconds,integer,int4,true,false
+video_progress,completed,boolean,bool,true,false
+video_progress,completed_at,timestamp with time zone,timestamptz,true,false
+video_progress,last_watched_at,timestamp with time zone,timestamptz,true,false
+video_progress,created_at,timestamp with time zone,timestamptz,true,false
+videos,id,uuid,uuid,false,true
+videos,module_id,uuid,uuid,true,false
+videos,title,text,text,false,false
+videos,description,text,text,true,false
+videos,video_url,text,text,true,false
+videos,thumbnail_url,text,text,true,false
+videos,duration_seconds,integer,int4,true,false
+videos,sort_order,integer,int4,true,false
+videos,is_free,boolean,bool,true,false
+videos,is_published,boolean,bool,true,false
+videos,transcript,text,text,true,false
+videos,created_at,timestamp with time zone,timestamptz,true,false
+videos,updated_at,timestamp with time zone,timestamptz,true,false
+videos,mux_playback_id,text,text,true,false
+videos,mux_asset_id,text,text,true,false
+videos,drip_days,integer,int4,true,false
+videos,type,text,text,true,false
+videos,text_content,text,text,true,false
+videos,video_library_id,uuid,uuid,true,false
+videos,content_json,jsonb,jsonb,true,false

@@ -5,23 +5,42 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Placeholder brand colors - update when client provides final palette
+        background: 'rgb(var(--color-background) / <alpha-value>)',
+        surface: 'rgb(var(--color-surface) / <alpha-value>)',
+        surfaceHighlight: 'rgb(var(--color-surface-highlight) / <alpha-value>)',
+        primary: 'rgb(var(--color-primary) / <alpha-value>)',
+        primaryDark: 'rgb(var(--color-primary-dark) / <alpha-value>)',
+        text: 'rgb(var(--color-text) / <alpha-value>)',
+        textMuted: 'rgb(var(--color-text-muted) / <alpha-value>)',
+        border: 'rgb(var(--color-border) / <alpha-value>)',
+        error: 'rgb(var(--color-error) / <alpha-value>)',
+        success: 'rgb(var(--color-success) / <alpha-value>)',
+        accent: 'rgb(var(--color-accent) / <alpha-value>)',
+        
+        // Brand aliases for backward compatibility
         brand: {
-          primary: '#000000',      // Main CTA, headers
-          secondary: '#374151',    // Secondary text
-          accent: '#3B82F6',       // Links, highlights
-          muted: '#9CA3AF',        // Subtle text
-          background: '#FFFFFF',   // App background
-          surface: '#F9FAFB',      // Card backgrounds
-          border: '#E5E7EB',       // Borders, dividers
+          surface: 'rgb(var(--color-surface) / <alpha-value>)',
+          muted: 'rgb(var(--color-text-muted) / <alpha-value>)',
+          primary: 'rgb(var(--color-text) / <alpha-value>)', 
+          accent: 'rgb(var(--color-accent) / <alpha-value>)',
+          border: 'rgb(var(--color-border) / <alpha-value>)',
         },
-        // Subscription tier colors
+
+        // Tier specific colors
         tier: {
-          free: '#6B7280',
-          individual: '#3B82F6',
-          salon: '#8B5CF6',
-        },
+          free: 'rgb(var(--color-tier-free) / <alpha-value>)',
+          individual: 'rgb(var(--color-tier-individual) / <alpha-value>)',
+          salon: 'rgb(var(--color-tier-salon) / <alpha-value>)',
+          gold: 'rgb(var(--color-tier-gold) / <alpha-value>)',
+        }
       },
+      fontFamily: {
+        sans: ['DMSans_400Regular', 'sans-serif'],
+        bold: ['DMSans_700Bold', 'sans-serif'],
+        medium: ['DMSans_500Medium', 'sans-serif'],
+        serif: ['PlayfairDisplay_400Regular', 'serif'],
+        serifBold: ['PlayfairDisplay_700Bold', 'serif'],
+      }
     },
   },
   plugins: [],

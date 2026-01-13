@@ -13,13 +13,13 @@ import {
   Link as LinkIcon,
   Save,
   Trash2,
-  Mail,
   Download,
   CheckCircle,
-  XCircle,
-  Clock,
   UserCheck,
   UserX,
+  ChevronDown,
+  ChevronUp,
+  Settings,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -112,6 +112,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showEventDetails, setShowEventDetails] = useState(false);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -205,9 +206,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       const priceInCents = priceCents ? Math.round(parseFloat(priceCents) * 100) : 0;
       const earlyBirdInCents = earlyBirdPriceCents ? Math.round(parseFloat(earlyBirdPriceCents) * 100) : null;
 
-      const { error: updateError } = await supabase
-        .from('events')
-        .update({
+      const { data, error: updateError } = await supabase.functions.invoke('manage-event', {
+        body: {
+          event_id: id,
           title: title.trim(),
           description: description.trim() || null,
           event_date: new Date(eventDate).toISOString(),
@@ -222,10 +223,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           collection_id: collectionId || null,
           is_published: isPublished,
           registration_open: registrationOpen,
-        })
-        .eq('id', id);
+        },
+      });
 
       if (updateError) throw updateError;
+      if (data?.error) throw new Error(data.error);
 
       setSuccessMessage('Event saved successfully');
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -360,33 +362,94 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Event Details Form */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-gray-900">Event Details</h2>
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleDeleteEvent}
-                    className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center"
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Delete
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
-                  >
-                    <Save className="w-4 h-4 mr-1" />
-                    {saving ? 'Saving...' : 'Save'}
-                  </button>
-                </div>
+        {/* Event Summary Bar */}
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center text-gray-600">
+                <Calendar className="w-4 h-4 mr-2" />
+                <span className="text-sm">{formatDate(event.event_date)}</span>
               </div>
+              {(location || venueName) && (
+                <div className="flex items-center text-gray-600">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  <span className="text-sm">{venueName || location}</span>
+                </div>
+              )}
+              <div className="flex items-center text-gray-600">
+                <Users className="w-4 h-4 mr-2" />
+                <span className="text-sm">
+                  {activeRegistrations.length} registered
+                  {maxCapacity && ` / ${maxCapacity} capacity`}
+                </span>
+              </div>
+              <div className="flex items-center text-gray-600">
+                <DollarSign className="w-4 h-4 mr-2" />
+                <span className="text-sm">
+                  ${(registrations.reduce((sum, r) => sum + r.amount_paid_cents, 0) / 100).toFixed(0)} revenue
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
+                    isPublished ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                  }`}
+                >
+                  {isPublished ? 'Published' : 'Draft'}
+                </span>
+                {isPublished && (
+                  <span
+                    className={`inline-flex px-2 py-0.5 text-xs rounded-full ${
+                      registrationOpen ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {registrationOpen ? 'Open' : 'Closed'}
+                  </span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => setShowEventDetails(!showEventDetails)}
+              className="flex items-center px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              <span className="text-sm">Event Settings</span>
+              {showEventDetails ? (
+                <ChevronUp className="w-4 h-4 ml-2" />
+              ) : (
+                <ChevronDown className="w-4 h-4 ml-2" />
+              )}
+            </button>
+          </div>
+        </div>
 
-              <div className="space-y-6">
-                {/* Title */}
+        {/* Collapsible Event Details */}
+        {showEventDetails && (
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-gray-900">Event Details</h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleDeleteEvent}
+                  className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center"
+                >
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  Delete
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
+                >
+                  <Save className="w-4 h-4 mr-1" />
+                  {saving ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column */}
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Event Title *
@@ -395,11 +458,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                   />
                 </div>
 
-                {/* Description */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Description
@@ -408,11 +470,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                   />
                 </div>
 
-                {/* Date/Time */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -422,7 +483,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                       type="datetime-local"
                       value={eventDate}
                       onChange={(e) => setEventDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     />
                   </div>
                   <div>
@@ -433,12 +494,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                       type="datetime-local"
                       value={eventEndDate}
                       onChange={(e) => setEventEndDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     />
                   </div>
                 </div>
 
-                {/* Location */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     City / Region
@@ -447,7 +507,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                   />
                 </div>
 
@@ -460,7 +520,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                       type="text"
                       value={venueName}
                       onChange={(e) => setVenueName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     />
                   </div>
                   <div>
@@ -471,12 +531,14 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                       type="text"
                       value={venueAddress}
                       onChange={(e) => setVenueAddress(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     />
                   </div>
                 </div>
+              </div>
 
-                {/* Pricing */}
+              {/* Right Column */}
+              <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -488,7 +550,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                       step="0.01"
                       value={priceCents}
                       onChange={(e) => setPriceCents(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     />
                   </div>
                   <div>
@@ -500,18 +562,17 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                       min="1"
                       value={maxCapacity}
                       onChange={(e) => setMaxCapacity(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                     />
                   </div>
                 </div>
 
-                {/* Early Bird */}
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <h4 className="text-sm font-medium text-gray-700 mb-3">Early Bird Pricing</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm text-gray-600 mb-1">
-                        Early Bird Price ($)
+                        Price ($)
                       </label>
                       <input
                         type="number"
@@ -519,7 +580,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                         step="0.01"
                         value={earlyBirdPriceCents}
                         onChange={(e) => setEarlyBirdPriceCents(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                       />
                     </div>
                     <div>
@@ -530,13 +591,12 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                         type="datetime-local"
                         value={earlyBirdDeadline}
                         onChange={(e) => setEarlyBirdDeadline(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Collection Link */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Linked Collection
@@ -544,7 +604,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                   <select
                     value={collectionId}
                     onChange={(e) => setCollectionId(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                   >
                     <option value="">No collection linked</option>
                     {collections.map((c) => (
@@ -564,8 +624,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                   )}
                 </div>
 
-                {/* Publishing */}
-                <div className="flex gap-6">
+                <div className="flex gap-6 pt-2">
                   <label className="flex items-center">
                     <input
                       type="checkbox"
@@ -588,77 +647,32 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               </div>
             </div>
           </div>
+        )}
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Quick Stats */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-4">Event Stats</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center text-gray-600">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    <span className="text-sm">Date</span>
-                  </div>
-                  <span className="text-sm font-medium">{formatShortDate(event.event_date)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center text-gray-600">
-                    <Users className="w-4 h-4 mr-2" />
-                    <span className="text-sm">Registrations</span>
-                  </div>
-                  <span className="text-sm font-medium">
-                    {activeRegistrations.length}
-                    {maxCapacity && ` / ${maxCapacity}`}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center text-gray-600">
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    <span className="text-sm">Confirmed</span>
-                  </div>
-                  <span className="text-sm font-medium">{confirmedRegistrations.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center text-gray-600">
-                    <DollarSign className="w-4 h-4 mr-2" />
-                    <span className="text-sm">Revenue</span>
-                  </div>
-                  <span className="text-sm font-medium">
-                    ${(registrations.reduce((sum, r) => sum + r.amount_paid_cents, 0) / 100).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-4">Quick Actions</h3>
-              <div className="space-y-2">
-                <button
-                  onClick={handleExportRegistrations}
-                  disabled={registrations.length === 0}
-                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export Registrations
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Registrations Table */}
-        <div className="mt-6 bg-white rounded-lg shadow overflow-hidden">
+        {/* Registrations Table - Main Focus */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="px-6 py-4 border-b flex items-center justify-between">
-            <h3 className="text-lg font-medium text-gray-900">Registrations</h3>
-            <span className="text-sm text-gray-500">{registrations.length} total</span>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">Registrations</h3>
+              <p className="text-sm text-gray-500 mt-0.5">
+                {activeRegistrations.length} active, {confirmedRegistrations.length} confirmed
+              </p>
+            </div>
+            <button
+              onClick={handleExportRegistrations}
+              disabled={registrations.length === 0}
+              className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export CSV
+            </button>
           </div>
 
           {registrations.length === 0 ? (
             <div className="p-12 text-center text-gray-500">
               <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p>No registrations yet</p>
+              <p className="text-sm mt-1">Registrations will appear here once users sign up for this event.</p>
             </div>
           ) : (
             <table className="min-w-full divide-y divide-gray-200">
