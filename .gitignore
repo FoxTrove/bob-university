@@ -46,6 +46,8 @@ yarn-error.*
 src_backup/
 docs/Bob Company Brand Guide 2026.pdf
 
+# documentation (keep local only)
+/docs/
+
 # service account keys (contain private keys)
-docs/the-bob-co-*.json
 *-service-account*.json
