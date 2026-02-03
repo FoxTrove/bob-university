@@ -145,6 +145,12 @@ export default async function DirectoryPage() {
         </div>
 
         {/* Profiles Table */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-medium text-gray-900">
+            {profiles.length} {profiles.length === 1 ? 'Stylist' : 'Stylists'}
+          </h2>
+        </div>
+
         {profiles.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />

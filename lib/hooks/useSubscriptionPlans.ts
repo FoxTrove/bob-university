@@ -3,7 +3,7 @@ import { supabase } from '../supabase';
 
 export interface SubscriptionPlan {
   id: string;
-  plan: 'individual' | 'salon';
+  plan: 'individual' | 'signature' | 'studio' | 'salon';
   stripe_product_id: string;
   stripe_price_id: string;
   amount_cents: number;

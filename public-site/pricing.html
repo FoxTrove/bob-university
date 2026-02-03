@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing - Bob University</title>
+  <meta name="description" content="Bob University pricing plans. Free tier available. Signature, Studio, and Salon plans for full access to courses, certifications, and community.">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fdf8f6',
+              100: '#f2e8e5',
+              200: '#eaddd7',
+              300: '#e0cec7',
+              400: '#d2bab0',
+              500: '#bfa094',
+              600: '#a18072',
+              700: '#977669',
+              800: '#846358',
+              900: '#43302b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-white text-gray-900">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-100 z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <a href="/" class="flex items-center space-x-2">
+          <span class="text-2xl font-bold text-brand-900">Bob University</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="/features" class="text-gray-600 hover:text-brand-900 transition">Features</a>
+          <a href="/pricing" class="text-brand-900 font-medium">Pricing</a>
+          <a href="/support" class="text-gray-600 hover:text-brand-900 transition">Support</a>
+          <a href="/#download" class="bg-brand-900 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition">Download App</a>
+        </div>
+        <button id="mobile-menu-btn" class="md:hidden p-2">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden border-t border-gray-100 bg-white">
+      <div class="px-4 py-4 space-y-3">
+        <a href="/features" class="block text-gray-600 hover:text-brand-900">Features</a>
+        <a href="/pricing" class="block text-brand-900 font-medium">Pricing</a>
+        <a href="/support" class="block text-gray-600 hover:text-brand-900">Support</a>
+        <a href="/#download" class="block bg-brand-900 text-white px-4 py-2 rounded-lg text-center">Download App</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <section class="pt-32 pb-12 px-4 bg-gray-50">
+    <div class="max-w-4xl mx-auto text-center">
+      <h1 class="text-4xl md:text-5xl font-bold mb-4">Simple, Transparent Pricing</h1>
+      <p class="text-xl text-gray-600">Start free. Upgrade when you're ready for more access to Ray.</p>
+    </div>
+  </section>
+
+  <!-- Individual Stylist Plans -->
+  <section class="py-12 px-4">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-2xl font-bold text-center mb-8">For Individual Stylists</h2>
+      <div class="grid md:grid-cols-3 gap-8">
+
+        <!-- Free Plan -->
+        <div class="bg-white border border-gray-200 rounded-2xl p-8">
+          <h3 class="text-xl font-bold mb-2">Free</h3>
+          <p class="text-gray-600 mb-4">Get started and explore</p>
+          <div class="mb-6">
+            <span class="text-4xl font-bold">$0</span>
+            <span class="text-gray-500">/month</span>
+          </div>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Introductory video content</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Full community access</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Browse stylist directory</span>
+            </li>
+            <li class="flex items-start text-gray-400">
+              <svg class="w-5 h-5 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              <span>Core curriculum & vault</span>
+            </li>
+            <li class="flex items-start text-gray-400">
+              <svg class="w-5 h-5 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              <span>Live workshops</span>
+            </li>
+            <li class="flex items-start text-gray-400">
+              <svg class="w-5 h-5 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              <span>Directory listing</span>
+            </li>
+          </ul>
+          <a href="/#download" class="block w-full text-center py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition">
+            Download Free
+          </a>
+        </div>
+
+        <!-- Signature Plan -->
+        <div class="bg-white border-2 border-brand-300 rounded-2xl p-8 relative">
+          <h3 class="text-xl font-bold mb-2">Signature</h3>
+          <p class="text-gray-600 mb-4">Full course access</p>
+          <div class="mb-6">
+            <span class="text-4xl font-bold">$69</span>
+            <span class="text-gray-500">/month</span>
+          </div>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Core curriculum & vault</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Monthly live workshop</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Celebrity cut breakdown</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Full community access</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Stylist directory listing</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Certification eligible</span>
+            </li>
+          </ul>
+          <a href="/#download" class="block w-full text-center py-3 bg-brand-900 text-white rounded-lg font-medium hover:bg-brand-800 transition">
+            Start Free Trial
+          </a>
+        </div>
+
+        <!-- Studio Plan -->
+        <div class="bg-brand-900 text-white rounded-2xl p-8 relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-600 text-white text-sm font-medium px-3 py-1 rounded-full">
+            Most Popular
+          </div>
+          <h3 class="text-xl font-bold mb-2">Studio</h3>
+          <p class="text-brand-200 mb-4">Direct access to Ray</p>
+          <div class="mb-6">
+            <span class="text-4xl font-bold">$149</span>
+            <span class="text-brand-200">/month</span>
+          </div>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Everything in Signature</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span><strong>Weekly "Ask Ray" live</strong></span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span><strong>Demand</strong> (business/pricing content)</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Studio-only replays</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span><strong>Reserved seats</strong> at live events</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 text-green-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Certification eligible</span>
+            </li>
+          </ul>
+          <a href="/#download" class="block w-full text-center py-3 bg-white text-brand-900 rounded-lg font-medium hover:bg-gray-100 transition">
+            Start Free Trial
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Certification Upsell -->
+      <div class="mt-8 bg-brand-50 border border-brand-200 rounded-xl p-6 max-w-2xl mx-auto">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h3 class="font-bold text-lg">Get Certified by Ray</h3>
+            <p class="text-gray-600">4-week live cohort with Ray. Quarterly sessions.</p>
+          </div>
+          <div class="text-right">
+            <span class="text-2xl font-bold">$297</span>
+            <span class="text-gray-500 text-sm block">one-time</span>
+          </div>
+        </div>
+        <p class="text-sm text-gray-500 mt-3">Available to Signature & Studio members. Starts with The Bob certification. Pixie & Shag coming soon.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Salon Owner Plan -->
+  <section class="py-12 px-4 bg-gray-50">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-2xl font-bold text-center mb-8">For Salon Owners</h2>
+
+      <div class="bg-white rounded-2xl p-8 shadow-sm">
+        <div class="grid md:grid-cols-2 gap-8">
+          <div>
+            <h3 class="text-2xl font-bold mb-2">Salon Plan</h3>
+            <p class="text-gray-600 mb-4">Train your entire team with one subscription</p>
+            <div class="mb-6">
+              <div class="flex items-baseline gap-4 mb-2">
+                <span class="text-4xl font-bold">$150</span>
+                <span class="text-gray-500">/month</span>
+              </div>
+              <p class="text-sm text-gray-500">or <strong>$997/year</strong> (save $803)</p>
+            </div>
+            <a href="/#download" class="inline-block bg-brand-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-brand-800 transition">
+              Get Started
+            </a>
+          </div>
+          <div>
+            <h4 class="font-semibold mb-3">Everything your team needs:</h4>
+            <ul class="space-y-2">
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span><strong>5 team seats</strong> included</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>All Signature + Studio content</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>Team progress dashboard</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span><strong>~30% off</strong> certifications for team</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>Reserved event seats for team</span>
+              </li>
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>Priority support</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="mt-6 pt-6 border-t border-gray-100">
+          <p class="text-sm text-gray-500">
+            <strong>Value:</strong> Individual pricing for 5 stylists would cost ~$4,140/year. Salon plan saves you over $3,100.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="py-12 px-4">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-2xl font-bold text-center mb-8">Pricing Questions</h2>
+      <div class="space-y-4">
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">Can I cancel anytime?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            Yes! You can cancel your subscription at any time. You'll continue to have access until the end of your current billing period. Note: If you're listed in the Stylist Directory, your listing will be removed when your subscription ends.
+          </div>
+        </details>
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">What's the difference between Signature and Studio?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            <p><strong>Signature</strong> gives you full access to the course library, monthly live workshops, and community features.</p>
+            <p class="mt-2"><strong>Studio</strong> adds direct weekly access to Ray through "Ask Ray" live sessions, exclusive business/pricing content (Demand), studio-only replays, and reserved seats at live events. It's for stylists who want more proximity to Ray.</p>
+          </div>
+        </details>
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">How does certification work?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            <p>Certification is a $297 one-time purchase available to Signature and Studio members. It's a 4-week live intensive with Ray, offered quarterly.</p>
+            <p class="mt-2">You'll attend 90-minute live sessions each Monday, work through the certification syllabus, and test out at the end. Upon passing, you earn your certificate, an in-app badge, and eligibility to be listed in the Stylist Directory.</p>
+          </div>
+        </details>
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">Do I need a subscription to stay in the directory?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            Yes. To maintain your listing in the Certified Stylist Directory, you need an active Signature, Studio, or Salon subscription. This ensures all listed stylists have access to continuing education and stay current with Ray's methods.
+          </div>
+        </details>
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">Can I add more than 5 people to a Salon plan?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            Yes! The Salon plan includes 5 seats, and you can add additional seats at a discounted per-seat rate. Contact us for details on larger teams.
+          </div>
+        </details>
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">Is there a free trial?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            Yes! New users can explore free content without a subscription. When you're ready to upgrade, your first 7 days of premium access are free.
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-20 px-4 bg-gray-50">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-3xl font-bold mb-4">Ready to Level Up?</h2>
+      <p class="text-xl text-gray-600 mb-8">
+        Start with free content today. No credit card required.
+      </p>
+      <a href="/#download" class="inline-flex items-center justify-center bg-brand-900 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-brand-800 transition">
+        Download Free
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-gray-400 py-12 px-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <h4 class="text-white font-semibold mb-4">Bob University</h4>
+          <p class="text-sm">The complete learning platform for hairstylists who want to master their craft and grow their business.</p>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Product</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/features" class="hover:text-white transition">Features</a></li>
+            <li><a href="/pricing" class="hover:text-white transition">Pricing</a></li>
+            <li><a href="/#download" class="hover:text-white transition">Download</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Support</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/support" class="hover:text-white transition">Contact Us</a></li>
+            <li><a href="/support#faq" class="hover:text-white transition">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Legal</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/privacy" class="hover:text-white transition">Privacy Policy</a></li>
+            <li><a href="/terms" class="hover:text-white transition">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <p class="text-sm">&copy; 2024 The Bob Co. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+      document.getElementById('mobile-menu').classList.toggle('hidden');
+    });
+  </script>
+</body>
+</html>

@@ -1,10 +1,12 @@
-import React from 'react';
-import { View, Text, Image, Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, Pressable, Alert, Modal, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '../ui/Avatar';
 import { ReactionBar } from './ReactionBar';
 import { MentionText } from './MentionText';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../lib/auth';
 
 export interface CommunityPost {
   id: string;
@@ -31,6 +33,14 @@ interface PostCardProps {
   onReact?: (postId: string, type: string) => void;
 }
 
+const REPORT_REASONS = [
+  { value: 'spam', label: 'Spam or misleading' },
+  { value: 'harassment', label: 'Harassment or bullying' },
+  { value: 'inappropriate', label: 'Inappropriate content' },
+  { value: 'misinformation', label: 'Misinformation' },
+  { value: 'other', label: 'Other' },
+] as const;
+
 const categoryConfig: Record<string, { label: string; icon: string; color: string }> = {
   show_your_work: { label: 'Show Your Work', icon: 'camera', color: '#8b5cf6' },
   questions: { label: 'Question', icon: 'help-circle', color: '#3b82f6' },
@@ -52,6 +62,9 @@ function timeAgo(dateString: string): string {
 
 export function PostCard({ post, onReact }: PostCardProps) {
   const router = useRouter();
+  const { user } = useAuth();
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportLoading, setReportLoading] = useState(false);
   const userReactions = post.user_reactions?.map(r => r.reaction_type) || [];
   const category = categoryConfig[post.category] || categoryConfig.general;
 
@@ -62,7 +75,53 @@ export function PostCard({ post, onReact }: PostCardProps) {
     }
   };
 
+  const handleMorePress = (e: any) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!user) {
+      Alert.alert('Sign In Required', 'Please sign in to report content.');
+      return;
+    }
+    // Don't allow reporting own posts
+    if (post.user_id === user.id) {
+      return;
+    }
+    setShowReportModal(true);
+  };
+
+  const handleReport = async (reason: string) => {
+    if (!user) return;
+
+    setReportLoading(true);
+    try {
+      const { error } = await supabase
+        .from('community_reports')
+        .insert({
+          reporter_id: user.id,
+          post_id: post.id,
+          reason,
+        });
+
+      if (error) {
+        if (error.code === '23505') {
+          Alert.alert('Already Reported', 'You have already reported this post.');
+        } else {
+          throw error;
+        }
+      } else {
+        Alert.alert('Report Submitted', 'Thank you for helping keep our community safe.');
+      }
+    } catch (err) {
+      console.error('Error reporting post:', err);
+      Alert.alert('Error', 'Failed to submit report. Please try again.');
+    } finally {
+      setReportLoading(false);
+      setShowReportModal(false);
+    }
+  };
+
   return (
+    <>
     <Link href={`/community/${post.id}`} asChild>
       <Pressable>
         <View className="bg-surface rounded-2xl mb-4 overflow-hidden border border-border">
@@ -99,6 +158,16 @@ export function PostCard({ post, onReact }: PostCardProps) {
                   <Text className="text-textMuted text-xs">{timeAgo(post.created_at)}</Text>
                 </View>
               </Pressable>
+              {/* More options button - only show if not own post */}
+              {user && post.user_id !== user.id && (
+                <Pressable
+                  onPress={handleMorePress}
+                  className="p-2 -mr-2"
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Ionicons name="ellipsis-horizontal" size={20} color="#71717a" />
+                </Pressable>
+              )}
             </View>
 
             {/* Content */}
@@ -173,5 +242,45 @@ export function PostCard({ post, onReact }: PostCardProps) {
         </View>
       </Pressable>
     </Link>
+
+    {/* Report Modal */}
+    <Modal
+      visible={showReportModal}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowReportModal(false)}
+    >
+      <Pressable
+        className="flex-1 bg-black/50 justify-end"
+        onPress={() => setShowReportModal(false)}
+      >
+        <Pressable className="bg-surface rounded-t-3xl p-6" onPress={(e) => e.stopPropagation()}>
+          <View className="w-12 h-1 bg-border rounded-full self-center mb-4" />
+          <Text className="text-xl font-serifBold text-text mb-4">Report Post</Text>
+          <Text className="text-textMuted mb-4">Why are you reporting this post?</Text>
+
+          {REPORT_REASONS.map((reason) => (
+            <TouchableOpacity
+              key={reason.value}
+              className="py-4 border-b border-border flex-row items-center justify-between"
+              onPress={() => handleReport(reason.value)}
+              disabled={reportLoading}
+            >
+              <Text className="text-text text-base">{reason.label}</Text>
+              <Ionicons name="chevron-forward" size={20} color="#71717a" />
+            </TouchableOpacity>
+          ))}
+
+          <TouchableOpacity
+            className="py-4 mt-2"
+            onPress={() => setShowReportModal(false)}
+            disabled={reportLoading}
+          >
+            <Text className="text-center text-textMuted text-base font-medium">Cancel</Text>
+          </TouchableOpacity>
+        </Pressable>
+      </Pressable>
+    </Modal>
+    </>
   );
 }

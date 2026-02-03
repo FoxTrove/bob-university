@@ -118,6 +118,17 @@ export default function CreatePostScreen() {
     setUploading(true);
 
     try {
+      // Check if user is banned from community
+      const { data: isBanned } = await supabase.rpc('is_user_banned', { check_user_id: user.id });
+      if (isBanned) {
+        Alert.alert(
+          'Cannot Post',
+          'Your account has been restricted from posting in the community. Please contact support if you believe this is an error.'
+        );
+        setUploading(false);
+        return;
+      }
+
       // Upload media files first
       let mediaUrls: { url: string; type: 'image' | 'video' }[] = [];
       if (media.length > 0) {

@@ -508,44 +508,62 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          community_level: number | null
+          community_points: number | null
           created_at: string | null
           email: string
           full_name: string | null
+          ghl_contact_id: string | null
           has_completed_onboarding: boolean | null
           id: string
+          is_certified: boolean | null
           location: string | null
           role: string | null
           salon_id: string | null
+          skills_assessment: Json | null
           stripe_customer_id: string | null
           updated_at: string | null
+          user_type: 'salon_owner' | 'individual_stylist' | 'client' | null
           years_experience: number | null
         }
         Insert: {
           avatar_url?: string | null
+          community_level?: number | null
+          community_points?: number | null
           created_at?: string | null
           email: string
           full_name?: string | null
+          ghl_contact_id?: string | null
           has_completed_onboarding?: boolean | null
           id: string
+          is_certified?: boolean | null
           location?: string | null
           role?: string | null
           salon_id?: string | null
+          skills_assessment?: Json | null
           stripe_customer_id?: string | null
           updated_at?: string | null
+          user_type?: 'salon_owner' | 'individual_stylist' | 'client' | null
           years_experience?: number | null
         }
         Update: {
           avatar_url?: string | null
+          community_level?: number | null
+          community_points?: number | null
           created_at?: string | null
           email?: string
           full_name?: string | null
+          ghl_contact_id?: string | null
           has_completed_onboarding?: boolean | null
           id?: string
+          is_certified?: boolean | null
           location?: string | null
           role?: string | null
           salon_id?: string | null
+          skills_assessment?: Json | null
           stripe_customer_id?: string | null
           updated_at?: string | null
+          user_type?: 'salon_owner' | 'individual_stylist' | 'client' | null
           years_experience?: number | null
         }
         Relationships: [
@@ -1360,4 +1378,24 @@ export type Profile = Tables<'profiles'>
 export type Video = Tables<'videos'>
 export type Module = Tables<'modules'>
 export type SubscriptionPlan = Tables<'subscription_plans'>
+export type Salon = Tables<'salons'>
+export type StaffAccessCode = Tables<'staff_access_codes'>
 export type PlanType = 'free' | 'individual' | 'salon'
+
+// Extended types for hooks
+export interface VideoMinimal {
+  id: string;
+  duration_seconds: number | null;
+  is_published: boolean | null;
+}
+
+export interface ModuleWithVideos extends Module {
+  videos: Video[];
+}
+
+export interface ModuleWithProgress extends Module {
+  videos: VideoMinimal[];
+  totalVideos: number;
+  completedVideos: number;
+  progressPercent: number;
+}

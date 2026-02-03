@@ -1,4 +1,3 @@
-
 import { View, Text, ScrollView, Image, Alert, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeContainer } from '../../../components/layout/SafeContainer';
@@ -6,17 +5,11 @@ import { Button } from '../../../components/ui/Button';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
-import { Database } from '../../../lib/database.types';
+import type { Tables } from '../../../lib/database.types';
 import { useStripe } from '@stripe/stripe-react-native';
 import { useAuth } from '../../../lib/auth';
 
-type Event = Database['public']['Tables']['events']['Row'] & {
-  thumbnail_url: string | null;
-  poster_url?: string | null;
-  promo_video_url?: string | null;
-  location_name: string | null;
-  address: string | null;
-};
+type Event = Tables<'events'>;
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -24,6 +17,8 @@ export default function EventDetailScreen() {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [registrationCount, setRegistrationCount] = useState(0);
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const { user } = useAuth();
 
@@ -36,6 +31,7 @@ export default function EventDetailScreen() {
       if (!id) return;
       const eventId = Array.isArray(id) ? id[0] : id;
 
+      // Fetch event details
       const { data, error } = await supabase
         .from('events')
         .select('*')
@@ -43,13 +39,60 @@ export default function EventDetailScreen() {
         .single();
 
       if (error) throw error;
-      setEvent(data as Event); // Cast to Event type
+      setEvent(data);
+
+      // Fetch registration count
+      const { count } = await supabase
+        .from('event_registrations')
+        .select('*', { count: 'exact', head: true })
+        .eq('event_id', eventId)
+        .in('status', ['confirmed', 'pending']);
+
+      setRegistrationCount(count || 0);
+
+      // Check if user is already registered
+      if (user) {
+        const { data: registration } = await supabase
+          .from('event_registrations')
+          .select('id')
+          .eq('event_id', eventId)
+          .eq('user_id', user.id)
+          .in('status', ['confirmed', 'pending'])
+          .maybeSingle();
+
+        setIsRegistered(!!registration);
+      }
     } catch (error) {
       console.error('Error fetching event details:', error);
       Alert.alert('Error', 'Could not load event details');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Calculate the applicable price (early bird or regular)
+  const getApplicablePrice = (): number => {
+    if (!event) return 0;
+
+    // Check if early bird pricing is active
+    if (event.early_bird_price_cents && event.early_bird_deadline) {
+      const deadline = new Date(event.early_bird_deadline);
+      if (new Date() < deadline) {
+        return event.early_bird_price_cents;
+      }
+    }
+
+    return event.price_cents || 0;
+  };
+
+  const isEarlyBird = (): boolean => {
+    if (!event?.early_bird_price_cents || !event?.early_bird_deadline) return false;
+    return new Date() < new Date(event.early_bird_deadline);
+  };
+
+  const isSoldOut = (): boolean => {
+    if (!event?.max_capacity) return false;
+    return registrationCount >= event.max_capacity;
   };
 
   const handlePurchase = async () => {
@@ -59,21 +102,39 @@ export default function EventDetailScreen() {
       router.push('/(auth)/sign-in');
       return;
     }
+
+    // Check if already registered
+    if (isRegistered) {
+      Alert.alert('Already Registered', 'You are already registered for this event.');
+      return;
+    }
+
+    // Check if sold out
+    if (isSoldOut()) {
+      Alert.alert('Sold Out', 'This event is at full capacity.');
+      return;
+    }
+
     setPurchasing(true);
 
     try {
-      const amountCents = event.price_cents || 0;
+      const amountCents = getApplicablePrice();
+      const ticketType = isEarlyBird() ? 'early_bird' : 'general';
 
       if (amountCents === 0) {
-        await supabase.from('event_registrations').insert({
+        const { error: regError } = await supabase.from('event_registrations').insert({
           event_id: event.id,
           user_id: user.id,
           status: 'confirmed',
-          ticket_type: 'general',
+          ticket_type: ticketType,
           amount_paid_cents: 0,
           registered_at: new Date().toISOString(),
           confirmed_at: new Date().toISOString(),
         });
+
+        if (regError) throw regError;
+
+        setIsRegistered(true);
         Alert.alert('Success', 'Your ticket is confirmed!');
         return;
       }
@@ -124,7 +185,7 @@ export default function EventDetailScreen() {
             event_id: event.id,
             user_id: user.id,
             status: 'confirmed',
-            ticket_type: 'general',
+            ticket_type: ticketType,
             amount_paid_cents: amountCents,
             payment_id: paymentIntentId,
             registered_at: new Date().toISOString(),
@@ -136,12 +197,15 @@ export default function EventDetailScreen() {
           Alert.alert('Payment confirmed', 'We received your payment. Ticket confirmation is still processing.');
           return;
         }
+
+        setIsRegistered(true);
         Alert.alert('Success', 'Your ticket is confirmed!');
       }
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Purchase error:', error);
-      Alert.alert('Payment Failed', error.message);
+      const message = error instanceof Error ? error.message : 'Payment failed';
+      Alert.alert('Payment Failed', message);
     } finally {
       setPurchasing(false);
     }
@@ -216,7 +280,6 @@ export default function EventDetailScreen() {
           )}
 
           {/* Details */}
-            
              <View className="flex-row items-center">
               <Ionicons name="calendar" size={20} color="#3b82f6" className="mr-3" />
               <Text className="text-text text-lg">{date}</Text>
@@ -228,11 +291,23 @@ export default function EventDetailScreen() {
              <View className="flex-row items-center">
                <Ionicons name="location" size={20} color="#3b82f6" className="mr-3" />
                <View className="flex-1">
-                 <Text className="text-text text-lg">{event.location_name}</Text>
-                 <Text className="text-textMuted">{event.address}</Text>
+                 <Text className="text-text text-lg">{event.venue_name || event.location}</Text>
+                 {event.venue_address && (
+                   <Text className="text-textMuted">{event.venue_address}</Text>
+                 )}
                </View>
              </View>
-        
+
+          {/* Capacity indicator */}
+          {event.max_capacity && (
+            <View className="flex-row items-center">
+              <Ionicons name="people" size={20} color="#3b82f6" className="mr-3" />
+              <Text className="text-text">
+                {registrationCount} / {event.max_capacity} spots filled
+              </Text>
+            </View>
+          )}
+
         {/* Description */}
         <View>
             <Text className="text-xl font-bold text-primary mb-2">About this Event</Text>
@@ -241,16 +316,41 @@ export default function EventDetailScreen() {
 
         {/* Action Button */}
         <View className="pt-4 pb-8">
-            <Button 
-                title={`Book Ticket - $${((event.price_cents || 0) / 100).toFixed(2)}`} 
-                onPress={handlePurchase}
-                loading={purchasing}
-                size="lg"
-                fullWidth
-            />
-             <Text className="text-xs text-textMuted text-center mt-2">
-                Secure payment via Stripe
-            </Text>
+            {isRegistered ? (
+              <View className="bg-green-500/20 p-4 rounded-xl items-center">
+                <Ionicons name="checkmark-circle" size={32} color="#22c55e" />
+                <Text className="text-green-500 font-bold mt-2">You're registered!</Text>
+              </View>
+            ) : isSoldOut() ? (
+              <View className="bg-red-500/20 p-4 rounded-xl items-center">
+                <Ionicons name="close-circle" size={32} color="#ef4444" />
+                <Text className="text-red-500 font-bold mt-2">Sold Out</Text>
+              </View>
+            ) : (
+              <>
+                <Button
+                  title={
+                    getApplicablePrice() === 0
+                      ? 'Register - Free'
+                      : `Book Ticket - $${(getApplicablePrice() / 100).toFixed(2)}`
+                  }
+                  onPress={handlePurchase}
+                  loading={purchasing}
+                  size="lg"
+                  fullWidth
+                />
+                {isEarlyBird() && (
+                  <Text className="text-xs text-green-500 text-center mt-2">
+                    Early bird pricing! Regular price: ${((event.price_cents || 0) / 100).toFixed(2)}
+                  </Text>
+                )}
+                {getApplicablePrice() > 0 && (
+                  <Text className="text-xs text-textMuted text-center mt-2">
+                    Secure payment via Stripe
+                  </Text>
+                )}
+              </>
+            )}
         </View>
         </View>
       </ScrollView>

@@ -31,6 +31,8 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+.env.*
 .env*.local
 
 # typescript
@@ -43,3 +45,7 @@ yarn-error.*
 # backups
 src_backup/
 docs/Bob Company Brand Guide 2026.pdf
+
+# service account keys (contain private keys)
+docs/the-bob-co-*.json
+*-service-account*.json

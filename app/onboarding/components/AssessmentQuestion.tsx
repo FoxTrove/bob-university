@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import logger from '../../../lib/utils/logger';
 
 export type QuestionType = 'single' | 'multiple' | 'text';
 
@@ -29,7 +30,7 @@ export function AssessmentQuestion({
 }: AssessmentQuestionProps) {
 
   const handleSelect = (optionValue: string) => {
-    console.log('[Assessment] Option selected:', optionValue);
+    logger.debug('Assessment', 'Option selected:', optionValue);
     if (type === 'single') {
       onChange(optionValue);
     } else if (type === 'multiple') {

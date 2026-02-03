@@ -7,8 +7,6 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
   httpClient: Stripe.createFetchHttpClient(),
 });
 
-console.log('Manage Event Function Initialized');
-
 serve(async (req) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -20,9 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    // Debug logging
     const authHeader = req.headers.get('Authorization');
-    console.log('RAW AUTH HEADER:', authHeader); 
 
     if (!authHeader) {
         throw new Error('Missing Authorization Header');
@@ -39,12 +35,8 @@ serve(async (req) => {
     // 1. Authenticate and authorize (Admin only) using explicit token
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
 
-    if (userError) {
-        console.error('User fetch error:', userError);
-    }
-    
-    if (!user) {
-        throw new Error('Unauthorized: No user found. Auth header was ' + (authHeader ? 'present' : 'missing'));
+    if (userError || !user) {
+        throw new Error('Unauthorized');
     }
 
     const { data: profile } = await supabaseClient
@@ -53,10 +45,8 @@ serve(async (req) => {
         .eq('id', user.id)
         .single();
     
-    console.log('User Role:', profile?.role);
-
     if (profile?.role !== 'admin') {
-        throw new Error(`Forbidden: User role is ${profile?.role}, required admin`);
+        throw new Error('Forbidden: Admin access required');
     }
 
     const eventData = await req.json();
@@ -100,7 +90,6 @@ serve(async (req) => {
         if (existingEvent?.stripe_product_id) {
             stripeProductId = existingEvent.stripe_product_id;
         } else {
-            console.log('Creating Stripe Product for event:', title);
             const product = await stripe.products.create({
                 name: title,
                 description: description || undefined,
@@ -115,7 +104,6 @@ serve(async (req) => {
         if (existingEvent?.stripe_price_id && existingEvent?.price_cents === price_cents) {
             stripePriceId = existingEvent.stripe_price_id;
         } else {
-            console.log('Creating Stripe Price');
             const price = await stripe.prices.create({
                 product: stripeProductId,
                 unit_amount: price_cents,

@@ -7,6 +7,7 @@ import { useFonts, PlayfairDisplay_400Regular, PlayfairDisplay_700Bold } from '@
 import { DMSans_400Regular, DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
 import * as SplashScreen from 'expo-splash-screen';
 import { StripeProvider } from '@stripe/stripe-react-native';
+import { usePushNotifications } from '../lib/hooks/usePushNotifications';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -14,6 +15,14 @@ function RootLayoutNav() {
   const { session, loading, onboardingComplete } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const { requestPermissions } = usePushNotifications();
+
+  // Request push notification permissions after onboarding is complete
+  useEffect(() => {
+    if (session && onboardingComplete) {
+      requestPermissions();
+    }
+  }, [session, onboardingComplete, requestPermissions]);
 
   useEffect(() => {
     if (loading) return;
@@ -76,6 +85,22 @@ function RootLayoutNav() {
           headerShown: true,
           title: 'Upgrade',
           presentation: 'modal',
+        }}
+      />
+      <Stack.Screen
+        name="subscription-cancel"
+        options={{
+          headerShown: true,
+          title: 'Cancel Subscription',
+          presentation: 'modal',
+        }}
+      />
+      <Stack.Screen
+        name="receipt-history"
+        options={{
+          headerShown: true,
+          title: 'Receipt History',
+          presentation: 'card',
         }}
       />
     </Stack>

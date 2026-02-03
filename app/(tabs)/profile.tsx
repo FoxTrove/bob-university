@@ -1,8 +1,9 @@
-import { View, Text, TouchableOpacity, ScrollView, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Pressable, Linking } from 'react-native';
 import React from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/auth';
 import { useEntitlement } from '../../lib/hooks/useEntitlement';
+import type { Profile } from '../../lib/database.types';
 import { SafeContainer } from '../../components/layout/SafeContainer';
 import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
@@ -11,6 +12,9 @@ import { Card } from '../../components/ui/Card';
 import { ProgressBar, getLevelProgress, LEVEL_THRESHOLDS } from '../../components/ui/CircularProgress';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+
+const PRIVACY_POLICY_URL = 'https://bobuniversity.com/privacy';
+const SUPPORT_EMAIL = 'support@bobuniversity.com';
 
 const levelTitles: Record<number, string> = {
   1: 'Newcomer',
@@ -29,7 +33,7 @@ export default function Profile() {
   const { user } = useAuth();
   const { isPremium, plan } = useEntitlement();
   const router = useRouter();
-  const [profile, setProfile] = React.useState<any>(null); // TODO: strict typing
+  const [profile, setProfile] = React.useState<Profile | null>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -71,6 +75,14 @@ export default function Profile() {
 
   const navigateToSalonTeam = () => {
     router.push('/salon-team');
+  };
+
+  const openPrivacyPolicy = () => {
+    Linking.openURL(PRIVACY_POLICY_URL);
+  };
+
+  const openSupport = () => {
+    Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Bob University Support Request`);
   };
 
   return (
@@ -237,7 +249,7 @@ export default function Profile() {
             <Text className="text-textMuted text-sm font-medium uppercase tracking-wider mb-3">
               Membership
             </Text>
-            
+
             {!isPremium ? (
               <Card className="bg-surface border-l-4 border-l-primary p-5">
                 <View className="flex-row items-start mb-4">
@@ -253,21 +265,33 @@ export default function Profile() {
                     </Text>
                   </View>
                 </View>
-                <Button 
-                  title="Unlock Full Access" 
+                <Button
+                  title="Unlock Full Access"
                   onPress={handleUpgrade}
                   fullWidth
                 />
               </Card>
             ) : (
-              <Card padding="md">
-                <View className="flex-row items-center justify-between mb-2">
-                  <Text className="text-text font-medium">Current Plan</Text>
-                  <Text className="text-primary font-bold capitalize">{plan}</Text>
+              <Card padding="none">
+                <View className="p-4 border-b border-border">
+                  <View className="flex-row items-center justify-between mb-2">
+                    <Text className="text-text font-medium">Current Plan</Text>
+                    <Text className="text-primary font-bold capitalize">{plan}</Text>
+                  </View>
+                  <Text className="text-textMuted text-sm">
+                    Your subscription is active. Thank you for being a member!
+                  </Text>
                 </View>
-                <Text className="text-textMuted text-sm">
-                  Your subscription is active. Thank you for being a member!
-                </Text>
+                <TouchableOpacity
+                  className="flex-row items-center justify-between p-4"
+                  onPress={() => router.push('/subscription-cancel')}
+                >
+                  <View className="flex-row items-center">
+                    <Ionicons name="card-outline" size={20} color="#a1a1aa" />
+                    <Text className="text-text ml-3">Manage Subscription</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#52525b" />
+                </TouchableOpacity>
               </Card>
             )}
           </View>
@@ -278,15 +302,32 @@ export default function Profile() {
               Account
             </Text>
             <Card padding="none" className="overflow-hidden">
-              <TouchableOpacity className="flex-row items-center justify-between p-4 border-b border-border">
+              <TouchableOpacity
+                className="flex-row items-center justify-between p-4 border-b border-border"
+                onPress={() => router.push('/notifications')}
+              >
                 <View className="flex-row items-center">
                   <Ionicons name="notifications-outline" size={20} color="#a1a1aa" />
                   <Text className="text-text ml-3">Notifications</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#52525b" />
               </TouchableOpacity>
-              
-              <TouchableOpacity className="flex-row items-center justify-between p-4 border-b border-border">
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between p-4 border-b border-border"
+                onPress={() => router.push('/receipt-history')}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons name="receipt-outline" size={20} color="#a1a1aa" />
+                  <Text className="text-text ml-3">Receipt History</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#52525b" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between p-4 border-b border-border"
+                onPress={openPrivacyPolicy}
+              >
                 <View className="flex-row items-center">
                   <Ionicons name="document-text-outline" size={20} color="#a1a1aa" />
                   <Text className="text-text ml-3">Privacy Policy</Text>
@@ -294,7 +335,10 @@ export default function Profile() {
                 <Ionicons name="chevron-forward" size={20} color="#52525b" />
               </TouchableOpacity>
 
-              <TouchableOpacity className="flex-row items-center justify-between p-4">
+              <TouchableOpacity
+                className="flex-row items-center justify-between p-4"
+                onPress={openSupport}
+              >
                 <View className="flex-row items-center">
                   <Ionicons name="help-circle-outline" size={20} color="#a1a1aa" />
                   <Text className="text-text ml-3">Support</Text>

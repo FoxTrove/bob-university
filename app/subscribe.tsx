@@ -4,11 +4,12 @@ import { SafeContainer } from '../components/layout/SafeContainer';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { useStripe } from '@stripe/stripe-react-native';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import * as LinkingExpo from 'expo-linking';
 import { useSubscriptionPlans, formatPlanPrice } from '../lib/hooks/useSubscriptionPlans';
+import { useAppleIAP } from '../lib/hooks/useAppleIAP';
 
 interface PlanFeature {
   text: string;
@@ -32,13 +33,50 @@ const freePlan: DisplayPlan = {
   name: 'Free',
   price: '$0',
   period: 'forever',
-  description: 'Get started with basic content',
+  description: 'Explore and connect',
   features: [
-    { text: 'Access to free videos', included: true },
-    { text: 'Basic tutorials', included: true },
-    { text: 'Premium courses', included: false },
-    { text: 'Certifications', included: false },
-    { text: 'Stylist directory listing', included: false },
+    { text: 'Intro videos', included: true },
+    { text: 'Full community access', included: true },
+    { text: 'Browse stylist directory', included: true },
+    { text: 'Core curriculum & vault', included: false },
+    { text: 'Live workshops', included: false },
+    { text: 'Directory listing', included: false },
+  ],
+};
+
+// Feature lists for each tier (used when DB features are empty)
+const TIER_FEATURES: Record<string, string[]> = {
+  signature: [
+    'Core curriculum & vault',
+    'Monthly live workshop',
+    'Celebrity cut breakdown',
+    'Full community access',
+    'Stylist directory listing',
+    'Certification eligible ($297)',
+  ],
+  studio: [
+    'Everything in Signature',
+    'Weekly "Ask Ray" live sessions',
+    'Demand (business/pricing content)',
+    'Studio-only replays',
+    'Reserved seats at live events',
+    'Certification eligible ($297)',
+  ],
+  individual: [
+    'Core curriculum & vault',
+    'Monthly live workshop',
+    'Celebrity cut breakdown',
+    'Full community access',
+    'Stylist directory listing',
+    'Certification eligible ($297)',
+  ],
+  salon: [
+    '5 team seats included',
+    'All Signature + Studio content',
+    'Team progress dashboard',
+    '~30% off certifications',
+    'Reserved event seats for team',
+    'Priority support',
   ],
 };
 
@@ -100,19 +138,47 @@ export default function Subscribe() {
   // Fetch plans from database
   const { plans: dbPlans, loading: plansLoading, error: plansError } = useSubscriptionPlans();
 
+  // Get Apple product IDs for IAP
+  const appleProductIds = useMemo(
+    () => dbPlans.filter((p) => p.apple_product_id).map((p) => p.apple_product_id!),
+    [dbPlans]
+  );
+
+  // Initialize Apple IAP (only active on iOS)
+  const { purchaseProduct, restorePurchases, purchasing: iapPurchasing } = useAppleIAP(appleProductIds);
+
   // Transform database plans to display format
   const displayPlans: DisplayPlan[] = [
     freePlan,
-    ...dbPlans.map((plan) => ({
-      id: plan.plan,
-      name: plan.plan.charAt(0).toUpperCase() + plan.plan.slice(1),
-      price: formatPlanPrice(plan.amount_cents, plan.currency),
-      period: `/${plan.interval}`,
-      description: plan.description || '',
-      features: (plan.features || []).map((f) => ({ text: f, included: true })),
-      popular: plan.plan === 'individual',
-      appleProductId: plan.apple_product_id,
-    })),
+    ...dbPlans.map((plan) => {
+      // Use DB features if available, otherwise use predefined features
+      const featureList = (plan.features && plan.features.length > 0)
+        ? plan.features
+        : (TIER_FEATURES[plan.plan] || []);
+
+      // Format plan name (capitalize and handle special cases)
+      let displayName = plan.plan.charAt(0).toUpperCase() + plan.plan.slice(1);
+      if (plan.plan === 'individual') displayName = 'Signature'; // Legacy name mapping
+
+      // Plan descriptions
+      const descriptions: Record<string, string> = {
+        signature: 'Full course access',
+        studio: 'Direct access to Ray',
+        individual: 'Full course access',
+        salon: 'Train your entire team',
+      };
+
+      return {
+        id: plan.plan,
+        name: displayName,
+        price: formatPlanPrice(plan.amount_cents, plan.currency),
+        period: `/${plan.interval}`,
+        description: plan.description || descriptions[plan.plan] || '',
+        features: featureList.map((f) => ({ text: f, included: true })),
+        popular: plan.plan === 'studio', // Studio is most popular
+        appleProductId: plan.apple_product_id,
+      };
+    }),
   ];
 
   const handleSelectPlan = async (plan: DisplayPlan) => {
@@ -121,13 +187,12 @@ export default function Subscribe() {
     // iOS: Use Apple IAP for subscriptions
     if (Platform.OS === 'ios') {
       if (plan.appleProductId) {
-        // TODO: Implement Apple IAP purchase flow using StoreKit
-        // For now, show placeholder alert
-        Alert.alert(
-          'Apple In-App Purchase',
-          `Subscription will be processed through Apple.\n\nProduct ID: ${plan.appleProductId}`,
-          [{ text: 'OK' }]
-        );
+        setProcessingPlan(plan.id);
+        try {
+          await purchaseProduct(plan.appleProductId);
+        } finally {
+          setProcessingPlan(null);
+        }
       } else {
         Alert.alert(
           'Coming Soon',
@@ -213,10 +278,10 @@ export default function Subscribe() {
                 <Ionicons name="star" size={32} color="#3b82f6" />
               </View>
               <Text className="text-3xl font-serifBold text-white text-center mb-2">
-                Unlock Premium
+                Choose Your Plan
               </Text>
               <Text className="text-textMuted text-center px-4">
-                Get unlimited access to 150+ expert cutting tutorials and join the community.
+                Master cutting techniques and grow your business with expert-led courses and direct access to Ray.
               </Text>
             </View>
 
@@ -243,7 +308,15 @@ export default function Subscribe() {
               ))
             )}
 
-            <Text className="text-textMuted text-xs text-center mt-6 mb-8">
+            {Platform.OS === 'ios' && (
+              <Pressable onPress={restorePurchases} className="mb-4">
+                <Text className="text-primary text-center font-medium">
+                  Restore Purchases
+                </Text>
+              </Pressable>
+            )}
+
+            <Text className="text-textMuted text-xs text-center mt-2 mb-8">
               {Platform.OS === 'ios'
                 ? 'Subscriptions are processed through Apple. You can cancel anytime in your Apple ID settings.'
                 : 'Payments are processed securely by Stripe. You can cancel at any time in your account settings.'}

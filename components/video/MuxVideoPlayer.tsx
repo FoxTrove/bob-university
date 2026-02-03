@@ -197,7 +197,9 @@ export function MuxVideoPlayer({
         showDoubleTapFeedback('left');
       } else {
         // Double-tap right = skip forward 10s (if allowed)
-        if (canSeekFuture || player.currentTime < maxWatched) {
+        // Check if the target position (current + 10s) is within allowed range
+        const targetTime = Math.min(player.currentTime + 10, player.duration || player.currentTime);
+        if (canSeekFuture || targetTime <= maxWatched) {
           skipForward();
           showDoubleTapFeedback('right');
         }

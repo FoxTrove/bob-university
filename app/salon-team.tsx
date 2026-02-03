@@ -7,12 +7,13 @@ import { SafeContainer } from '../components/layout/SafeContainer';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Ionicons } from '@expo/vector-icons';
+import type { Profile, Salon } from '../lib/database.types';
 
 export default function SalonTeam() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [staff, setStaff] = useState<any[]>([]);
-  const [salon, setSalon] = useState<any>(null);
+  const [staff, setStaff] = useState<Profile[]>([]);
+  const [salon, setSalon] = useState<Salon | null>(null);
 
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -64,7 +65,6 @@ export default function SalonTeam() {
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 2); // 48 hours
 
-        // @ts-ignore
         const { error } = await supabase
             .from('staff_access_codes')
             .insert({
@@ -77,8 +77,9 @@ export default function SalonTeam() {
 
         if (error) throw error;
         setGeneratedCode(code);
-    } catch (e: any) {
-        Alert.alert('Error', e.message || 'Failed to generate code');
+    } catch (e) {
+        const message = e instanceof Error ? e.message : 'Failed to generate code';
+        Alert.alert('Error', message);
     } finally {
         setGenerating(false);
     }

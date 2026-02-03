@@ -9,6 +9,7 @@ import { SafeContainer } from '../components/layout/SafeContainer';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Ionicons } from '@expo/vector-icons';
+import logger from '../lib/utils/logger';
 
 export default function StylistSettings() {
   const { user } = useAuth();
@@ -132,9 +133,10 @@ export default function StylistSettings() {
              Alert.alert('Success', 'Profile photo updated!');
         }
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('Upload error:', error);
-        Alert.alert('Upload Failed', error.message);
+        const message = error instanceof Error ? error.message : 'Upload failed';
+        Alert.alert('Upload Failed', message);
     } finally {
         setUploading(false);
     }
@@ -161,12 +163,12 @@ export default function StylistSettings() {
     
     const token = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
     if (!token) {
-        console.warn('Mapbox token missing');
+        logger.warn('Mapbox token missing');
         return null;
     }
 
     try {
-        console.log('Geocoding address:', address);
+        logger.log('Geocoding address:', address);
         const response = await fetch(
             `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${token}&limit=1`
         );
@@ -175,7 +177,7 @@ export default function StylistSettings() {
             const [lng, lat] = json.features[0].center; 
             return { lat, lng };
         } else {
-             console.warn('No geocoding results found for:', address);
+             logger.warn('No geocoding results found for:', address);
         }
     } catch (e) {
         console.error('Geocoding error:', e);
@@ -204,7 +206,6 @@ export default function StylistSettings() {
           }
       }
 
-      // @ts-ignore
       const { error } = await supabase
         .from('stylist_profiles')
         .upsert({
@@ -228,9 +229,10 @@ export default function StylistSettings() {
 
       Alert.alert('Success', 'Your stylist profile has been updated.');
       router.back();
-    } catch (e: any) {
+    } catch (e) {
         console.error(e);
-      Alert.alert('Error', e.message);
+        const message = e instanceof Error ? e.message : 'Failed to save profile';
+        Alert.alert('Error', message);
     } finally {
       setSaving(false);
     }

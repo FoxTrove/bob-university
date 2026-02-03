@@ -15,8 +15,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.foxtrove.bobuniversity",
-      "usesAppleSignIn": true
+      "bundleIdentifier": "com.thebobco.bobuniversity",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "This app uses the local network to connect to the development server."
+      }
     },
     "android": {
       "package": "com.foxtrove.bobuniversity",
@@ -31,6 +34,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "expo-notifications",
       "expo-apple-authentication",
       "@react-native-google-signin/google-signin",
       [
@@ -46,6 +50,12 @@
       "eas": {
         "projectId": "30ff9fd3-6d93-4f3e-8588-d1776e1525a5"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/30ff9fd3-6d93-4f3e-8588-d1776e1525a5"
     }
   }
 }

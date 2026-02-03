@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
-import type { Module, ModuleWithVideos, ModuleWithProgress } from '../database.types';
+import type { ModuleWithVideos, ModuleWithProgress, VideoMinimal, Module } from '../database.types';
 
 interface UseModulesResult {
   modules: ModuleWithProgress[];
@@ -61,10 +61,11 @@ export function useModules(): UseModulesResult {
       }
 
       // Process modules to add progress stats
-      const modulesWithProgress = (modulesData || []).map((module: any) => {
-        const videos = (module.videos || []).filter((v: any) => v.is_published);
+      type ModuleWithMinimalVideos = Module & { videos: VideoMinimal[] | null };
+      const modulesWithProgress = (modulesData as ModuleWithMinimalVideos[] || []).map((module) => {
+        const videos = (module.videos || []).filter((v) => v.is_published);
         const totalVideos = videos.length;
-        const completedVideos = videos.filter((v: any) => progressMap.has(v.id)).length;
+        const completedVideos = videos.filter((v) => progressMap.has(v.id)).length;
         const progressPercent = totalVideos > 0 
           ? Math.round((completedVideos / totalVideos) * 100) 
           : 0;

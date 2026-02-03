@@ -1,13 +1,13 @@
 # Bob University Mobile Application
 ## Product Requirements Document
 
-**Version 2.1**
-**January 13, 2026**  
+**Version 2.2**
+**February 3, 2026**
 **Prepared by FoxTrove.ai for Ray Hornback**
 
 | Metadata | Details |
 | :--- | :--- |
-| **Document Status** | Updated - Aligned with Meeting Notes |
+| **Document Status** | Updated - New Pricing Tiers & User Types (Paige Meeting Feb 3) |
 | **Project Name** | Bob University Mobile App |
 | **Client** | Ray Hornback |
 | **Development Partner** | FoxTrove.ai (Kyle Rasmussen) |
@@ -118,15 +118,22 @@ verification.
 experience, location (for directory).
 
 #### 3.1.2 Onboarding Flow
-1.​ Welcome Screen: Brief introduction to Ray and The Bob Company brand.
+1. **Welcome Screen**: Brief introduction to Ray and The Bob Company brand.
 
-## 2. Persona Selection: Users select their primary role (Stylist, Salon Owner, Certification Client) to customize the experience.
-3.​ Skill Assessment: Detailed assessment (extended beyond initial format) to gauge current level and personalize content.
+2. **User Type Selection**: Users select their profile type to customize the experience:
+   - **Salon Owner**: "Looking to grow the skills of your team" → Routes to salon dashboard with team management
+   - **Individual Stylist**: "Looking to grow your business" → Routes to standard learning experience
+   - **Client/Customer**: "Looking to get your hair done" → Routes to directory-only view (no education content, no community)
 
-## 4. Pop-up Tour: Guided walkthrough of key app features based on selected persona.
-5.​ Free Content Preview: Highlight available free content to demonstrate value.
-6.​ Notification Permissions: Request push notification opt-in with clear value proposition.
-7.​ Home Screen: Land on personalized home screen.
+3. **Skill Assessment** (Stylists only): Detailed assessment to gauge current level and personalize content recommendations.
+
+4. **Pop-up Tour**: Guided walkthrough of key app features based on selected user type.
+
+5. **Free Content Preview** (Stylists only): Highlight available free content to demonstrate value.
+
+6. **Notification Permissions**: Request push notification opt-in with clear value proposition.
+
+7. **Home Screen**: Land on personalized home screen based on user type.
 
 ### 3.2 Freemium Model & Content Access
 
@@ -135,33 +142,76 @@ Users who download the app receive immediate access to free content without paym
 
 - 5-10 introductory videos showcasing Ray's teaching style and methodology
 - Preview clips from premium modules (first 2 minutes of select videos)
+- Full community access (view, post, comment, react)
 - Access to live event calendar and ticket purchasing
 - Public stylist directory (view-only, cannot be listed)
 - Push notifications for new content and live events
 
-#### 3.2.2 Paid Subscription Tiers
-| Feature | Individual ($49/mo) | Salon ($97/mo) |
-| :--- | :--- | :--- |
-| Full Video Library | ✓ Complete access | ✓ Complete access |
-| Advanced Modules | ✓ Access to advanced techniques | ✓ Access to advanced techniques |
-| User Seats | 1 user | Up to 5 staff members |
-| Staff Access Codes | N/A | ✓ Generate & manage codes |
-| Progress Tracking | ✓ Individual | ✓ Team dashboard & detailed analytics |
-| Certification Eligible | ✓ ($297-300 additional per cert) | ✓ Per staff member |
-| AI Assistant | ✓ Full access | ✓ Full access |
-| Event Discounts | 10% off live events | 15% off live events per stylist |
+**Note:** Client/Customer users only get directory access (no community, no education content).
 
-#### 3.2.3 Upgrade Triggers & Gating
+#### 3.2.2 Individual Stylist Tiers
+
+| Feature | Free | Signature ($69/mo) | Studio ($149/mo) |
+| :--- | :--- | :--- | :--- |
+| Intro Videos | ✓ | ✓ | ✓ |
+| Community Access | ✓ | ✓ | ✓ |
+| Core Curriculum & Vault | - | ✓ | ✓ |
+| Monthly Live Workshop | - | ✓ | ✓ |
+| Celebrity Cut Breakdown | - | ✓ | ✓ |
+| Weekly "Ask Ray" Live | - | - | ✓ |
+| Demand (Business/Pricing Content) | - | - | ✓ |
+| Studio-Only Replays | - | - | ✓ |
+| Reserved Seats at Live Events | - | - | ✓ |
+| Directory Listing | - | ✓ | ✓ |
+| Certification Eligible | - | ✓ ($297 upsell) | ✓ ($297 upsell) |
+| Community Badge | - | "Signature" | "Studio" |
+
+**Certification ($297 one-time upsell)**:
+- 4-week live cohort with Ray (quarterly)
+- Starts with "The Bob" certification
+- Future certifications: Pixie, Shag
+- Adds "Certified" badge to profile and community posts
+- **Must maintain active subscription to stay listed in directory**
+
+#### 3.2.3 Salon Owner Tiers
+
+| Feature | Salon ($150/mo or $997/year) |
+| :--- | :--- |
+| Full Course Access | ✓ All Signature + Studio content |
+| Team Seats | 5 included (can shuffle members) |
+| Team Progress Dashboard | ✓ Monitor all stylists |
+| Admin Management | ✓ Add/remove team members |
+| Certification Discount | ~30% off per stylist certification |
+| Reserved Event Seats | ✓ For team |
+| Priority Support | ✓ |
+
+**Salon Value Proposition**: Individual pricing for 5 stylists would cost ~$4,485/year (5 × $69 × 12 + certifications). Salon plan offers significant savings.
+
+**Additional Seats**: Salons can add seats beyond 5 at discounted per-seat rate.
+
+#### 3.2.4 Upgrade Triggers & Gating
 Strategic placement of upgrade prompts to maximize conversion:
 
-- Hard Gate: Advanced Modules and Certifications are strictly for paid subscribers.
-- Soft Paywall: When viewing locked content, show preview with 'Subscribe to Watch
-Full Video' overlay.
-- Progress Milestone: After completing 3 free videos, prompt: 'You're making great
-progress! Unlock 150+ more videos.'
-- Feature Gate: When attempting to access AI assistant or certifications as free user.
-- Time-Limited Offers: Push notification with limited-time discount for engaged free
-users.
+- **Hard Gate**: Core curriculum, vault, and live workshops require Signature+ subscription.
+- **Soft Paywall**: When viewing locked content, show preview with 'Subscribe to Watch Full Video' overlay.
+- **Progress Milestone**: After completing 3 free videos, prompt: 'You're making great progress! Unlock 150+ more videos.'
+- **Feature Gate**: When attempting to access certifications, directory listing, or Studio content.
+- **Tier Upsell**: Signature users see value proposition for Studio tier when accessing locked Studio content.
+- **Certification Upsell**: After completing core modules, prompt certification purchase with clear value proposition.
+- **Time-Limited Offers**: Push notification with limited-time discount for engaged free users.
+
+#### 3.2.5 Cancellation Flow & Retention
+When users attempt to cancel their subscription:
+
+1. **Exit Survey**: Ask reason for cancellation (price, not using, found alternative, other)
+2. **Directory Warning**: "You will be removed from the Certified Stylist Directory"
+3. **Retention Offer**: Offer 2-3 months free to stay (configurable by admin)
+4. **Confirm Cancellation**: If declined, process cancellation with access until period end
+
+**Churn Reduction Tactics**:
+- Directory removal creates friction for certified stylists who rely on client discovery
+- Retention offers give users time to re-engage
+- Exit survey data informs product improvements
 
 
 ### 3.3 Content Library & Collections
@@ -219,31 +269,44 @@ access revocation.
 - Receipt & History: View payment history and download receipts in-app.
 
 #### 3.4.3 Salon Owner Features
-- Staff Access Codes: Generate unique invite codes for up to 5 team members.
-- Team Management: View list of active staff, revoke access, resend invites.
-- Detailed Analytics: Monitor stylist engagement, video completion percentages, and module progress dashboards.
-- Billing Consolidation: Single invoice for salon owner covering all staff access.
+- **5 Included Seats**: Salon subscription includes 5 team member seats by default.
+- **Seat Shuffling**: Can reassign seats to different team members (unlimited shuffles per year).
+- **Staff Access Codes**: Generate unique invite codes for team members.
+- **Team Management**: View list of active staff, revoke access, resend invites.
+- **Detailed Analytics**: Monitor stylist engagement, video completion percentages, and module progress dashboards.
+- **Billing Consolidation**: Single invoice for salon owner covering all staff access.
+- **Certification Discounts**: Team members get ~30% off certification purchases.
+- **Additional Seats**: Can purchase extra seats beyond 5 at discounted rate.
+
+**Salon Dashboard Features**:
+- Quick action: "Book a Live Event with Ray" button
+- Team certification status overview
+- Aggregate team progress metrics
 
 ### 3.5 Certification Program
 
 #### 3.5.1 Certification Overview
-Certifications are premium add-ons that validate mastery of specific methods.
+Certifications are premium add-ons that validate mastery of specific methods through a live cohort experience.
 "This stylist is certified and approved by Ray in his methods - he has confidence to endorse them."
 
 #### 3.5.2 Distinct Certification Models
-- **Distinct Types**: Multiple certification types/tiers (e.g., The Bob, The Pixie, The Shag).
-- **Initial Focus**: The Bob Certification. Future expansion to others.
-- **Pricing**: Each certification has its own pricing and payment flow.
+- **Distinct Types**: Multiple certification types (The Bob, The Pixie, The Shag).
+- **Initial Focus**: The Bob Certification. Future expansion to Pixie and Shag as upsells.
+- **Pricing**: $297 per certification (individual stylists). Salon teams get ~30% discount.
+- **Cohort Model**: Certifications run as quarterly 4-week live intensives.
 - **Physical Fulfillment**: Automation to generate and ship physical materials (certificates, rewards) upon completion.
 
-#### 3.5.3 Certification Process
-1.​ Prerequisites: Complete all required modules (configurable by admin).
-2.​ Purchase Certification: One-time payment of $297 via in-app purchase.
-3.​ Video Submission: Upload a video demonstrating technique on a real client.
-4.​ Review Period: Ray reviews submission (configurable - can be disabled if needed).
-5.​ Feedback: Written feedback provided for approved or rejected submissions.
-6.​ Certificate & Badge: Digital certificate, in-app badge, and directory listing eligibility.
-7.​ Resubmission: One free resubmission allowed if initially rejected.
+#### 3.5.3 Certification Process (Cohort-Based)
+1. **Prerequisites**: Must have active Signature or Studio subscription.
+2. **Purchase Certification**: One-time payment of $297 via in-app purchase.
+3. **Register for Cohort**: Select upcoming quarterly cohort (4-week intensive).
+4. **Live Sessions**: 90-minute live sessions every Monday for 4 weeks with Ray.
+5. **Work Through Syllabus**: Complete certification curriculum during cohort.
+6. **Test Out**: Demonstrate technique at end of 4 weeks.
+7. **Certificate & Badge**: Digital certificate, in-app badge, and directory listing eligibility.
+8. **Resubmission**: One free resubmission allowed if initially not passed.
+
+**Cohort Schedule**: Certifications offered quarterly (4 cohorts per year).
 
 #### 3.5.4 Certification Benefits
 - Downloadable digital certificate (PDF)
@@ -297,6 +360,12 @@ completion.
 The stylist directory creates a public-facing feature allowing clients (end consumers) to find
 Ray-certified stylists in their area. This adds tangible value to certification and creates
 network effects that benefit both stylists and Ray's brand.
+
+**Directory Listing Requirements**:
+- Must have active Signature, Studio, or Salon subscription
+- Certified stylists get "Certified" badge on their listing
+- **Listing automatically removed if subscription lapses** (key churn reduction feature)
+- This validates that listed stylists have continuing education access
 
 #### 3.7.2 Directory Features (Public View)
 - Map View: Interactive map with pins showing certified stylists nationwide (Mapbox).
@@ -404,10 +473,14 @@ The Community feature provides a social space within the app where stylists can 
 #### 3.10.2 Access & Permissions
 | User Type | Capabilities |
 | :--- | :--- |
-| Free Users | Create posts, comment, react, report content |
-| Subscribers | Same as free (community is open to all) |
-| Certified Stylists | Same + verified badge on posts |
+| Client/Customer | No community access (directory only) |
+| Free Stylists | Create posts, comment, react, report content |
+| Signature Members | Same + "Signature" badge on posts |
+| Studio Members | Same + "Studio" badge on posts |
+| Certified Stylists | Same + "Certified" badge on posts (stacks with tier badge) |
 | Admins | Full moderation capabilities |
+
+**Badge Display**: Users can have multiple badges (e.g., "Studio + Certified"). Badges appear on all community posts and profile.
 
 #### 3.10.3 Post Types & Categories
 Posts can be assigned to categories for easy filtering:
@@ -957,6 +1030,7 @@ by Week 5 to support content migration and soft launch preparation.
 
 | Date | Version | Description | Author |
 | :--- | :--- | :--- | :--- |
+| **Feb 3, 2026** | **2.2** | **New Pricing Tiers & User Types (Paige Meeting)**<br>Major pricing and user flow overhaul:<br>- **User Types:** Added 3 profile types during onboarding (Salon Owner, Individual Stylist, Client/Customer)<br>- **Individual Tiers:** Free → Signature ($69/mo) → Studio ($149/mo) with distinct feature sets<br>- **Studio Tier:** Weekly "Ask Ray" live, Demand content, studio-only replays, reserved event seats<br>- **Salon Pricing:** $150/mo or $997/year with 5 seats included, certification discounts<br>- **Certification:** $297 upsell, quarterly 4-week live cohorts, starts with Bob<br>- **Directory:** Requires active subscription to maintain listing (churn reduction)<br>- **Cancellation Flow:** Exit survey, directory warning, retention offer (2-3 months free)<br>- **Community Badges:** Tier badges (Signature, Studio, Certified) on posts<br>- **Client Profile:** Directory-only access, no community or education | FoxTrove.ai |
 | **Jan 13, 2026** | **2.1** | **Community Feature**<br>Added Section 3.10 Community Feature:<br>- Social feed with posts, comments, and reactions<br>- Media support (images, videos)<br>- "Requesting Feedback" mode for peer critique<br>- Category filters (Show Your Work, Questions, Tips)<br>- Post-moderation system with admin queue<br>- Database schema (5 tables) and storage bucket | FoxTrove.ai |
 | **Dec 16, 2025** | **2.0** | **Major V2 Update**<br>Integrated changes from Dec 12 & Dec 15 meetings:<br>- **Features:** Collections, Rich Media Lessons, Virtual Events, Certified Stylist Directory.<br>- **Monetization:** Defined subscription tiers, gating logic, and one-time purchases (Certifications/Events).<br>- **Admin:** Expanded analytics, event management, and notification center. | FoxTrove.ai |
 | **Initial** | **1.0** | Initial Draft Release | FoxTrove.ai |

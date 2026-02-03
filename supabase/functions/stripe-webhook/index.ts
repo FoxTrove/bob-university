@@ -8,6 +8,62 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
 });
 
 const endpointSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
+const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+
+// Helper to call edge functions internally
+async function callEdgeFunction(
+  functionName: string,
+  payload: Record<string, unknown>,
+  serviceKey: string
+): Promise<void> {
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/${functionName}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      console.error(`${functionName} failed:`, await response.text());
+    }
+  } catch (error) {
+    console.error(`${functionName} error:`, error);
+  }
+}
+
+// Send transactional email via send-email function
+async function sendEmail(
+  serviceKey: string,
+  to: string,
+  template: string,
+  data: Record<string, unknown>,
+  userId?: string
+): Promise<void> {
+  await callEdgeFunction('send-email', { to, template, data, user_id: userId }, serviceKey);
+}
+
+// Trigger GHL workflow event
+async function triggerGHLEvent(
+  serviceKey: string,
+  event: string,
+  email: string,
+  data: Record<string, unknown>,
+  userId?: string
+): Promise<void> {
+  await callEdgeFunction('ghl-event-trigger', { event, email, data, user_id: userId }, serviceKey);
+}
+
+// Update GHL contact tags
+async function updateGHLTags(
+  serviceKey: string,
+  userId: string,
+  addTags?: string[],
+  removeTags?: string[]
+): Promise<void> {
+  await callEdgeFunction('ghl-tag-update', { user_id: userId, add_tags: addTags, remove_tags: removeTags }, serviceKey);
+}
 
 function mapSubscriptionStatus(status: Stripe.Subscription.Status): string {
   switch (status) {
@@ -55,8 +111,9 @@ async function resolveUserId({
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: { 'Access-Control-Allow-Origin': '*' } });
+  // Webhooks are server-to-server only - no CORS needed
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
   }
 
   const signature = req.headers.get('stripe-signature');
@@ -203,6 +260,38 @@ serve(async (req) => {
           if (certError) {
             console.error('Failed to update certification status:', certError);
           }
+
+          // Get user email and certification name for notifications
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email, full_name')
+            .eq('id', userId)
+            .single();
+
+          const { data: cert } = await supabase
+            .from('certifications')
+            .select('name')
+            .eq('id', certificationId)
+            .single();
+
+          if (profile?.email) {
+            const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+            // Send certification purchased email
+            await sendEmail(serviceKey, profile.email, 'certification-purchased', {
+              firstName: profile.full_name?.split(' ')[0] || '',
+              certificationName: cert?.name || 'Certification',
+              amount: (paymentIntent.amount / 100).toFixed(2),
+            }, userId);
+
+            // Trigger GHL workflow
+            await triggerGHLEvent(serviceKey, 'certification.purchased', profile.email, {
+              certification_name: cert?.name,
+              amount: paymentIntent.amount / 100,
+            }, userId);
+
+            // Update GHL tags
+            await updateGHLTags(serviceKey, userId, ['cert_purchased'], ['cert_eligible']);
+          }
         }
       }
     }
@@ -262,6 +351,50 @@ serve(async (req) => {
           },
           { onConflict: 'user_id, source' }
         );
+
+        // Send email/GHL notifications based on event type
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email, full_name')
+          .eq('id', userId)
+          .single();
+
+        if (profile?.email) {
+          const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+          const planName = planRow?.plan === 'individual' ? 'Individual' : planRow?.plan === 'salon' ? 'Salon' : 'Premium';
+          const nextBillingDate = new Date(subscription.current_period_end * 1000).toLocaleDateString();
+
+          if (event.type === 'customer.subscription.created') {
+            // Send subscription confirmed email
+            await sendEmail(serviceKey, profile.email, 'subscription-confirmed', {
+              firstName: profile.full_name?.split(' ')[0] || '',
+              planName,
+              billingPeriod: subscription.items.data[0]?.price?.recurring?.interval === 'year' ? 'Yearly' : 'Monthly',
+              nextBillingDate,
+            }, userId);
+
+            // Trigger GHL workflow
+            await triggerGHLEvent(serviceKey, 'subscription.created', profile.email, {
+              plan: planRow?.plan,
+              plan_name: planName,
+              next_billing_date: nextBillingDate,
+            }, userId);
+
+            // Update GHL tags
+            const planTag = planRow?.plan === 'salon' ? 'paid_salon' : 'paid_individual';
+            await updateGHLTags(serviceKey, userId, [planTag], ['free_user']);
+          }
+
+          if (event.type === 'customer.subscription.deleted') {
+            // Trigger GHL workflow for win-back sequence
+            await triggerGHLEvent(serviceKey, 'subscription.canceled', profile.email, {
+              plan: planRow?.plan,
+            }, userId);
+
+            // Update GHL tags
+            await updateGHLTags(serviceKey, userId, ['churned'], ['paid_individual', 'paid_salon']);
+          }
+        }
       }
     }
 
@@ -332,6 +465,78 @@ serve(async (req) => {
             : new Date().toISOString(),
           metadata: invoice.metadata || {},
         });
+
+        // Send payment receipt email
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email, full_name')
+          .eq('id', userId)
+          .single();
+
+        if (profile?.email) {
+          const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+          await sendEmail(serviceKey, profile.email, 'payment-receipt', {
+            firstName: profile.full_name?.split(' ')[0] || '',
+            amount: (invoice.amount_paid / 100).toFixed(2),
+            description: 'Bob University Subscription',
+            date: invoice.created
+              ? new Date(invoice.created * 1000).toLocaleDateString()
+              : new Date().toLocaleDateString(),
+            receiptId: invoice.id,
+          }, userId);
+        }
+      }
+    }
+
+    // Handle failed payments for dunning flow
+    if (event.type === 'invoice.payment_failed') {
+      const invoice = event.data.object as Stripe.Invoice;
+      const subscriptionId = invoice.subscription as string | null;
+      const customerId = invoice.customer as string | null;
+
+      let subscription: Stripe.Subscription | null = null;
+      if (subscriptionId) {
+        subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      }
+
+      const userId = await resolveUserId({
+        customerId,
+        metadata: subscription?.metadata || invoice.metadata,
+      });
+
+      if (userId) {
+        // Update entitlement status to past_due
+        await supabase.from('entitlements').update({
+          status: 'past_due',
+          updated_at: new Date().toISOString(),
+        }).eq('user_id', userId);
+
+        // Get user email for notifications
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email, full_name')
+          .eq('id', userId)
+          .single();
+
+        if (profile?.email) {
+          const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+          // Send payment failed email
+          await sendEmail(serviceKey, profile.email, 'payment-failed', {
+            firstName: profile.full_name?.split(' ')[0] || '',
+            amount: (invoice.amount_due / 100).toFixed(2),
+            reason: 'Payment method declined',
+          }, userId);
+
+          // Trigger GHL dunning workflow
+          await triggerGHLEvent(serviceKey, 'payment.failed', profile.email, {
+            amount: invoice.amount_due / 100,
+            subscription_id: subscriptionId,
+          }, userId);
+
+          // Add payment_failed tag
+          await updateGHLTags(serviceKey, userId, ['payment_failed']);
+        }
       }
     }
 

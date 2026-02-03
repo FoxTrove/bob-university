@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support - Bob University</title>
+  <meta name="description" content="Get help with Bob University. Contact our support team or browse frequently asked questions.">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fdf8f6',
+              100: '#f2e8e5',
+              200: '#eaddd7',
+              300: '#e0cec7',
+              400: '#d2bab0',
+              500: '#bfa094',
+              600: '#a18072',
+              700: '#977669',
+              800: '#846358',
+              900: '#43302b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-white text-gray-900">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-100 z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <a href="/" class="flex items-center space-x-2">
+          <span class="text-2xl font-bold text-brand-900">Bob University</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="/features" class="text-gray-600 hover:text-brand-900 transition">Features</a>
+          <a href="/pricing" class="text-gray-600 hover:text-brand-900 transition">Pricing</a>
+          <a href="/support" class="text-brand-900 font-medium">Support</a>
+          <a href="/#download" class="bg-brand-900 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition">Download App</a>
+        </div>
+        <button id="mobile-menu-btn" class="md:hidden p-2">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden border-t border-gray-100 bg-white">
+      <div class="px-4 py-4 space-y-3">
+        <a href="/features" class="block text-gray-600 hover:text-brand-900">Features</a>
+        <a href="/pricing" class="block text-gray-600 hover:text-brand-900">Pricing</a>
+        <a href="/support" class="block text-brand-900 font-medium">Support</a>
+        <a href="/#download" class="block bg-brand-900 text-white px-4 py-2 rounded-lg text-center">Download App</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <section class="pt-32 pb-12 px-4 bg-gray-50">
+    <div class="max-w-4xl mx-auto text-center">
+      <h1 class="text-4xl md:text-5xl font-bold mb-4">How Can We Help?</h1>
+      <p class="text-xl text-gray-600">We're here to support you on your learning journey.</p>
+    </div>
+  </section>
+
+  <!-- Contact Options -->
+  <section class="py-12 px-4">
+    <div class="max-w-4xl mx-auto">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-white border border-gray-200 rounded-xl p-6">
+          <div class="w-12 h-12 bg-brand-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold mb-2">Email Support</h3>
+          <p class="text-gray-600 mb-4">Get help with your account, subscriptions, or technical issues.</p>
+          <a href="mailto:support@bobuniversity.com" class="text-brand-900 font-medium hover:underline">support@bobuniversity.com</a>
+          <p class="text-sm text-gray-500 mt-2">We typically respond within 24 hours</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-6">
+          <div class="w-12 h-12 bg-brand-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold mb-2">Community</h3>
+          <p class="text-gray-600 mb-4">Connect with other stylists and get tips from the community.</p>
+          <p class="text-brand-900 font-medium">Available in the app</p>
+          <p class="text-sm text-gray-500 mt-2">Ask questions, share work, get feedback</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="py-12 px-4 bg-gray-50" id="faq">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
+
+      <div class="space-y-4">
+        <!-- FAQ Item -->
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">How do I create an account?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            <p>Download the Bob University app from the App Store or Google Play. Tap "Sign Up" and enter your email address or sign in with Apple/Google. You'll be guided through a quick onboarding process to personalize your learning experience.</p>
+          </div>
+        </details>
+
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">What's included in the free plan?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            <p>The free plan includes access to introductory video content, basic tutorials, and the ability to browse the community. Premium features like full course access, certifications, and the stylist directory require a subscription.</p>
+          </div>
+        </details>
+
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">How do I cancel my subscription?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            <p><strong>For iOS (App Store):</strong> Open Settings → tap your name → Subscriptions → Bob University → Cancel Subscription.</p>
+            <p class="mt-2"><strong>For Android (Google Play):</strong> Open Google Play → Menu → Subscriptions → Bob University → Cancel.</p>
+            <p class="mt-2">You'll continue to have access until the end of your current billing period.</p>
+          </div>
+        </details>
+
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">How do I restore my purchases on a new device?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            <p>Sign in with the same account you used to purchase. Go to Profile → Settings → Restore Purchases. Your subscription will be automatically restored if it's still active.</p>
+          </div>
+        </details>
+
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">Can I download videos for offline viewing?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            <p>Currently, videos require an internet connection to stream. We're working on offline viewing for a future update.</p>
+          </div>
+        </details>
+
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">How do certifications work?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            <p>Certifications require completing specific course modules and demonstrating your skills. Once you've met the requirements, you can apply for certification through the app. Our team will review your submission and issue your certificate upon approval.</p>
+          </div>
+        </details>
+
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">How do I get listed in the Stylist Directory?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            <p>Premium members can create a public profile in the Stylist Directory. Go to Profile → Stylist Directory → Edit Profile to add your location, specialties, photos, and contact information. Your listing will be visible to potential clients searching in your area.</p>
+          </div>
+        </details>
+
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">What's the difference between Individual and Salon plans?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            <p>The Individual plan is perfect for solo stylists and includes full access to all courses, certifications, directory listing, and community features.</p>
+            <p class="mt-2">The Salon plan includes everything in Individual plus team management features, allowing salon owners to provide access to multiple team members under one subscription.</p>
+          </div>
+        </details>
+
+        <details class="bg-white rounded-lg border border-gray-200">
+          <summary class="px-6 py-4 cursor-pointer font-medium hover:bg-gray-50">I'm having technical issues with the app. What should I do?</summary>
+          <div class="px-6 pb-4 text-gray-600">
+            <p>Try these steps first:</p>
+            <ol class="list-decimal list-inside mt-2 space-y-1">
+              <li>Force close and reopen the app</li>
+              <li>Check your internet connection</li>
+              <li>Update to the latest version from the App Store/Google Play</li>
+              <li>Restart your device</li>
+            </ol>
+            <p class="mt-2">If the issue persists, email us at <a href="mailto:support@bobuniversity.com" class="text-brand-900 hover:underline">support@bobuniversity.com</a> with a description of the problem and your device type.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Form Section -->
+  <section class="py-12 px-4">
+    <div class="max-w-2xl mx-auto">
+      <h2 class="text-2xl font-bold text-center mb-2">Still Need Help?</h2>
+      <p class="text-gray-600 text-center mb-8">Send us a message and we'll get back to you as soon as possible.</p>
+
+      <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST" class="space-y-6">
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <input type="text" id="name" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+        </div>
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input type="email" id="email" name="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+        </div>
+        <div>
+          <label for="subject" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+          <select id="subject" name="subject" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+            <option value="general">General Question</option>
+            <option value="account">Account Issue</option>
+            <option value="billing">Billing/Subscription</option>
+            <option value="technical">Technical Problem</option>
+            <option value="feedback">Feedback/Suggestion</option>
+          </select>
+        </div>
+        <div>
+          <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+          <textarea id="message" name="message" rows="5" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"></textarea>
+        </div>
+        <button type="submit" class="w-full bg-brand-900 text-white py-3 rounded-lg font-medium hover:bg-brand-800 transition">Send Message</button>
+      </form>
+      <p class="text-sm text-gray-500 text-center mt-4">Or email us directly at <a href="mailto:support@bobuniversity.com" class="text-brand-900 hover:underline">support@bobuniversity.com</a></p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-gray-400 py-12 px-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <h4 class="text-white font-semibold mb-4">Bob University</h4>
+          <p class="text-sm">The complete learning platform for hairstylists who want to master their craft and grow their business.</p>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Product</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/features" class="hover:text-white transition">Features</a></li>
+            <li><a href="/pricing" class="hover:text-white transition">Pricing</a></li>
+            <li><a href="/#download" class="hover:text-white transition">Download</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Support</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/support" class="hover:text-white transition">Contact Us</a></li>
+            <li><a href="/support#faq" class="hover:text-white transition">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Legal</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/privacy" class="hover:text-white transition">Privacy Policy</a></li>
+            <li><a href="/terms" class="hover:text-white transition">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <p class="text-sm">&copy; 2024 The Bob Co. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+      document.getElementById('mobile-menu').classList.toggle('hidden');
+    });
+  </script>
+</body>
+</html>

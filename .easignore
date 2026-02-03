@@ -1,0 +1,54 @@
+# Admin dashboard (Next.js) - not needed for mobile builds
+admin/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Temp/backup directories
+temp_fix/
+temp_fix_auto/
+src_backup/
+
+# Git
+.git/
+
+# IDE/Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Debug/logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test files
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+coverage/
+
+# Build artifacts we don't need
+.expo/
+*.tsbuildinfo
+
+# Scripts not needed for build
+scripts/
+
+# Config files for other tools
+.claude/
+.agent/
+.mcp.json
+config.toml
+debug_videos.js

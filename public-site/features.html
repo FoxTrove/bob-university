@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Features - Bob University</title>
+  <meta name="description" content="Explore Bob University features: expert video courses, business training, certifications, stylist directory, community, and live events.">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fdf8f6',
+              100: '#f2e8e5',
+              200: '#eaddd7',
+              300: '#e0cec7',
+              400: '#d2bab0',
+              500: '#bfa094',
+              600: '#a18072',
+              700: '#977669',
+              800: '#846358',
+              900: '#43302b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .gradient-bg {
+      background: linear-gradient(135deg, #43302b 0%, #846358 100%);
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-900">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-100 z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <a href="/" class="flex items-center space-x-2">
+          <span class="text-2xl font-bold text-brand-900">Bob University</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="/features" class="text-brand-900 font-medium">Features</a>
+          <a href="/pricing" class="text-gray-600 hover:text-brand-900 transition">Pricing</a>
+          <a href="/support" class="text-gray-600 hover:text-brand-900 transition">Support</a>
+          <a href="/#download" class="bg-brand-900 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition">Download App</a>
+        </div>
+        <button id="mobile-menu-btn" class="md:hidden p-2">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden border-t border-gray-100 bg-white">
+      <div class="px-4 py-4 space-y-3">
+        <a href="/features" class="block text-brand-900 font-medium">Features</a>
+        <a href="/pricing" class="block text-gray-600 hover:text-brand-900">Pricing</a>
+        <a href="/support" class="block text-gray-600 hover:text-brand-900">Support</a>
+        <a href="/#download" class="block bg-brand-900 text-white px-4 py-2 rounded-lg text-center">Download App</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <section class="gradient-bg pt-32 pb-16 px-4">
+    <div class="max-w-4xl mx-auto text-center">
+      <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Two Paths to Success</h1>
+      <p class="text-xl text-brand-200">Master cutting techniques AND build a thriving business—all in one app.</p>
+    </div>
+  </section>
+
+  <!-- Skills Section -->
+  <section class="py-20 px-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <span class="text-brand-600 font-semibold uppercase tracking-wide text-sm">Technical Skills</span>
+          <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">Master Your Craft</h2>
+          <p class="text-xl text-gray-600 mb-6">
+            Learn from industry professionals with decades of experience. Our video library covers everything from foundational cuts to advanced techniques.
+          </p>
+          <ul class="space-y-4">
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <div>
+                <span class="font-medium">Foundational Techniques</span>
+                <p class="text-gray-600">Build a solid foundation with core cutting methods</p>
+              </div>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <div>
+                <span class="font-medium">Advanced Styling</span>
+                <p class="text-gray-600">Elevate your skills with complex techniques and trends</p>
+              </div>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <div>
+                <span class="font-medium">Learn at Your Pace</span>
+                <p class="text-gray-600">Watch, pause, rewind, and practice on your schedule</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="bg-gray-100 rounded-2xl p-8 lg:p-12">
+          <div class="aspect-video bg-brand-200 rounded-lg flex items-center justify-center">
+            <svg class="w-16 h-16 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <p class="text-center text-gray-500 mt-4">Expert-led video lessons</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Business Section -->
+  <section class="py-20 px-4 bg-gray-50">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div class="order-2 lg:order-1 bg-white rounded-2xl p-8 lg:p-12 shadow-sm">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-brand-100 rounded-lg p-4 text-center">
+              <svg class="w-8 h-8 text-brand-900 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              </svg>
+              <span class="text-sm font-medium text-brand-900">Marketing</span>
+            </div>
+            <div class="bg-brand-100 rounded-lg p-4 text-center">
+              <svg class="w-8 h-8 text-brand-900 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <span class="text-sm font-medium text-brand-900">Client Retention</span>
+            </div>
+            <div class="bg-brand-100 rounded-lg p-4 text-center">
+              <svg class="w-8 h-8 text-brand-900 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="text-sm font-medium text-brand-900">Pricing Strategy</span>
+            </div>
+            <div class="bg-brand-100 rounded-lg p-4 text-center">
+              <svg class="w-8 h-8 text-brand-900 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <span class="text-sm font-medium text-brand-900">Social Media</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-1 lg:order-2">
+          <span class="text-brand-600 font-semibold uppercase tracking-wide text-sm">Business Growth</span>
+          <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">Grow Your Business</h2>
+          <p class="text-xl text-gray-600 mb-6">
+            Technical skills get you started—business skills make you thrive. Learn how to attract clients, build your brand, and increase your income.
+          </p>
+          <ul class="space-y-4">
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <div>
+                <span class="font-medium">Social Media Strategies</span>
+                <p class="text-gray-600">Build your following and attract clients online</p>
+              </div>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <div>
+                <span class="font-medium">Marketing & Branding</span>
+                <p class="text-gray-600">Create a personal brand that stands out</p>
+              </div>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <div>
+                <span class="font-medium">Client Retention & Pricing</span>
+                <p class="text-gray-600">Keep clients coming back and charge what you're worth</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Certifications -->
+  <section class="py-20 px-4">
+    <div class="max-w-6xl mx-auto text-center">
+      <h2 class="text-3xl md:text-4xl font-bold mb-4">Earn Recognized Certifications</h2>
+      <p class="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
+        Complete courses, demonstrate your skills, and add credentials that set you apart from the competition.
+      </p>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-2xl font-bold text-brand-900">1</span>
+          </div>
+          <h3 class="font-semibold mb-2">Complete Coursework</h3>
+          <p class="text-gray-600">Watch all required video lessons in the certification track</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-2xl font-bold text-brand-900">2</span>
+          </div>
+          <h3 class="font-semibold mb-2">Submit Your Work</h3>
+          <p class="text-gray-600">Demonstrate your skills with photos or videos of your work</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-2xl font-bold text-brand-900">3</span>
+          </div>
+          <h3 class="font-semibold mb-2">Get Certified</h3>
+          <p class="text-gray-600">Receive your certificate and showcase it on your profile</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stylist Directory -->
+  <section class="py-20 px-4 bg-gray-50">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="text-3xl md:text-4xl font-bold mb-4">Get Discovered by Clients</h2>
+          <p class="text-xl text-gray-600 mb-6">
+            Create a public profile in our Stylist Directory. Potential clients can find you by location and specialty, and book directly with you.
+          </p>
+          <ul class="space-y-3 text-gray-600">
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Searchable by location
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Showcase your specialties
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Display your portfolio
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Show your certifications
+            </li>
+          </ul>
+        </div>
+        <div class="bg-brand-100 rounded-2xl p-8 aspect-square flex items-center justify-center">
+          <svg class="w-32 h-32 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Community & Events -->
+  <section class="py-20 px-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid md:grid-cols-2 gap-8">
+        <div class="bg-white border border-gray-200 rounded-xl p-8">
+          <div class="w-12 h-12 bg-brand-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+          <h3 class="text-2xl font-bold mb-3">Community</h3>
+          <p class="text-gray-600 mb-4">
+            Connect with fellow stylists from around the world. Share your work, ask questions, get feedback, and celebrate wins together.
+          </p>
+          <ul class="space-y-2 text-gray-600">
+            <li>• Share photos of your work</li>
+            <li>• Get feedback from peers</li>
+            <li>• Ask technical questions</li>
+            <li>• Share business tips</li>
+          </ul>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-8">
+          <div class="w-12 h-12 bg-brand-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <h3 class="text-2xl font-bold mb-3">Live Events</h3>
+          <p class="text-gray-600 mb-4">
+            Attend exclusive in-person workshops, masterclasses, and networking events. Learn hands-on and connect with educators and peers.
+          </p>
+          <ul class="space-y-2 text-gray-600">
+            <li>• Hands-on workshops</li>
+            <li>• Industry masterclasses</li>
+            <li>• Networking opportunities</li>
+            <li>• Register directly in-app</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-20 px-4 bg-brand-900">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Start Your Journey Today</h2>
+      <p class="text-xl text-brand-200 mb-8">
+        Download free and explore introductory content. Upgrade anytime to unlock everything.
+      </p>
+      <a href="/#download" class="inline-flex items-center justify-center bg-white text-brand-900 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition">
+        Download Free
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-gray-400 py-12 px-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <h4 class="text-white font-semibold mb-4">Bob University</h4>
+          <p class="text-sm">The complete learning platform for hairstylists who want to master their craft and grow their business.</p>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Product</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/features" class="hover:text-white transition">Features</a></li>
+            <li><a href="/pricing" class="hover:text-white transition">Pricing</a></li>
+            <li><a href="/#download" class="hover:text-white transition">Download</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Support</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/support" class="hover:text-white transition">Contact Us</a></li>
+            <li><a href="/support#faq" class="hover:text-white transition">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-4">Legal</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/privacy" class="hover:text-white transition">Privacy Policy</a></li>
+            <li><a href="/terms" class="hover:text-white transition">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <p class="text-sm">&copy; 2024 The Bob Co. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+      document.getElementById('mobile-menu').classList.toggle('hidden');
+    });
+  </script>
+</body>
+</html>

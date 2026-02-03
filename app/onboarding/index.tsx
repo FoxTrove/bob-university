@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions, Image, Animated } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Pressable, Dimensions, Image, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { MuxVideoPlayer } from '../../components/video';
@@ -8,17 +8,43 @@ import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { useEntitlement } from '../../lib/hooks/useEntitlement';
 import { AssessmentQuestion, QuestionType, QuestionOption } from './components/AssessmentQuestion';
+import logger from '../../lib/utils/logger';
 
 const { width } = Dimensions.get('window');
 
-// Total steps: Welcome (1) + Assessment (4) + Guide (3) = 8 (upsell is conditional)
-const TOTAL_BASE_STEPS = 8;
+// Total steps: Welcome (1) + User Type (1) + Assessment (4) + Guide (3) = 9 (upsell is conditional)
+const TOTAL_BASE_STEPS = 9;
 
 // Steps definition
 // 0: Welcome (Video)
-// 1: Assessment
-// 2: Upsell (if not premium)
-// 3-5: Guide Steps
+// 1: User Type Selection
+// 2: Assessment (stylists only)
+// 3: Upsell (if not premium)
+// 4-6: Guide Steps
+
+// User Type options
+type UserType = 'salon_owner' | 'individual_stylist' | 'client';
+
+const USER_TYPE_OPTIONS = [
+  {
+    value: 'salon_owner' as UserType,
+    label: 'Salon Owner',
+    description: 'Looking to grow the skills of your team',
+    icon: 'business-outline'
+  },
+  {
+    value: 'individual_stylist' as UserType,
+    label: 'Individual Stylist',
+    description: 'Looking to grow your business',
+    icon: 'cut-outline'
+  },
+  {
+    value: 'client' as UserType,
+    label: 'Client / Customer',
+    description: 'Looking to find a stylist',
+    icon: 'search-outline'
+  },
+];
 
 // Assessment Configuration
 interface QuestionConfig {
@@ -98,6 +124,7 @@ export default function OnboardingWizard() {
   const { user, refreshProfile } = useAuth();
   const { isPremium } = useEntitlement();
   const [currentStep, setCurrentStep] = useState(0);
+  const [userType, setUserType] = useState<UserType | null>(null);
   const [assessmentIndex, setAssessmentIndex] = useState(0);
   const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
@@ -110,17 +137,18 @@ export default function OnboardingWizard() {
   // Calculate overall progress (0-1)
   const calculateProgress = () => {
     if (currentStep === 0) return 0;
-    if (currentStep === 1) {
-      // Assessment step - progress based on questions answered
-      return (1 + assessmentIndex) / TOTAL_BASE_STEPS;
-    }
+    if (currentStep === 1) return 1 / TOTAL_BASE_STEPS; // User type selection
     if (currentStep === 2) {
-      // Upsell - halfway through
-      return 5 / TOTAL_BASE_STEPS;
+      // Assessment step - progress based on questions answered
+      return (2 + assessmentIndex) / TOTAL_BASE_STEPS;
     }
-    // Guide steps (3, 4, 5 -> indices 0, 1, 2)
-    const guideIndex = currentStep - 3;
-    return (5 + guideIndex + 1) / TOTAL_BASE_STEPS;
+    if (currentStep === 3) {
+      // Upsell - halfway through
+      return 6 / TOTAL_BASE_STEPS;
+    }
+    // Guide steps (4, 5, 6 -> indices 0, 1, 2)
+    const guideIndex = currentStep - 4;
+    return (6 + guideIndex + 1) / TOTAL_BASE_STEPS;
   };
 
   // Animate progress bar
@@ -148,7 +176,7 @@ export default function OnboardingWizard() {
             .update({ skills_assessment: newAnswers })
             .eq('id', user.id);
     } catch (e) {
-        console.warn("Failed to save partial assessment", e);
+        logger.warn("Failed to save partial assessment", e);
     }
   };
 
@@ -156,9 +184,28 @@ export default function OnboardingWizard() {
     if (loading) return;
 
     if (currentStep === 0) {
-      // Welcome -> Assessment
+      // Welcome -> User Type Selection
       setCurrentStep(1);
     } else if (currentStep === 1) {
+      // User Type Selection -> Assessment or Finish (for clients)
+      if (!userType) return;
+
+      // Save user type to database
+      if (user?.id) {
+        await supabase
+          .from('profiles')
+          .update({ user_type: userType })
+          .eq('id', user.id);
+      }
+
+      if (userType === 'client') {
+        // Clients skip assessment and go directly to finish -> directory
+        await finishOnboarding(true); // Pass flag to route to directory
+      } else {
+        // Stylists and salon owners continue to assessment
+        setCurrentStep(2);
+      }
+    } else if (currentStep === 2) {
       // Assessment Logic
       if (assessmentIndex < ASSESSMENT_QUESTIONS.length - 1) {
           setAssessmentIndex(i => i + 1);
@@ -166,17 +213,17 @@ export default function OnboardingWizard() {
           // Assessment Done -> Upsell or Guide
           // Save final assessment state
           await saveAssessmentProgress(assessmentAnswers);
-          
+
           if (isPremium) {
-            setCurrentStep(3); // Skip Upsell
+            setCurrentStep(4); // Skip Upsell
           } else {
-            setCurrentStep(2); // Go to Upsell
+            setCurrentStep(3); // Go to Upsell
           }
       }
-    } else if (currentStep === 2) {
+    } else if (currentStep === 3) {
       // Upsell -> Guide
-      setCurrentStep(3);
-    } else if (currentStep >= 3 && currentStep < 3 + GUIDE_STEPS.length - 1) {
+      setCurrentStep(4);
+    } else if (currentStep >= 4 && currentStep < 4 + GUIDE_STEPS.length - 1) {
       // Advance Guide
       setCurrentStep(c => c + 1);
     } else {
@@ -187,10 +234,10 @@ export default function OnboardingWizard() {
   
   const handleAssessmentAnswer = (val: string | string[]) => {
       const currentQ = ASSESSMENT_QUESTIONS[assessmentIndex];
-      console.log('[Onboarding] Answer received:', currentQ.id, val);
+      logger.debug('Onboarding', 'Answer received:', currentQ.id, val);
       const newAnswers = { ...assessmentAnswers, [currentQ.id]: val };
       setAssessmentAnswers(newAnswers);
-      console.log('[Onboarding] New answers state:', newAnswers);
+      logger.debug('Onboarding', 'New answers state:', newAnswers);
 
       // Auto-advance for single choice questions after a brief delay
       if (currentQ.type === 'single' && val) {
@@ -201,9 +248,9 @@ export default function OnboardingWizard() {
             // Last question - save and move to next step
             saveAssessmentProgress(newAnswers);
             if (isPremium) {
-              setCurrentStep(3);
+              setCurrentStep(4); // Skip Upsell, go to Guide
             } else {
-              setCurrentStep(2);
+              setCurrentStep(3); // Go to Upsell
             }
           }
         }, 300);
@@ -214,17 +261,26 @@ export default function OnboardingWizard() {
     router.push('/subscribe');
   };
 
-  const finishOnboarding = async () => {
+  const finishOnboarding = async (isClient: boolean = false) => {
     if (!user?.id) return;
     setLoading(true);
     try {
         // 1. Update DB - prioritize has_completed_onboarding, assessment is optional
+        const updateData: any = {
+            has_completed_onboarding: true,
+        };
+
+        if (userType) {
+            updateData.user_type = userType;
+        }
+
+        if (Object.keys(assessmentAnswers).length > 0) {
+            updateData.skills_assessment = assessmentAnswers;
+        }
+
         const { error } = await supabase
             .from('profiles')
-            .update({
-                has_completed_onboarding: true,
-                skills_assessment: Object.keys(assessmentAnswers).length > 0 ? assessmentAnswers : null
-            })
+            .update(updateData)
             .eq('id', user.id);
 
         if (error) {
@@ -239,8 +295,11 @@ export default function OnboardingWizard() {
         // 2. Refresh Local State (CRITICAL to fix loop)
         await refreshProfile();
 
-        // 3. Close Modal
-        if (router.canGoBack()) {
+        // 3. Route based on user type
+        if (isClient || userType === 'client') {
+            // Clients go directly to the directory
+            router.replace('/(tabs)/directory');
+        } else if (router.canGoBack()) {
             router.back();
         } else {
             router.replace('/(tabs)');
@@ -302,6 +361,65 @@ export default function OnboardingWizard() {
     </View>
   );
 
+  const renderUserTypeSelection = () => (
+    <View className="items-center">
+        <Text className="text-2xl font-bold text-white mb-2 text-center font-serifBold">
+            How can we help you?
+        </Text>
+        <Text className="text-gray-400 text-center mb-6 font-sans">
+            Select the option that best describes you.
+        </Text>
+
+        <View className="w-full space-y-3">
+            {USER_TYPE_OPTIONS.map((option) => (
+                <TouchableOpacity
+                    key={option.value}
+                    onPress={() => {
+                        setUserType(option.value);
+                        // Auto-advance after a brief delay
+                        setTimeout(() => {
+                            if (option.value === 'client') {
+                                // Clients finish immediately
+                                finishOnboarding(true);
+                            } else {
+                                setCurrentStep(2);
+                            }
+                        }, 300);
+                    }}
+                    className={`flex-row items-center p-4 rounded-xl border ${
+                        userType === option.value
+                            ? 'bg-primary/20 border-primary'
+                            : 'bg-white/5 border-white/10'
+                    }`}
+                >
+                    <View className={`p-3 rounded-full mr-4 ${
+                        userType === option.value ? 'bg-primary/30' : 'bg-white/10'
+                    }`}>
+                        <Ionicons
+                            name={option.icon as any}
+                            size={24}
+                            color={userType === option.value ? '#C68976' : '#9CA3AF'}
+                        />
+                    </View>
+                    <View className="flex-1">
+                        <Text className={`font-bold text-base ${
+                            userType === option.value ? 'text-white' : 'text-gray-200'
+                        } font-serifBold`}>
+                            {option.label}
+                        </Text>
+                        <Text className="text-gray-400 text-sm font-sans">
+                            {option.description}
+                        </Text>
+                    </View>
+                    {userType === option.value && (
+                        <Ionicons name="checkmark-circle" size={24} color="#C68976" />
+                    )}
+                </TouchableOpacity>
+            ))}
+        </View>
+    </View>
+  );
+
   const renderAssessment = () => {
       const q = ASSESSMENT_QUESTIONS[assessmentIndex];
       const answer = assessmentAnswers[q.id];
@@ -348,15 +466,15 @@ export default function OnboardingWizard() {
             ))}
         </View>
         
-        <Button 
+        <Button
             className="w-full mb-3"
-            onPress={handleSubscribe} 
+            onPress={handleSubscribe}
             size="lg"
             variant="primary"
         >
           <Text className="text-white font-bold">Unlock Full Access</Text>
         </Button>
-        <TouchableOpacity onPress={() => setCurrentStep(3)} className="py-2">
+        <TouchableOpacity onPress={() => setCurrentStep(4)} className="py-2">
             <Text className="text-gray-400 text-sm font-bold">Maybe Later</Text>
         </TouchableOpacity>
     </View>
@@ -399,6 +517,9 @@ export default function OnboardingWizard() {
       content = renderWelcome();
       nextLabel = "Get Started";
   } else if (currentStep === 1) {
+      content = renderUserTypeSelection();
+      showNext = false; // User type auto-advances on selection
+  } else if (currentStep === 2) {
       content = renderAssessment();
       // Logic to disable Next if no answer selected?
       const currentQ = ASSESSMENT_QUESTIONS[assessmentIndex];
@@ -413,12 +534,12 @@ export default function OnboardingWizard() {
          // showNext = false; // Or show disabled button? Button component handles disabled
      }
 
-  } else if (currentStep === 2) {
+  } else if (currentStep === 3) {
       content = renderUpsell();
-      showNext = false; 
+      showNext = false;
   } else {
-      // Guide steps map to 3, 4, 5
-      const guideIndex = currentStep - 3;
+      // Guide steps map to 4, 5, 6
+      const guideIndex = currentStep - 4;
       content = renderGuide(guideIndex);
       if (guideIndex === GUIDE_STEPS.length - 1) {
           nextLabel = loading ? "Finishing..." : "Start Learning";
@@ -428,26 +549,32 @@ export default function OnboardingWizard() {
   // Helper for disabled state
   const isNextDisabled = () => {
       if (loading) {
-        console.log('[Onboarding] Next disabled: loading');
+        logger.debug('Onboarding', 'Next disabled: loading');
         return true;
       }
       if (currentStep === 1) {
-          const currentQ = ASSESSMENT_QUESTIONS[assessmentIndex];
-          const hasAnswer = assessmentAnswers[currentQ.id];
-          console.log('[Onboarding] Checking answer for', currentQ.id, ':', hasAnswer, 'assessmentAnswers:', assessmentAnswers);
-          if (!hasAnswer || (Array.isArray(hasAnswer) && hasAnswer.length === 0)) {
-            console.log('[Onboarding] Next disabled: no answer');
+          // User type selection - disabled if no type selected
+          if (!userType) {
             return true;
           }
       }
-      console.log('[Onboarding] Next enabled');
+      if (currentStep === 2) {
+          const currentQ = ASSESSMENT_QUESTIONS[assessmentIndex];
+          const hasAnswer = assessmentAnswers[currentQ.id];
+          logger.debug('Onboarding', 'Checking answer for', currentQ.id, ':', hasAnswer, 'assessmentAnswers:', assessmentAnswers);
+          if (!hasAnswer || (Array.isArray(hasAnswer) && hasAnswer.length === 0)) {
+            logger.debug('Onboarding', 'Next disabled: no answer');
+            return true;
+          }
+      }
+      logger.debug('Onboarding', 'Next enabled');
       return false;
   };
 
   return (
     <View className="flex-1 justify-center items-center px-4 bg-black/80">
         {/* Card Container */}
-        <View className="bg-neutral-900 w-full rounded-3xl shadow-2xl shadow-black/50 border border-white/10 overflow-hidden">
+        <View className="bg-neutral-900 w-full rounded-3xl shadow-2xl shadow-black/50 border border-white/10 overflow-hidden relative">
             {/* Progress Bar */}
             {currentStep > 0 && (
               <View className="h-1 bg-white/10">
@@ -464,15 +591,23 @@ export default function OnboardingWizard() {
             )}
 
             {/* Skip Button - larger touch area for better mobile UX */}
-            {currentStep > 0 && currentStep !== 2 && (
-              <TouchableOpacity
+            {currentStep > 0 && currentStep !== 1 && currentStep !== 3 && (
+              <Pressable
                 onPress={handleSkip}
-                className="absolute top-2 right-2 z-50 py-3 px-4"
                 disabled={loading}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={({ pressed }) => ({
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  zIndex: 100,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  opacity: pressed ? 0.6 : 1,
+                })}
+                hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
               >
                 <Text className="text-gray-300 text-sm font-semibold">Skip</Text>
-              </TouchableOpacity>
+              </Pressable>
             )}
 
             <View className="p-6">

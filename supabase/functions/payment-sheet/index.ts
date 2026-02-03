@@ -7,8 +7,6 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
   httpClient: Stripe.createFetchHttpClient(),
 });
 
-console.log('Payment Sheet Function Initialized');
-
 serve(async (req) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -38,6 +36,44 @@ serve(async (req) => {
         throw new Error('Amount is required');
     }
 
+    // Validate amount against actual product price to prevent manipulation
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    let expectedAmount: number | null = null;
+
+    if (certificationId) {
+      const { data: cert } = await supabaseAdmin
+        .from('certification_settings')
+        .select('price_cents')
+        .eq('id', certificationId)
+        .single();
+      expectedAmount = cert?.price_cents;
+    } else if (eventId) {
+      const { data: event } = await supabaseAdmin
+        .from('events')
+        .select('price_cents, early_bird_price_cents, early_bird_deadline')
+        .eq('id', eventId)
+        .single();
+
+      if (event) {
+        // Check if early bird pricing applies
+        const now = new Date();
+        const earlyBirdDeadline = event.early_bird_deadline ? new Date(event.early_bird_deadline) : null;
+        if (earlyBirdDeadline && now < earlyBirdDeadline && event.early_bird_price_cents) {
+          expectedAmount = event.early_bird_price_cents;
+        } else {
+          expectedAmount = event.price_cents;
+        }
+      }
+    }
+
+    if (expectedAmount !== null && amountCents !== expectedAmount) {
+      throw new Error(`Invalid amount. Expected ${expectedAmount}, received ${amountCents}`);
+    }
+
     // 1. Get user profile to check for existing Stripe Customer ID
     const { data: profile } = await supabaseClient
         .from('profiles')
@@ -50,7 +86,6 @@ serve(async (req) => {
 
     // 2. Create customer in Stripe if they don't exist
     if (!customerId) {
-        console.log('Creating new Stripe customer for user', user.id);
         const customer = await stripe.customers.create({
             email: email,
             metadata: { supabase_uuid: user.id }

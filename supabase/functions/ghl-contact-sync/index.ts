@@ -185,11 +185,11 @@ serve(async (req) => {
     const result = await response.json();
     const newContactId = result.contact?.id || contactId;
 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
     // Update profile with GHL contact ID if we have it
     if (newContactId && payload.user_id) {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-
       if (supabaseUrl && serviceKey) {
         const adminClient = createClient(supabaseUrl, serviceKey);
         await adminClient
@@ -199,11 +199,65 @@ serve(async (req) => {
       }
     }
 
+    // For new signups, send welcome email and trigger GHL workflow
+    if (payload.action === "INSERT" && payload.email) {
+      try {
+        // Send welcome email via send-email function
+        const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${serviceKey}`,
+          },
+          body: JSON.stringify({
+            to: payload.email,
+            template: "welcome",
+            data: {
+              firstName: firstName || "there",
+            },
+            user_id: payload.user_id,
+          }),
+        });
+
+        if (!emailResponse.ok) {
+          console.error("Welcome email failed:", await emailResponse.text());
+        }
+
+        // Trigger GHL workflow for welcome sequence
+        const ghlEventResponse = await fetch(`${supabaseUrl}/functions/v1/ghl-event-trigger`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${serviceKey}`,
+          },
+          body: JSON.stringify({
+            event: "user.signup",
+            email: payload.email,
+            user_id: payload.user_id,
+            contact: { firstName, lastName },
+            data: {
+              signup_date: new Date().toISOString(),
+              role: payload.skills_assessment?.role || payload.role,
+              goal: payload.skills_assessment?.goal,
+            },
+          }),
+        });
+
+        if (!ghlEventResponse.ok) {
+          console.error("GHL event trigger failed:", await ghlEventResponse.text());
+        }
+      } catch (emailError) {
+        console.error("Email/GHL trigger error:", emailError);
+        // Don't fail the sync if email fails
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         contact_id: newContactId,
         action: contactId ? "updated" : "created",
+        welcome_email_sent: payload.action === "INSERT",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -2,6 +2,27 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
 import { useAuth } from '../auth';
 
+interface RequiredModuleJoin {
+  module_id: string;
+  modules: {
+    id: string;
+    title: string;
+  } | null;
+}
+
+interface UserCertificationStatus {
+  status: 'pending' | 'submitted' | 'approved' | 'rejected' | 'resubmitted';
+  feedback: string | null;
+}
+
+interface RequirementBreakdown {
+  moduleId: string;
+  title: string;
+  completed: boolean;
+  totalVideos: number;
+  completedVideos: number;
+}
+
 export interface Certification {
   id: string;
   title: string;
@@ -10,26 +31,11 @@ export interface Certification {
   badge_image_url: string | null;
   requires_review: boolean;
   is_active: boolean;
-  required_modules?: {
-    module_id: string;
-    modules: {
-        id: string;
-        title: string;
-    };
-  }[];
-  user_status?: {
-      status: 'pending' | 'submitted' | 'approved' | 'rejected' | 'resubmitted';
-      feedback: string | null;
-  } | null;
+  required_modules?: RequiredModuleJoin[];
+  user_status?: UserCertificationStatus | null;
   is_qualified?: boolean;
   progress_percentage?: number;
-  requirements_breakdown?: {
-      moduleId: string;
-      title: string;
-      completed: boolean;
-      totalVideos: number;
-      completedVideos: number;
-  }[];
+  requirements_breakdown?: RequirementBreakdown[];
 }
 
 // No modification needed here if previous worked.
@@ -65,7 +71,7 @@ export function useCertifications() {
       }
 
       // 2. Fetch user status if logged in
-      let userStatuses: Record<string, any> = {};
+      let userStatuses: Record<string, UserCertificationStatus> = {};
       let completedVideoIds = new Set<string>();
 
       if (user?.id) {
@@ -74,10 +80,13 @@ export function useCertifications() {
             .from('user_certifications')
             .select('certification_id, status, feedback')
             .eq('user_id', user.id);
-            
+
           if (submissions) {
               submissions.forEach(sub => {
-                  userStatuses[sub.certification_id] = sub;
+                  userStatuses[sub.certification_id] = {
+                    status: sub.status as UserCertificationStatus['status'],
+                    feedback: sub.feedback
+                  };
               });
           }
 
@@ -87,7 +96,7 @@ export function useCertifications() {
             .select('video_id')
             .eq('user_id', user.id)
             .eq('completed', true);
-            
+
           if (progressData) {
               progressData.forEach(p => completedVideoIds.add(p.video_id));
           }
@@ -97,18 +106,19 @@ export function useCertifications() {
       const processedCerts = await Promise.all(certsData.map(async (cert) => {
           let totalVideos = 0;
           let totalCompletedVideos = 0;
-          let requirementsBreakdown: any[] = [];
-          
-          if (cert.required_modules && cert.required_modules.length > 0) {
-              const moduleIds = cert.required_modules.map((m: any) => m.module_id);
-              
+          let requirementsBreakdown: RequirementBreakdown[] = [];
+
+          const requiredModules = cert.required_modules as RequiredModuleJoin[] | null;
+          if (requiredModules && requiredModules.length > 0) {
+              const moduleIds = requiredModules.map((m) => m.module_id);
+
               // Fetch videos for required modules
               const { data: videos } = await supabase
                 .from('videos')
                 .select('id, module_id')
                 .in('module_id', moduleIds)
                 .eq('is_published', true);
-                
+
               if (videos) {
                   // Group videos by module
                   const videosByModule: Record<string, string[]> = {};
@@ -118,14 +128,14 @@ export function useCertifications() {
                   });
 
                   // Build breakdown
-                  requirementsBreakdown = cert.required_modules.map((m: any) => {
+                  requirementsBreakdown = requiredModules.map((m) => {
                        const moduleVideos = videosByModule[m.module_id] || [];
                        const moduleTotal = moduleVideos.length;
                        const moduleCompleted = moduleVideos.filter(vid => completedVideoIds.has(vid)).length;
-                       
+
                        totalVideos += moduleTotal;
                        totalCompletedVideos += moduleCompleted;
-                       
+
                        return {
                            moduleId: m.module_id,
                            title: m.modules?.title || 'Unknown Module',
@@ -225,9 +235,10 @@ export const useCertification = (id: string | undefined) => {
             // 3. Calculate qualification
             let totalVideos = 0;
             let completedVideos = 0;
-            
-            if (certData.required_modules && certData.required_modules.length > 0) {
-                const moduleIds = certData.required_modules.map((m: any) => m.module_id);
+
+            const requiredModules = certData.required_modules as RequiredModuleJoin[] | null;
+            if (requiredModules && requiredModules.length > 0) {
+                const moduleIds = requiredModules.map((m) => m.module_id);
                 const { data: videos } = await supabase
                     .from('videos')
                     .select('id, module_id')
