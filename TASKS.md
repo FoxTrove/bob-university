@@ -49,7 +49,7 @@
 
 ### Phase 4: Directory & Profile Polish
 
-- [ ] Enforce subscription requirement for directory listing
+- [x] Enforce subscription requirement for directory listing
   - Acceptance: `stylist_profiles.is_public` can only be true if user has active subscription. Edge function or RLS enforces this.
   - Test: Cancelled subscriber's profile automatically becomes private.
 
