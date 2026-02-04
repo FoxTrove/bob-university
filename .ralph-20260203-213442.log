@@ -36,3 +36,40 @@ Task completed successfully.
   [1mTask 4:[0m Create client-specific Home screen content...
 
   [0;36m⟳[0m Claude working...
+Task completed successfully.
+
+**Summary:**
+- Created `components/home/ClientHomeScreen.tsx` - A client-specific home screen that displays:
+  - "Find a Stylist" CTA card with search icon linking to the directory
+  - Featured stylists carousel showing 5 certified stylists with avatars
+  - Upcoming events section showing the next 3 events with date cards
+  - Quick tips section with 3 helpful salon visit tips
+- Updated `app/(tabs)/index.tsx` to conditionally render `ClientHomeScreen` when `userType === 'client'`
+- Created barrel export at `components/home/index.ts`
+
+The task has been committed and pushed. The loop will continue with the next task.
+  [0;32m✓[0m Task completed
+
+  [1m[[0;32m████████████[0m[1m░░░░░░░░░░░░░░░░░░] 40% (4/10)[0m  [0;33m8m elapsed[0m
+
+  [1mTask 5:[0m Create salon owner Home dashboard...
+
+  [0;36m⟳[0m Claude working...
+Task completed successfully. 
+
+**Summary:**
+- Created `SalonOwnerHomeScreen.tsx` component with:
+  - Team overview card showing member count (X/5) and certified count
+  - Team certification progress section with average video completion progress bar
+  - "Book Event with Ray" CTA that links to the events page
+  - Recent activity feed showing staff video completions
+  - Quick actions for Add Staff, Courses, and Certify
+- Updated `app/(tabs)/index.tsx` to render `SalonOwnerHomeScreen` when `userType === 'salon_owner'`
+- Committed and pushed changes to feature branch
+  [0;32m✓[0m Task completed
+
+  [1m[[0;32m███████████████[0m[1m░░░░░░░░░░░░░░░] 50% (5/10)[0m  [0;33m13m elapsed[0m
+
+  [1mTask 6:[0m Add learning progress to individual stylist Home...
+
+  [0;36m⟳[0m Claude working...

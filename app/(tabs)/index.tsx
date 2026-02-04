@@ -11,6 +11,7 @@ import { Badge } from '../../components/ui/Badge';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ClientHomeScreen } from '../../components/home/ClientHomeScreen';
 import { SalonOwnerHomeScreen } from '../../components/home/SalonOwnerHomeScreen';
+import { IndividualStylistHomeScreen } from '../../components/home/IndividualStylistHomeScreen';
 
 export default function Home() {
   const { user } = useAuth();
@@ -36,6 +37,10 @@ export default function Home() {
 
   if (userType === 'salon_owner') {
     return <SalonOwnerHomeScreen />;
+  }
+
+  if (userType === 'individual_stylist') {
+    return <IndividualStylistHomeScreen />;
   }
 
   // Hero image from assets
