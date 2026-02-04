@@ -94,18 +94,19 @@
 
 ---
 
-### Story 2.4: Team Progress Dashboard
+### Story 2.4: Team Progress Dashboard ✅
 **As a** salon owner,
 **I want** to view my team's training progress,
 **So that** I can ensure everyone is staying on track.
 
 **Acceptance Criteria:**
-- [ ] Given I'm on Team tab, I see a list of all team members with progress indicators
-- [ ] Given I tap a team member, I see their video completion percentages by module
-- [ ] Given I view the dashboard, I see aggregate team metrics (avg completion, most watched modules)
+- [x] Given I'm on Team tab, I see a list of all team members with progress indicators
+- [x] Given I tap a team member, I see their video completion percentages by module
+- [x] Given I view the dashboard, I see aggregate team metrics (avg completion, most watched modules)
 
 **Priority:** Medium
 **Complexity:** M
+**Status:** ✅ Implemented
 
 ---
 

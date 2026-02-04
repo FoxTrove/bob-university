@@ -154,7 +154,7 @@
   - Acceptance: Hamburger or profile sub-menu contains: Community, Directory, Notifications, Support
   - Test: Tap menu → See secondary items
 
-- [ ] Enhance team progress dashboard
+- [x] Enhance team progress dashboard
   - Story: 2.4
   - Acceptance: Aggregate metrics: avg completion, most watched modules, engagement trends
   - Test: View Team tab → See team-wide statistics
