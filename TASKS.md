@@ -103,7 +103,7 @@
   - Acceptance: If invited email has existing account, send in-app notification instead of email
   - Test: Invite existing user → They see in-app invite notification
 
-- [ ] Implement auto-join and subscription transfer
+- [x] Implement auto-join and subscription transfer
   - Story: 2.3
   - Acceptance: Existing user accepts → Joins salon, individual subscription cancelled if any
   - Test: Paying individual accepts → Joins salon, old subscription cancelled

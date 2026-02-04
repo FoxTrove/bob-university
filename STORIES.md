@@ -77,19 +77,20 @@
 
 ---
 
-### Story 2.3: Existing User Auto-Join
+### Story 2.3: Existing User Auto-Join ✅
 **As a** salon owner,
 **I want** existing app users I invite to automatically join my salon,
 **So that** they don't need to create a new account.
 
 **Acceptance Criteria:**
-- [ ] Given I invite user@example.com who has an existing account, they receive an in-app notification (not email)
-- [ ] Given they accept, they automatically join my salon team
-- [ ] Given they had an individual subscription, it is cancelled and salon covers their access
-- [ ] Given they join, their existing progress and data is preserved
+- [x] Given I invite user@example.com who has an existing account, they receive an in-app notification (not email)
+- [x] Given they accept, they automatically join my salon team
+- [x] Given they had an individual subscription, it is cancelled and salon covers their access
+- [x] Given they join, their existing progress and data is preserved
 
 **Priority:** Medium
 **Complexity:** L
+**Status:** ✅ Implemented
 
 ---
 
