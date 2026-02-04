@@ -111,7 +111,7 @@
 ### Phase 4: Private Events
 > From Story 4.1-4.3: Request and manage private events
 
-- [ ] Create private event request form
+- [x] Create private event request form
   - Story: 4.1
   - Acceptance: Form with event type, dates, size, location, notes. Submits to admin dashboard.
   - Test: Submit request → Confirmation shown, appears in admin
