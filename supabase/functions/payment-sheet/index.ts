@@ -30,7 +30,7 @@ serve(async (req) => {
         throw new Error('User not found');
     }
 
-    const { amountCents, certificationId, eventId, description } = await req.json();
+    const { amountCents, certificationId, eventId, certificationTickets, salonId, description } = await req.json();
 
     if (!amountCents) {
         throw new Error('Amount is required');
@@ -43,14 +43,38 @@ serve(async (req) => {
     );
 
     let expectedAmount: number | null = null;
+    let productType = 'onetime';
 
-    if (certificationId) {
+    if (certificationTickets && certificationTickets > 0) {
+      // Certification tickets: ~30% discount from $297 = $207 per ticket
+      const TICKET_PRICE_CENTS = 20700;
+      expectedAmount = certificationTickets * TICKET_PRICE_CENTS;
+      productType = 'certification_tickets';
+
+      // Verify the user owns the salon
+      if (!salonId) {
+        throw new Error('Salon ID is required for ticket purchases');
+      }
+      const { data: salon, error: salonError } = await supabaseAdmin
+        .from('salons')
+        .select('owner_id')
+        .eq('id', salonId)
+        .single();
+
+      if (salonError || !salon) {
+        throw new Error('Salon not found');
+      }
+      if (salon.owner_id !== user.id) {
+        throw new Error('You are not the owner of this salon');
+      }
+    } else if (certificationId) {
       const { data: cert } = await supabaseAdmin
         .from('certification_settings')
         .select('price_cents')
         .eq('id', certificationId)
         .single();
       expectedAmount = cert?.price_cents;
+      productType = 'certification';
     } else if (eventId) {
       const { data: event } = await supabaseAdmin
         .from('events')
@@ -68,6 +92,7 @@ serve(async (req) => {
           expectedAmount = event.price_cents;
         }
       }
+      productType = 'event';
     }
 
     if (expectedAmount !== null && amountCents !== expectedAmount) {
@@ -117,7 +142,9 @@ serve(async (req) => {
         userId: user.id,
         certificationId: certificationId || null,
         eventId: eventId || null,
-        productType: certificationId ? 'certification' : (eventId ? 'event' : 'onetime')
+        certificationTickets: certificationTickets || null,
+        salonId: salonId || null,
+        productType
       }
     });
 

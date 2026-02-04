@@ -83,8 +83,8 @@ function mapSubscriptionStatus(status: Stripe.Subscription.Status): string {
   }
 }
 
-function mapProductType(value: string | null | undefined): 'subscription' | 'event' | 'certification' | 'other' {
-  if (value === 'subscription' || value === 'event' || value === 'certification') {
+function mapProductType(value: string | null | undefined): 'subscription' | 'event' | 'certification' | 'certification_tickets' | 'other' {
+  if (value === 'subscription' || value === 'event' || value === 'certification' || value === 'certification_tickets') {
     return value;
   }
   return 'other';
@@ -291,6 +291,68 @@ serve(async (req) => {
 
             // Update GHL tags
             await updateGHLTags(serviceKey, userId, ['cert_purchased'], ['cert_eligible']);
+          }
+        }
+
+        // Handle certification ticket purchases
+        if (productType === 'certification_tickets') {
+          const { certificationTickets, salonId } = paymentIntent.metadata || {};
+          const ticketCount = parseInt(certificationTickets || '0', 10);
+
+          if (ticketCount > 0 && salonId) {
+            // Add tickets to the salon's pool
+            const { data: existingPool } = await supabase
+              .from('salon_certification_tickets')
+              .select('*')
+              .eq('salon_id', salonId)
+              .single();
+
+            if (existingPool) {
+              // Update existing pool
+              const { error: updateError } = await supabase
+                .from('salon_certification_tickets')
+                .update({
+                  total_tickets: existingPool.total_tickets + ticketCount,
+                  available_tickets: existingPool.available_tickets + ticketCount,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('salon_id', salonId);
+
+              if (updateError) {
+                console.error('Failed to update ticket pool:', updateError);
+              } else {
+                console.log(`Added ${ticketCount} tickets to salon ${salonId}. New total: ${existingPool.total_tickets + ticketCount}`);
+              }
+            } else {
+              // Create new pool (shouldn't normally happen since they get 3 free on subscription)
+              const { error: insertError } = await supabase
+                .from('salon_certification_tickets')
+                .insert({
+                  salon_id: salonId,
+                  total_tickets: ticketCount,
+                  available_tickets: ticketCount,
+                });
+
+              if (insertError) {
+                console.error('Failed to create ticket pool:', insertError);
+              }
+            }
+
+            // Get owner profile for notification
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('email, full_name')
+              .eq('id', userId)
+              .single();
+
+            if (profile?.email) {
+              const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+              // Trigger GHL workflow for ticket purchase
+              await triggerGHLEvent(serviceKey, 'certification_tickets.purchased', profile.email, {
+                ticket_count: ticketCount,
+                amount: paymentIntent.amount / 100,
+              }, userId);
+            }
           }
         }
       }

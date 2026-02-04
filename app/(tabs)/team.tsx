@@ -8,7 +8,12 @@ import { Card } from '../../components/ui/Card';
 import { Avatar } from '../../components/ui/Avatar';
 import { ProgressBar } from '../../components/ui/ProgressBar';
 import { Ionicons } from '@expo/vector-icons';
+import { useStripe } from '@stripe/stripe-react-native';
 import type { Profile, Salon, Module, SalonCertificationTickets, CertificationTicketAssignment, CertificationSetting } from '../../lib/database.types';
+
+// Ticket pricing constants (30% off $297 = $207 per ticket)
+const TICKET_PRICE_CENTS = 20700;
+const TICKET_ORIGINAL_PRICE_CENTS = 29700;
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -35,6 +40,7 @@ interface TicketAssignmentWithDetails extends CertificationTicketAssignment {
 
 export default function TeamTab() {
   const { user } = useAuth();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [loading, setLoading] = useState(true);
   const [staff, setStaff] = useState<StaffWithProgress[]>([]);
   const [salon, setSalon] = useState<Salon | null>(null);
@@ -48,6 +54,9 @@ export default function TeamTab() {
   const [ticketPool, setTicketPool] = useState<SalonCertificationTickets | null>(null);
   const [ticketAssignments, setTicketAssignments] = useState<TicketAssignmentWithDetails[]>([]);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [ticketsToPurchase, setTicketsToPurchase] = useState(1);
+  const [purchasing, setPurchasing] = useState(false);
   const [certifications, setCertifications] = useState<CertificationSetting[]>([]);
   const [selectedTeamMember, setSelectedTeamMember] = useState<StaffWithProgress | null>(null);
   const [selectedCertification, setSelectedCertification] = useState<CertificationSetting | null>(null);
@@ -482,6 +491,104 @@ export default function TeamTab() {
     return total > 0 ? Math.round((completed / total) * 100) : 0;
   }
 
+  function openPurchaseModal() {
+    setTicketsToPurchase(1);
+    setShowPurchaseModal(true);
+  }
+
+  function closePurchaseModal() {
+    setShowPurchaseModal(false);
+    setTicketsToPurchase(1);
+  }
+
+  async function handlePurchaseTickets() {
+    if (!salon?.id || !user?.id) {
+      Alert.alert('Error', 'No salon found for this user.');
+      return;
+    }
+
+    setPurchasing(true);
+    try {
+      const amountCents = ticketsToPurchase * TICKET_PRICE_CENTS;
+
+      // 1. Get payment intent from edge function
+      const { data, error } = await supabase.functions.invoke('payment-sheet', {
+        body: {
+          amountCents,
+          certificationTickets: ticketsToPurchase,
+          salonId: salon.id,
+          description: `${ticketsToPurchase} Certification Ticket${ticketsToPurchase > 1 ? 's' : ''}`,
+        },
+      });
+
+      if (error) throw error;
+      if (!data?.paymentIntent) throw new Error('Failed to create payment intent');
+
+      // 2. Initialize payment sheet
+      const { error: initError } = await initPaymentSheet({
+        merchantDisplayName: 'Bob Company',
+        customerId: data.customer,
+        customerEphemeralKeySecret: data.ephemeralKey,
+        paymentIntentClientSecret: data.paymentIntent,
+        allowsDelayedPaymentMethods: false,
+        defaultBillingDetails: {
+          name: 'Salon Owner',
+        },
+      });
+
+      if (initError) throw initError;
+
+      // 3. Present payment sheet
+      const { error: presentError } = await presentPaymentSheet();
+
+      if (presentError) {
+        if (presentError.code === 'Canceled') {
+          // User cancelled, not an error
+          return;
+        }
+        throw presentError;
+      }
+
+      // 4. Success - update local state optimistically
+      closePurchaseModal();
+
+      // Update ticket pool in local state
+      if (ticketPool) {
+        setTicketPool({
+          ...ticketPool,
+          total_tickets: ticketPool.total_tickets + ticketsToPurchase,
+          available_tickets: ticketPool.available_tickets + ticketsToPurchase,
+        });
+      } else {
+        // Create new pool locally
+        setTicketPool({
+          id: '', // Will be set by server
+          salon_id: salon.id,
+          total_tickets: ticketsToPurchase,
+          available_tickets: ticketsToPurchase,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
+
+      Alert.alert(
+        'Purchase Successful!',
+        `${ticketsToPurchase} certification ticket${ticketsToPurchase > 1 ? 's have' : ' has'} been added to your pool. You can now assign ${ticketsToPurchase > 1 ? 'them' : 'it'} to your team members.`
+      );
+
+      // Refresh data to get accurate counts from server
+      fetchSalonData();
+    } catch (err) {
+      console.error('Purchase error:', err);
+      Alert.alert(
+        'Purchase Failed',
+        err instanceof Error ? err.message : 'An error occurred during payment.'
+      );
+    } finally {
+      setPurchasing(false);
+    }
+  }
+
   if (loading) {
     return (
       <SafeContainer>
@@ -521,30 +628,33 @@ export default function TeamTab() {
           )}
 
           {/* Certification Tickets Dashboard */}
-          {ticketPool && (
-            <Card className="mb-6">
-              <View className="flex-row items-center justify-between mb-3">
-                <View className="flex-row items-center">
-                  <View className="bg-purple-500/20 p-2 rounded-full mr-3">
-                    <Ionicons name="ticket" size={20} color="#a855f7" />
-                  </View>
-                  <Text className="text-text font-bold text-lg">Certification Tickets</Text>
+          <Card className="mb-6">
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-row items-center">
+                <View className="bg-purple-500/20 p-2 rounded-full mr-3">
+                  <Ionicons name="ticket" size={20} color="#a855f7" />
                 </View>
+                <Text className="text-text font-bold text-lg">Certification Tickets</Text>
+              </View>
+              {ticketPool && (
                 <View className="bg-purple-500/10 px-3 py-1 rounded-full">
                   <Text className="text-purple-500 font-bold">
                     {ticketPool.available_tickets} available / {ticketPool.total_tickets - ticketPool.available_tickets} assigned
                   </Text>
                 </View>
-              </View>
+              )}
+            </View>
 
-              <Text className="text-textMuted text-sm mb-3">
-                Assign tickets to team members so they can get certified at no extra cost.
-              </Text>
+            <Text className="text-textMuted text-sm mb-3">
+              Assign tickets to team members so they can get certified at no extra cost.
+            </Text>
 
+            {/* Action Buttons */}
+            <View className="flex-row gap-2 mb-4">
               {/* Assign Ticket Button */}
-              {ticketPool.available_tickets > 0 && staff.length > 0 && (
+              {ticketPool && ticketPool.available_tickets > 0 && staff.length > 0 && (
                 <TouchableOpacity
-                  className="bg-purple-500 py-3 px-4 rounded-lg flex-row items-center justify-center mb-4"
+                  className="flex-1 bg-purple-500 py-3 px-4 rounded-lg flex-row items-center justify-center"
                   onPress={openAssignModal}
                 >
                   <Ionicons name="add-circle-outline" size={20} color="#ffffff" />
@@ -552,54 +662,75 @@ export default function TeamTab() {
                 </TouchableOpacity>
               )}
 
-              {/* Ticket Assignments List */}
-              {ticketAssignments.length > 0 ? (
-                <View className="border-t border-surfaceHighlight pt-3">
-                  <Text className="text-textMuted text-xs font-medium mb-2 uppercase">Assignment History</Text>
-                  {ticketAssignments.map((assignment) => (
-                    <View key={assignment.id} className="flex-row items-center py-2 border-b border-surfaceHighlight last:border-b-0">
-                      <Avatar
-                        name={assignment.assignedToProfile?.full_name || assignment.assignedToProfile?.email || 'Unknown'}
-                        source={assignment.assignedToProfile?.avatar_url}
-                        size="sm"
-                        className="mr-3"
-                      />
-                      <View className="flex-1">
-                        <Text className="text-text font-medium">
-                          {assignment.assignedToProfile?.full_name || 'Team Member'}
-                        </Text>
-                        <Text className="text-textMuted text-xs">
-                          {assignment.certification?.title || 'Certification'} • {assignment.status}
-                        </Text>
-                      </View>
-                      <View className={`px-2 py-1 rounded-full ${
-                        assignment.status === 'redeemed' ? 'bg-green-500/20' :
-                        assignment.status === 'assigned' ? 'bg-blue-500/20' :
-                        assignment.status === 'expired' ? 'bg-gray-500/20' :
-                        'bg-red-500/20'
-                      }`}>
-                        <Text className={`text-xs font-medium ${
-                          assignment.status === 'redeemed' ? 'text-green-600' :
-                          assignment.status === 'assigned' ? 'text-blue-600' :
-                          assignment.status === 'expired' ? 'text-gray-600' :
-                          'text-red-600'
-                        }`}>
-                          {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
-                        </Text>
-                      </View>
+              {/* Buy More Tickets Button */}
+              <TouchableOpacity
+                className={`${ticketPool && ticketPool.available_tickets > 0 && staff.length > 0 ? '' : 'flex-1'} bg-green-500/20 py-3 px-4 rounded-lg flex-row items-center justify-center`}
+                onPress={openPurchaseModal}
+              >
+                <Ionicons name="cart-outline" size={20} color="#22c55e" />
+                <Text className="text-green-500 font-bold ml-2">Buy Tickets</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* No tickets message */}
+            {(!ticketPool || ticketPool.available_tickets === 0) && (
+              <View className="bg-yellow-500/10 rounded-lg p-3 flex-row items-center mb-3">
+                <Ionicons name="warning-outline" size={20} color="#eab308" />
+                <Text className="text-yellow-600 text-sm ml-2 flex-1">
+                  {ticketPool?.available_tickets === 0
+                    ? 'No tickets available. Purchase more to assign certifications to your team.'
+                    : 'No tickets yet. Your subscription includes 3 free tickets, or you can purchase more.'}
+                </Text>
+              </View>
+            )}
+
+            {/* Ticket Assignments List */}
+            {ticketAssignments.length > 0 ? (
+              <View className="border-t border-surfaceHighlight pt-3">
+                <Text className="text-textMuted text-xs font-medium mb-2 uppercase">Assignment History</Text>
+                {ticketAssignments.map((assignment) => (
+                  <View key={assignment.id} className="flex-row items-center py-2 border-b border-surfaceHighlight last:border-b-0">
+                    <Avatar
+                      name={assignment.assignedToProfile?.full_name || assignment.assignedToProfile?.email || 'Unknown'}
+                      source={assignment.assignedToProfile?.avatar_url}
+                      size="sm"
+                      className="mr-3"
+                    />
+                    <View className="flex-1">
+                      <Text className="text-text font-medium">
+                        {assignment.assignedToProfile?.full_name || 'Team Member'}
+                      </Text>
+                      <Text className="text-textMuted text-xs">
+                        {assignment.certification?.title || 'Certification'} • {assignment.status}
+                      </Text>
                     </View>
-                  ))}
-                </View>
-              ) : (
-                <View className="bg-surfaceHighlight rounded-lg p-4 items-center">
-                  <Ionicons name="ticket-outline" size={24} color="#71717a" />
-                  <Text className="text-textMuted text-sm mt-2 text-center">
-                    No tickets assigned yet. Assign tickets to help your team get certified.
-                  </Text>
-                </View>
-              )}
-            </Card>
-          )}
+                    <View className={`px-2 py-1 rounded-full ${
+                      assignment.status === 'redeemed' ? 'bg-green-500/20' :
+                      assignment.status === 'assigned' ? 'bg-blue-500/20' :
+                      assignment.status === 'expired' ? 'bg-gray-500/20' :
+                      'bg-red-500/20'
+                    }`}>
+                      <Text className={`text-xs font-medium ${
+                        assignment.status === 'redeemed' ? 'text-green-600' :
+                        assignment.status === 'assigned' ? 'text-blue-600' :
+                        assignment.status === 'expired' ? 'text-gray-600' :
+                        'text-red-600'
+                      }`}>
+                        {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ) : ticketPool && ticketPool.available_tickets > 0 ? (
+              <View className="bg-surfaceHighlight rounded-lg p-4 items-center">
+                <Ionicons name="ticket-outline" size={24} color="#71717a" />
+                <Text className="text-textMuted text-sm mt-2 text-center">
+                  No tickets assigned yet. Assign tickets to help your team get certified.
+                </Text>
+              </View>
+            ) : null}
+          </Card>
 
           {/* Invite Staff Section */}
           {showEmailForm ? (
@@ -966,6 +1097,125 @@ export default function TeamTab() {
                       ? `Assign ${selectedCertification.title} to ${selectedTeamMember.full_name || 'Team Member'}`
                       : 'Select certification and team member'
                     }
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Purchase Tickets Modal */}
+      <Modal
+        visible={showPurchaseModal}
+        transparent
+        animationType="slide"
+        onRequestClose={closePurchaseModal}
+      >
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-surface rounded-t-3xl p-6">
+            {/* Header */}
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-text font-bold text-xl">Buy Certification Tickets</Text>
+              <TouchableOpacity onPress={closePurchaseModal}>
+                <Ionicons name="close" size={24} color="#71717a" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Discount Banner */}
+            <View className="bg-green-500/10 rounded-lg p-3 flex-row items-center mb-6">
+              <Ionicons name="pricetag" size={20} color="#22c55e" />
+              <View className="ml-3 flex-1">
+                <Text className="text-green-600 font-bold">30% Salon Discount</Text>
+                <Text className="text-green-600 text-sm">
+                  ${(TICKET_PRICE_CENTS / 100).toFixed(0)} per ticket (was ${(TICKET_ORIGINAL_PRICE_CENTS / 100).toFixed(0)})
+                </Text>
+              </View>
+            </View>
+
+            {/* Ticket Quantity Selector */}
+            <Text className="text-text font-semibold mb-3">How many tickets?</Text>
+            <View className="flex-row items-center justify-center bg-surfaceHighlight rounded-xl p-4 mb-6">
+              <TouchableOpacity
+                className={`w-12 h-12 rounded-full items-center justify-center ${
+                  ticketsToPurchase > 1 ? 'bg-purple-500/20' : 'bg-surfaceHighlight'
+                }`}
+                onPress={() => setTicketsToPurchase(Math.max(1, ticketsToPurchase - 1))}
+                disabled={ticketsToPurchase <= 1}
+              >
+                <Ionicons
+                  name="remove"
+                  size={24}
+                  color={ticketsToPurchase > 1 ? '#a855f7' : '#71717a'}
+                />
+              </TouchableOpacity>
+
+              <View className="mx-8 items-center">
+                <Text className="text-4xl font-bold text-text">{ticketsToPurchase}</Text>
+                <Text className="text-textMuted text-sm">
+                  ticket{ticketsToPurchase > 1 ? 's' : ''}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                className="w-12 h-12 rounded-full bg-purple-500/20 items-center justify-center"
+                onPress={() => setTicketsToPurchase(ticketsToPurchase + 1)}
+              >
+                <Ionicons name="add" size={24} color="#a855f7" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Price Summary */}
+            <View className="bg-surfaceHighlight rounded-xl p-4 mb-6">
+              <View className="flex-row justify-between items-center mb-2">
+                <Text className="text-textMuted">
+                  {ticketsToPurchase} ticket{ticketsToPurchase > 1 ? 's' : ''} × ${(TICKET_PRICE_CENTS / 100).toFixed(0)}
+                </Text>
+                <Text className="text-text font-medium">
+                  ${((ticketsToPurchase * TICKET_PRICE_CENTS) / 100).toFixed(0)}
+                </Text>
+              </View>
+              <View className="flex-row justify-between items-center">
+                <Text className="text-green-500 text-sm">
+                  You save ${((ticketsToPurchase * (TICKET_ORIGINAL_PRICE_CENTS - TICKET_PRICE_CENTS)) / 100).toFixed(0)}
+                </Text>
+                <Text className="text-textMuted text-sm line-through">
+                  ${((ticketsToPurchase * TICKET_ORIGINAL_PRICE_CENTS) / 100).toFixed(0)}
+                </Text>
+              </View>
+              <View className="border-t border-border mt-3 pt-3">
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-text font-bold text-lg">Total</Text>
+                  <Text className="text-green-500 font-bold text-2xl">
+                    ${((ticketsToPurchase * TICKET_PRICE_CENTS) / 100).toFixed(0)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Info */}
+            <View className="flex-row items-start mb-6">
+              <Ionicons name="information-circle-outline" size={18} color="#71717a" />
+              <Text className="text-textMuted text-sm ml-2 flex-1">
+                Tickets can be assigned to any team member for any certification type. They never expire.
+              </Text>
+            </View>
+
+            {/* Purchase Button */}
+            <TouchableOpacity
+              className={`py-4 px-6 rounded-xl flex-row items-center justify-center ${
+                !purchasing ? 'bg-green-500' : 'bg-surfaceHighlight'
+              }`}
+              onPress={handlePurchaseTickets}
+              disabled={purchasing}
+            >
+              {purchasing ? (
+                <ActivityIndicator size="small" color="#22c55e" />
+              ) : (
+                <>
+                  <Ionicons name="card-outline" size={20} color="#ffffff" />
+                  <Text className="text-white font-bold ml-2">
+                    Purchase for ${((ticketsToPurchase * TICKET_PRICE_CENTS) / 100).toFixed(0)}
                   </Text>
                 </>
               )}
