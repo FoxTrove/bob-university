@@ -15,15 +15,13 @@
   - Acceptance: Add "Join a Salon" option in profile for individual_stylists. Enter 6-char code → validates against `staff_access_codes` → links user to salon via `salon_id` in profiles.
   - Test: Generate code in Team tab, use code in another account, that user's profile.salon_id is set.
 
+- [x] Implement remove staff functionality in Team tab
+  - Acceptance: Each staff member in Team tab has options menu with "Remove from Team". Removes their `salon_id` from profiles.
+  - Test: Tap options → Remove → Confirm → Staff member no longer appears in list.
+
 ## In Progress
 
 ## Backlog
-
-### Phase 1: Salon Owner Foundation
-
-- [ ] Implement remove staff functionality in Team tab
-  - Acceptance: Each staff member in Team tab has options menu with "Remove from Team". Removes their `salon_id` from profiles.
-  - Test: Tap options → Remove → Confirm → Staff member no longer appears in list.
 
 ### Phase 2: Home Screen Customization
 
