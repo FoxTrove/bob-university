@@ -75,7 +75,7 @@
   - Acceptance: Shows "X available / Y assigned" with list of assignments
   - Test: Salon owner sees ticket count and history
 
-- [ ] Implement assign ticket to team member flow
+- [x] Implement assign ticket to team member flow
   - Story: 3.2
   - Acceptance: Select team member → Select certification type → Assign → Notification sent
   - Test: Assign ticket → Team member receives notification, can access certification

@@ -125,19 +125,20 @@
 
 ---
 
-### Story 3.2: Assign Certification to Team Member
+### Story 3.2: Assign Certification to Team Member ✅
 **As a** salon owner,
 **I want** to assign a certification ticket to a team member,
 **So that** they can get certified at no additional cost.
 
 **Acceptance Criteria:**
-- [ ] Given I have available tickets, when I tap "Assign Certification", I see a list of team members
-- [ ] Given I select a team member and certification type, the ticket is assigned
-- [ ] Given assignment is successful, my available ticket count decreases by 1
-- [ ] Given the team member, they receive notification they've been granted certification access
+- [x] Given I have available tickets, when I tap "Assign Certification", I see a list of team members
+- [x] Given I select a team member and certification type, the ticket is assigned
+- [x] Given assignment is successful, my available ticket count decreases by 1
+- [x] Given the team member, they receive notification they've been granted certification access
 
 **Priority:** High
 **Complexity:** M
+**Status:** ✅ Implemented
 
 ---
 
