@@ -174,3 +174,49 @@
   - Acceptance: Admin dashboard `npm run build` passes
   - Issue: @/ path aliases not resolving to @/components/*, @/lib/*
   - Test: `cd admin && npm run build` succeeds
+
+### Phase 7: Review Findings (Feb 4, 2026)
+> From /ralph-review: Additional TypeScript and quality issues found
+
+- [ ] Fix TypeScript type imports in team.tsx
+  - Story: N/A (Quality)
+  - Acceptance: team.tsx compiles without TS errors
+  - Issue: Importing non-existent type aliases (Profile, Salon, Module, etc.) from database.types.ts
+  - Fix: Use Supabase's `Tables<'tablename'>` syntax or define local type aliases
+  - Files: app/(tabs)/team.tsx (63 errors)
+  - Test: `npx tsc --noEmit 2>&1 | grep "team.tsx"` returns no errors
+
+- [ ] Fix Button component icon prop
+  - Story: N/A (Quality)
+  - Acceptance: events/[id].tsx compiles without TS errors
+  - Issue: Button component doesn't accept `icon` prop but code passes it
+  - Files: app/(tabs)/events/[id].tsx:871
+  - Test: `npx tsc --noEmit 2>&1 | grep "events/\[id\].tsx"` returns no errors
+
+- [ ] Fix private event request type mismatch
+  - Story: N/A (Quality)
+  - Acceptance: request-private.tsx compiles without TS errors
+  - Issue: Insert payload has `salon_id` which doesn't exist on type
+  - Files: app/(tabs)/events/request-private.tsx:91
+  - Test: `npx tsc --noEmit 2>&1 | grep "request-private.tsx"` returns no errors
+
+- [ ] Fix TypeScript errors in hooks
+  - Story: N/A (Quality)
+  - Acceptance: All lib/hooks/*.ts files compile without TS errors
+  - Issue: Various type errors in 9 hook files
+  - Files: useCertifications.ts, useEntitlement.ts, useModules.ts, useNotificationPreferences.ts, useProfile.ts, usePushNotifications.ts, useSalonInvites.ts, useSubscriptionPlans.ts, useVideos.ts
+  - Test: `npx tsc --noEmit 2>&1 | grep "lib/hooks"` returns no errors
+
+- [ ] Fix TypeScript errors in components
+  - Story: N/A (Quality)
+  - Acceptance: All component files compile without TS errors
+  - Files: SalonOwnerHomeScreen.tsx, ModuleCard.tsx, ModuleGrid.tsx, VideoCard.tsx, VideoList.tsx
+  - Issue: Property access on unknown types
+  - Test: `npx tsc --noEmit 2>&1 | grep "components/"` returns no errors
+
+- [ ] Implement subscription cancel retention flow
+  - Story: N/A (Quality - Incomplete implementation)
+  - Acceptance: Retention offer modal shows with 2-3 month free offer when user cancels
+  - Issue: Console log says "Retention offer function not implemented yet"
+  - Files: app/subscription-cancel.tsx
+  - Test: Tap cancel → See retention offer with "Stay and get 2 months free"
