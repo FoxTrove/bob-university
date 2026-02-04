@@ -33,7 +33,7 @@
   - Acceptance: When user_type='salon_owner', Home shows: Team overview card (X/5 members), team certification progress, "Book Event with Ray" CTA, recent activity.
   - Test: Log in as salon owner → Home shows team-focused dashboard.
 
-- [ ] Add learning progress to individual stylist Home
+- [x] Add learning progress to individual stylist Home
   - Acceptance: When user_type='individual_stylist', Home shows: Continue watching section, module progress, certification upsell if not certified.
   - Test: Stylist with partial progress sees relevant content on Home.
 
