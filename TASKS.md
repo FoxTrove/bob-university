@@ -39,7 +39,7 @@
 
 ### Phase 3: Team Management Polish
 
-- [ ] Add staff progress tracking to Team tab
+- [x] Add staff progress tracking to Team tab
   - Acceptance: Each staff member card shows overall completion percentage. Tap to expand shows per-module progress.
   - Test: Staff with 50% video completion shows "50% Complete" on their card.
 
