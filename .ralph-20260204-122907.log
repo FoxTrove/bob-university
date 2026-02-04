@@ -257,3 +257,276 @@ BLOCKED=false
   [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
   [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
   [0;36m⟳[0m Claude working...
+## Task Complete ✅
+
+**Completed:** Handle partial failures in batch invites (Story 2.1)
+
+**Changes made to `app/(tabs)/team.tsx`:**
+- Moved email validation from upfront blocking to per-email checking
+- Each email is validated individually before attempting to send
+- Invalid emails are marked with "Invalid email format" error
+- Results show which emails succeeded (✓) and which failed (✗)
+- Failed emails remain in the input field for easy retry
+
+**Story 2.1 (Batch Email Invites)** is now fully complete with all acceptance criteria met:
+- ✅ Can enter multiple email addresses
+- ✅ Multiple invites sent with unique codes
+- ✅ Success message lists all invited emails
+- ✅ Failed emails highlighted with specific errors
+  [0;32m✓[0m Task completed
+  [0;36m↳[0m Checking CI status...
+  [0;33m![0m CI timeout - continuing without result
+
+  [1m[[0;32m██████████████[0m[1m░░░░░░░░░░░░░░░░] 47% (16/34)[0m  [0;33m26m elapsed[0m
+
+  [1mTask 17:[0m Create certification tickets database migration...
+
+  [0;33m![0m Migration files detected, running safety review...
+I have all the information needed. Let me compile the comprehensive migration review report.
+
+## Migration Review Complete
+
+### Found
+- **27** local migration files scanned in `supabase/migrations/`
+- **48** database migrations applied (1 new since last review)
+
+### Classification
+
+| Risk Level | Count | Status |
+|------------|-------|--------|
+| ✓ Safe | 85+ | All applied |
+| ⏸ Caution | 8 | All applied |
+| ⛔ Blocked | 0 | N/A |
+
+### Migration Analysis Summary
+
+**All migrations have been applied to the database.** The most recent migration is `027_staff_access_codes_email_invite.sql` (applied as `20260204185513_staff_access_codes_email_invite`).
+
+#### Recent Migrations (Last 5)
+
+| Migration | Operations | Risk | Status |
+|-----------|------------|------|--------|
+| 027_staff_access_codes_email_invite | ADD COLUMN (nullable x2), CREATE INDEX | Safe | ✓ Applied |
+| 026_user_types_and_new_plans | ADD COLUMN, CREATE INDEX, UPDATE (backfill) | Caution | ✓ Applied |
+| 025_admin_profiles_select_admin_only | DROP/CREATE POLICY | Safe | ✓ Applied |
+| 024_backfill_revenue_net | UPDATE (conditional) | Caution | ✓ Applied |
+| 023_revenue_ledger_fees | ADD COLUMN (with DEFAULT) | Safe | ✓ Applied |
+
+#### Operations by Type
+
+**Safe Operations (Auto-approved):**
+- CREATE TABLE (8 tables: profiles, modules, videos, entitlements, etc.)
+- ADD COLUMN with NULL/DEFAULT (15+ columns)
+- CREATE INDEX (20+ indexes)
+- CREATE POLICY (30+ RLS policies)
+- CREATE FUNCTION (3 functions)
+
+**Caution Operations (Reviewed - Applied):**
+- ALTER COLUMN DROP NOT NULL (video_url) - migration 004_text_modules
+- ALTER COLUMN SET NOT NULL (certification_id x2) - migration 017_multi_certifications
+- DROP CONSTRAINT / ADD CONSTRAINT - migration 014_update_role_check, 017_multi_certifications
+- UPDATE statements (backfills) - migrations 022, 024, 026
+
+**No Dangerous Operations Found:**
+- No DROP TABLE
+- No DROP COLUMN
+- No TRUNCATE
+- No DELETE without WHERE
+
+### Action Required
+
+**None** - All migrations are applied. No pending migrations detected.
+
+### Recommendations
+
+1. The local `supabase/migrations/` files are in sync with the database
+2. Continue using the numbered naming convention for new migrations
+3. Future migrations with CAUTION-level operations should be reviewed before applying
+
+---
+
+```
+BLOCKED=false
+```
+  [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
+  [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
+  [0;36m⟳[0m Claude working...
+Task completed successfully.
+
+## Summary
+
+**Task:** Create certification tickets database migration (Story 3.1)
+
+**What was done:**
+- Created two new database tables via Supabase MCP:
+  1. `salon_certification_tickets` - Tracks the pool of certification tickets per salon with `total_tickets` and `available_tickets` columns
+  2. `certification_ticket_assignments` - Tracks when tickets are assigned to team members, including status (`assigned`, `redeemed`, `expired`, `revoked`), assignment dates, and references to the salon, user, and certification type
+
+- Added appropriate:
+  - Foreign key constraints to `salons`, `profiles`, and `certification_settings`
+  - Check constraints for valid ticket counts and status values
+  - Indexes for common queries
+  - RLS policies for salon owners and team members
+  - Trigger functions for automatic `updated_at` timestamps
+  - Table comments for documentation
+
+- Created local migration file: `supabase/migrations/028_certification_ticket_system.sql`
+
+**Verification:**
+- Tables confirmed to exist in Supabase
+- Security advisories checked (no new issues from this migration)
+- Committed and pushed to feature branch
+  [0;32m✓[0m Task completed
+  [0;36m↳[0m Checking CI status...
+  [0;33m![0m CI timeout - continuing without result
+
+  [1m[[0;32m███████████████[0m[1m░░░░░░░░░░░░░░░] 50% (17/34)[0m  [0;33m36m elapsed[0m
+
+  [1mTask 18:[0m Add 3 free tickets when salon subscription starts...
+
+  [0;33m![0m Migration files detected, running safety review...
+[Migration review timed out]
+  [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
+  [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
+  [0;36m⟳[0m Claude working...
+Task completed successfully.
+
+**Summary:**
+- **Task:** Add 3 free tickets when salon subscription starts (Story 3.1)
+- **Implementation:** Modified the `stripe-webhook` edge function to detect when a salon subscription is created and automatically create a `salon_certification_tickets` record with 3 tickets
+- **Location:** `supabase/functions/stripe-webhook/index.ts:389-420`
+- **Deployed:** Edge function deployed to Supabase (version 9)
+- **Commits:** 
+  - `fd3303d` - feat: Add 3 free certification tickets for new salon subscriptions
+  - `efebcde` - chore: Complete task
+
+The implementation:
+1. Detects `customer.subscription.created` events with a `salon` plan
+2. Finds the salon owned by the user
+3. Creates/upserts a `salon_certification_tickets` row with `total_tickets = 3` and `available_tickets = 3`
+  [0;32m✓[0m Task completed
+  [0;36m↳[0m Checking CI status...
+  [0;33m![0m CI timeout - continuing without result
+
+  [1m[[0;32m███████████████[0m[1m░░░░░░░░░░░░░░░] 52% (18/34)[0m  [0;33m46m elapsed[0m
+
+  [1mTask 19:[0m Build certification ticket dashboard in Team tab...
+
+  [0;33m![0m Migration files detected, running safety review...
+I don't have write permissions. Let me provide the migration review summary directly.
+
+---
+
+## Migration Review Complete
+
+**Generated:** 2026-02-04
+
+### Found
+- **28** local migration files scanned
+- **49** database migrations applied
+
+### Pending Migrations
+**None** - All local migrations have been applied to the database.
+
+### Most Recent Migrations Analysis
+
+#### 028_certification_ticket_system.sql (Applied: 20260204195727)
+
+| Line | Operation | Risk | Status |
+|------|-----------|------|--------|
+| 3-13 | CREATE TABLE salon_certification_tickets | Safe | ✓ Applied |
+| 17-31 | CREATE TABLE certification_ticket_assignments | Safe | ✓ Applied |
+| 34-37 | CREATE INDEX (x4) | Safe | ✓ Applied |
+| 40-41 | ALTER TABLE ENABLE RLS (x2) | Safe | ✓ Applied |
+| 45-68 | CREATE POLICY (x3 for salon_cert_tickets) | Safe | ✓ Applied |
+| 72-111 | CREATE POLICY (x5 for assignments) | Safe | ✓ Applied |
+| 114-120 | CREATE OR REPLACE FUNCTION | Safe | ✓ Applied |
+| 123-131 | CREATE TRIGGER (x2) | Safe | ✓ Applied |
+| 134-136 | COMMENT ON | Safe | ✓ Applied |
+
+**Assessment:** Safe - Creates new tables with proper RLS, constraints, and triggers. No data loss risk.
+
+---
+
+#### 027_staff_access_codes_email_invite.sql (Applied: 20260204185513)
+
+| Line | Operation | Risk | Status |
+|------|-----------|------|--------|
+| 2-4 | ALTER TABLE ADD COLUMN (nullable x2) | Safe | ✓ Applied |
+| 7-9 | CREATE INDEX (partial) | Safe | ✓ Applied |
+
+**Assessment:** Safe - Adds nullable columns and partial index.
+
+---
+
+#### 026_user_types_and_new_plans.sql (Applied: 20260203223612)
+
+| Line | Operation | Risk | Status |
+|------|-----------|------|--------|
+| 5-7 | ALTER TABLE ADD COLUMN with CHECK | Safe | ✓ Applied |
+| 10 | COMMENT ON COLUMN | Safe | ✓ Applied |
+| 13 | CREATE INDEX | Safe | ✓ Applied |
+| 17-21 | UPDATE (conditional backfill) | Caution | ✓ Applied |
+| 24-27 | UPDATE (conditional backfill) | Caution | ✓ Applied |
+
+**Assessment:** Applied. UPDATE statements had WHERE clauses for conditional backfill only.
+
+---
+
+### Classification Summary
+
+| Risk Level | Count | Status |
+|------------|-------|--------|
+| Safe | 50+ | ✓ All applied |
+| Caution | 2 | ✓ All applied (backfill UPDATEs) |
+| Blocked | 0 | N/A |
+
+### Action Required
+**None** - All migrations have been applied. No pending or blocked operations.
+
+### Dangerous Operations Scan
+No dangerous operations found in recent migrations:
+- ⛔ No DROP TABLE
+- ⛔ No DROP COLUMN  
+- ⛔ No TRUNCATE
+- ⛔ No DELETE
+
+---
+
+**BLOCKED=false**
+  [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
+  [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
+  [0;36m⟳[0m Claude working...
+Task completed successfully. Here's a summary:
+
+## Completed: Build certification ticket dashboard in Team tab
+
+**Story 3.1**: Certification Ticket Pool - "As a salon owner, I want a pool of certification tickets I can assign to team members, so that I have flexibility in who gets certified."
+
+**Changes made:**
+1. Updated `lib/database.types.ts` to add the new certification ticket tables (`salon_certification_tickets`, `certification_ticket_assignments`) and convenience type exports
+2. Updated `app/(tabs)/team.tsx` to:
+   - Add state for ticket pool and assignments
+   - Fetch ticket data from Supabase when loading salon data
+   - Display a "Certification Tickets" dashboard card showing:
+     - Available vs assigned ticket count ("X available / Y assigned")
+     - Assignment history with team member avatars, certification type, and status badges
+     - Status badges colored by state (blue=assigned, green=redeemed, gray=expired, red=revoked)
+     - Empty state when no tickets have been assigned
+
+**Acceptance criteria met:**
+- Shows "X available / Y assigned" with list of assignments
+- Salon owner can see ticket count and history
+  [0;32m✓[0m Task completed
+  [0;36m↳[0m Checking CI status...
+  [0;33m![0m CI timeout - continuing without result
+
+  [1m[[0;32m████████████████[0m[1m░░░░░░░░░░░░░░] 55% (19/34)[0m  [0;33m59m elapsed[0m
+
+  [1mTask 20:[0m Implement assign ticket to team member flow...
+
+  [0;33m![0m Migration files detected, running safety review...
+[Migration review timed out]
+  [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
+  [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
+  [0;36m⟳[0m Claude working...

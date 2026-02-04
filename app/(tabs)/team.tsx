@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, LayoutAnimation, Platform, UIManager, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, LayoutAnimation, Platform, UIManager, TextInput, Modal } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
@@ -47,6 +47,11 @@ export default function TeamTab() {
   const [sendingInvite, setSendingInvite] = useState(false);
   const [ticketPool, setTicketPool] = useState<SalonCertificationTickets | null>(null);
   const [ticketAssignments, setTicketAssignments] = useState<TicketAssignmentWithDetails[]>([]);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [certifications, setCertifications] = useState<CertificationSetting[]>([]);
+  const [selectedTeamMember, setSelectedTeamMember] = useState<StaffWithProgress | null>(null);
+  const [selectedCertification, setSelectedCertification] = useState<CertificationSetting | null>(null);
+  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     fetchSalonData();
@@ -174,6 +179,15 @@ export default function TeamTab() {
         } else {
           setTicketAssignments([]);
         }
+
+        // 7. Fetch active certifications for assignment flow
+        const { data: certificationsData } = await supabase
+          .from('certification_settings')
+          .select('*')
+          .eq('is_active', true)
+          .order('title', { ascending: true });
+
+        setCertifications(certificationsData || []);
       }
     } catch (e) {
       console.error('Error fetching salon data:', e);
@@ -377,6 +391,93 @@ export default function TeamTab() {
     setExpandedId(expandedId === memberId ? null : memberId);
   }
 
+  function openAssignModal() {
+    if (!ticketPool || ticketPool.available_tickets < 1) {
+      Alert.alert('No Tickets Available', 'Purchase more tickets to assign certifications to your team.');
+      return;
+    }
+    if (staff.length === 0) {
+      Alert.alert('No Team Members', 'Add team members before assigning certification tickets.');
+      return;
+    }
+    setSelectedTeamMember(null);
+    setSelectedCertification(null);
+    setShowAssignModal(true);
+  }
+
+  function closeAssignModal() {
+    setShowAssignModal(false);
+    setSelectedTeamMember(null);
+    setSelectedCertification(null);
+  }
+
+  async function handleAssignTicket() {
+    if (!selectedTeamMember || !selectedCertification || !salon?.id || !user?.id) {
+      Alert.alert('Error', 'Please select a team member and certification type.');
+      return;
+    }
+
+    setAssigning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('assign-certification-ticket', {
+        body: {
+          salon_id: salon.id,
+          assigned_to_user_id: selectedTeamMember.id,
+          certification_id: selectedCertification.id,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      // Update local state
+      if (ticketPool) {
+        setTicketPool({
+          ...ticketPool,
+          available_tickets: data.remaining_tickets,
+        });
+      }
+
+      // Add the new assignment to the list
+      const newAssignment: TicketAssignmentWithDetails = {
+        ...data.assignment,
+        assignedToProfile: selectedTeamMember,
+        certification: selectedCertification,
+      };
+      setTicketAssignments([newAssignment, ...ticketAssignments]);
+
+      closeAssignModal();
+
+      const notificationMessage = data.notification_sent
+        ? `${selectedTeamMember.full_name || 'Team member'} has been notified.`
+        : `${selectedTeamMember.full_name || 'Team member'} has been assigned the ticket.`;
+
+      Alert.alert(
+        'Ticket Assigned!',
+        `${selectedCertification.title} certification ticket assigned to ${selectedTeamMember.full_name || selectedTeamMember.email}. ${notificationMessage}`
+      );
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to assign ticket';
+      Alert.alert('Error', message);
+    } finally {
+      setAssigning(false);
+    }
+  }
+
+  function getEligibleTeamMembers(): StaffWithProgress[] {
+    // Filter out team members who already have an active assignment for the selected certification
+    if (!selectedCertification) return staff;
+
+    const activeAssignmentUserIds = ticketAssignments
+      .filter(a =>
+        a.certification_id === selectedCertification.id &&
+        (a.status === 'assigned' || a.status === 'redeemed')
+      )
+      .map(a => a.assigned_to_user_id);
+
+    return staff.filter(member => !activeAssignmentUserIds.includes(member.id));
+  }
+
   function getProgressPercent(completed: number, total: number): number {
     return total > 0 ? Math.round((completed / total) * 100) : 0;
   }
@@ -436,9 +537,20 @@ export default function TeamTab() {
                 </View>
               </View>
 
-              <Text className="text-textMuted text-sm mb-4">
+              <Text className="text-textMuted text-sm mb-3">
                 Assign tickets to team members so they can get certified at no extra cost.
               </Text>
+
+              {/* Assign Ticket Button */}
+              {ticketPool.available_tickets > 0 && staff.length > 0 && (
+                <TouchableOpacity
+                  className="bg-purple-500 py-3 px-4 rounded-lg flex-row items-center justify-center mb-4"
+                  onPress={openAssignModal}
+                >
+                  <Ionicons name="add-circle-outline" size={20} color="#ffffff" />
+                  <Text className="text-white font-bold ml-2">Assign Ticket</Text>
+                </TouchableOpacity>
+              )}
 
               {/* Ticket Assignments List */}
               {ticketAssignments.length > 0 ? (
@@ -704,6 +816,163 @@ export default function TeamTab() {
           )}
         </View>
       </ScrollView>
+
+      {/* Assign Ticket Modal */}
+      <Modal
+        visible={showAssignModal}
+        transparent
+        animationType="slide"
+        onRequestClose={closeAssignModal}
+      >
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-surface rounded-t-3xl p-6 max-h-[85%]">
+            {/* Header */}
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-text font-bold text-xl">Assign Certification Ticket</Text>
+              <TouchableOpacity onPress={closeAssignModal}>
+                <Ionicons name="close" size={24} color="#71717a" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Step 1: Select Certification */}
+              <Text className="text-text font-semibold mb-2">1. Select Certification Type</Text>
+              <View className="mb-6">
+                {certifications.map((cert) => (
+                  <TouchableOpacity
+                    key={cert.id}
+                    className={`flex-row items-center p-3 rounded-lg mb-2 ${
+                      selectedCertification?.id === cert.id
+                        ? 'bg-purple-500/20 border border-purple-500'
+                        : 'bg-surfaceHighlight'
+                    }`}
+                    onPress={() => {
+                      setSelectedCertification(cert);
+                      // Reset team member if they already have this certification
+                      if (selectedTeamMember) {
+                        const hasActive = ticketAssignments.some(
+                          a => a.assigned_to_user_id === selectedTeamMember.id &&
+                            a.certification_id === cert.id &&
+                            (a.status === 'assigned' || a.status === 'redeemed')
+                        );
+                        if (hasActive) {
+                          setSelectedTeamMember(null);
+                        }
+                      }
+                    }}
+                  >
+                    <View className={`w-6 h-6 rounded-full border-2 mr-3 items-center justify-center ${
+                      selectedCertification?.id === cert.id
+                        ? 'border-purple-500 bg-purple-500'
+                        : 'border-textMuted'
+                    }`}>
+                      {selectedCertification?.id === cert.id && (
+                        <Ionicons name="checkmark" size={14} color="#ffffff" />
+                      )}
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-text font-medium">{cert.title}</Text>
+                      {cert.description && (
+                        <Text className="text-textMuted text-xs" numberOfLines={1}>
+                          {cert.description}
+                        </Text>
+                      )}
+                    </View>
+                    <Text className="text-textMuted text-sm">
+                      ${(cert.price_cents / 100).toFixed(0)} value
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+                {certifications.length === 0 && (
+                  <Text className="text-textMuted text-center py-4">
+                    No certifications available
+                  </Text>
+                )}
+              </View>
+
+              {/* Step 2: Select Team Member */}
+              <Text className="text-text font-semibold mb-2">2. Select Team Member</Text>
+              <View className="mb-6">
+                {getEligibleTeamMembers().map((member) => (
+                  <TouchableOpacity
+                    key={member.id}
+                    className={`flex-row items-center p-3 rounded-lg mb-2 ${
+                      selectedTeamMember?.id === member.id
+                        ? 'bg-purple-500/20 border border-purple-500'
+                        : 'bg-surfaceHighlight'
+                    }`}
+                    onPress={() => setSelectedTeamMember(member)}
+                  >
+                    <View className={`w-6 h-6 rounded-full border-2 mr-3 items-center justify-center ${
+                      selectedTeamMember?.id === member.id
+                        ? 'border-purple-500 bg-purple-500'
+                        : 'border-textMuted'
+                    }`}>
+                      {selectedTeamMember?.id === member.id && (
+                        <Ionicons name="checkmark" size={14} color="#ffffff" />
+                      )}
+                    </View>
+                    <Avatar
+                      name={member.full_name || member.email}
+                      source={member.avatar_url}
+                      size="sm"
+                      isCertified={member.is_certified ?? undefined}
+                      className="mr-3"
+                    />
+                    <View className="flex-1">
+                      <Text className="text-text font-medium">
+                        {member.full_name || 'Team Member'}
+                      </Text>
+                      <Text className="text-textMuted text-xs">{member.email}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+                {getEligibleTeamMembers().length === 0 && selectedCertification && (
+                  <Text className="text-textMuted text-center py-4">
+                    All team members already have this certification ticket
+                  </Text>
+                )}
+                {staff.length === 0 && (
+                  <Text className="text-textMuted text-center py-4">
+                    No team members available
+                  </Text>
+                )}
+              </View>
+            </ScrollView>
+
+            {/* Assign Button */}
+            <TouchableOpacity
+              className={`py-4 px-6 rounded-xl flex-row items-center justify-center ${
+                selectedTeamMember && selectedCertification && !assigning
+                  ? 'bg-purple-500'
+                  : 'bg-surfaceHighlight'
+              }`}
+              onPress={handleAssignTicket}
+              disabled={!selectedTeamMember || !selectedCertification || assigning}
+            >
+              {assigning ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <>
+                  <Ionicons
+                    name="ticket"
+                    size={20}
+                    color={selectedTeamMember && selectedCertification ? '#ffffff' : '#71717a'}
+                  />
+                  <Text className={`font-bold ml-2 ${
+                    selectedTeamMember && selectedCertification ? 'text-white' : 'text-textMuted'
+                  }`}>
+                    {selectedTeamMember && selectedCertification
+                      ? `Assign ${selectedCertification.title} to ${selectedTeamMember.full_name || 'Team Member'}`
+                      : 'Select certification and team member'
+                    }
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeContainer>
   );
 }
