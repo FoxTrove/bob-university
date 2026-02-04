@@ -466,7 +466,7 @@ export default function OnboardingWizard() {
   const renderWelcome = () => (
     <View className="items-center">
         <Text className="text-2xl font-bold text-white mb-2 text-center font-serifBold">
-            Welcome to Bob University!
+            Welcome to Bob Company!
         </Text>
         <Text className="text-gray-400 text-center mb-6 font-sans">
             A personal message from Ray.
@@ -639,7 +639,7 @@ export default function OnboardingWizard() {
         <View className="w-full space-y-4 mb-6">
             {[
                 { icon: 'videocam', title: '150+ Exclusive Videos', desc: 'Master the Bob with our full library.' },
-                { icon: 'school', title: 'Get Certified', desc: 'Earn your official Bob University certification.' },
+                { icon: 'school', title: 'Get Certified', desc: 'Earn your official Bob certification.' },
                 { icon: 'cut', title: 'Stylist Directory', desc: 'Get listed and found by new clients.' },
             ].map((b, i) => (
                 <View key={i} className="flex-row items-center bg-white/5 p-3 rounded-lg border border-white/10">

@@ -49,7 +49,7 @@ export default function SignUp() {
 
         {/* Header */}
         <View className="items-center mb-10">
-          <Text className="text-3xl font-bold text-gray-900">Join Bob U</Text>
+          <Text className="text-3xl font-bold text-gray-900">Join Bob Co</Text>
           <Text className="text-gray-500 mt-2">Master the art of the cut.</Text>
         </View>
 

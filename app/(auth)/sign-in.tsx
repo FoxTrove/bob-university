@@ -40,7 +40,7 @@ export default function SignIn() {
 
         {/* Header */}
         <View className="items-center mb-10">
-          <Text className="text-3xl font-bold text-gray-900">Bob University</Text>
+          <Text className="text-3xl font-bold text-gray-900">Bob Company</Text>
           <Text className="text-gray-500 mt-2">Welcome back, stylist!</Text>
         </View>
 

@@ -121,7 +121,7 @@ export default function Profile() {
   };
 
   const openSupport = () => {
-    Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Bob University Support Request`);
+    Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Bob Company Support Request`);
   };
 
   return (
