@@ -11,15 +11,15 @@
   - Acceptance: When a salon_owner completes onboarding, they're prompted to create their salon (name, optional logo). Salon is created in `salons` table with `owner_id`.
   - Test: New salon owner sees "Create Your Salon" screen, enters name, salon appears in database.
 
+- [x] Add staff join flow with access code
+  - Acceptance: Add "Join a Salon" option in profile for individual_stylists. Enter 6-char code → validates against `staff_access_codes` → links user to salon via `salon_id` in profiles.
+  - Test: Generate code in Team tab, use code in another account, that user's profile.salon_id is set.
+
 ## In Progress
 
 ## Backlog
 
 ### Phase 1: Salon Owner Foundation
-
-- [ ] Add staff join flow with access code
-  - Acceptance: Add "Join a Salon" option in profile for individual_stylists. Enter 6-char code → validates against `staff_access_codes` → links user to salon via `salon_id` in profiles.
-  - Test: Generate code in Team tab, use code in another account, that user's profile.salon_id is set.
 
 - [ ] Implement remove staff functionality in Team tab
   - Acceptance: Each staff member in Team tab has options menu with "Remove from Team". Removes their `salon_id` from profiles.
