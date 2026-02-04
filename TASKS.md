@@ -53,6 +53,6 @@
   - Acceptance: `stylist_profiles.is_public` can only be true if user has active subscription. Edge function or RLS enforces this.
   - Test: Cancelled subscriber's profile automatically becomes private.
 
-- [ ] Customize Profile tab by user type
+- [x] Customize Profile tab by user type
   - Acceptance: Clients see simplified profile (no certifications, no directory listing). Salon owners see salon management link. Stylists see full profile with directory settings.
   - Test: Each user type sees appropriate profile options.
