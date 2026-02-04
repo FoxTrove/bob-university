@@ -7,15 +7,15 @@
 
 ## Completed
 
+- [x] Create salon setup flow for salon owners
+  - Acceptance: When a salon_owner completes onboarding, they're prompted to create their salon (name, optional logo). Salon is created in `salons` table with `owner_id`.
+  - Test: New salon owner sees "Create Your Salon" screen, enters name, salon appears in database.
+
 ## In Progress
 
 ## Backlog
 
 ### Phase 1: Salon Owner Foundation
-
-- [ ] Create salon setup flow for salon owners
-  - Acceptance: When a salon_owner completes onboarding, they're prompted to create their salon (name, optional logo). Salon is created in `salons` table with `owner_id`.
-  - Test: New salon owner sees "Create Your Salon" screen, enters name, salon appears in database.
 
 - [ ] Add staff join flow with access code
   - Acceptance: Add "Join a Salon" option in profile for individual_stylists. Enter 6-char code → validates against `staff_access_codes` → links user to salon via `salon_id` in profiles.
