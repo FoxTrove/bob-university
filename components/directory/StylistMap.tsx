@@ -2,12 +2,20 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Card } from '../ui/Card';
 import { StylistProfile } from './StylistCard';
-import Mapbox from '@rnmapbox/maps';
 import { Ionicons } from '@expo/vector-icons';
 
-// Set access token from environment
-const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN || process.env.MAPBOX_ACCESS_TOKEN || '';
-Mapbox.setAccessToken(MAPBOX_TOKEN);
+// Conditionally import Mapbox - it requires native code
+let Mapbox: typeof import('@rnmapbox/maps').default | null = null;
+try {
+    Mapbox = require('@rnmapbox/maps').default;
+    const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN || process.env.MAPBOX_ACCESS_TOKEN || '';
+    if (Mapbox && MAPBOX_TOKEN) {
+        Mapbox.setAccessToken(MAPBOX_TOKEN);
+    }
+} catch (e) {
+    // Mapbox not available (Expo Go)
+    Mapbox = null;
+}
 
 interface StylistMapProps {
     stylists: StylistProfile[];
@@ -16,18 +24,18 @@ interface StylistMapProps {
 }
 
 export function StylistMap({ stylists, onRegionChange, onSelectStylist }: StylistMapProps) {
-    const mapRef = useRef<Mapbox.MapView>(null);
-    const cameraRef = useRef<Mapbox.Camera>(null);
+    const mapRef = useRef<any>(null);
+    const cameraRef = useRef<any>(null);
 
     // Default to US center if no stylists
-    const centerCoordinate = [-98.5795, 39.8283]; 
+    const centerCoordinate = [-98.5795, 39.8283];
 
     const handleRegionChange = async (feature: any) => {
         if (!onRegionChange) return;
         try {
              const bounds = await mapRef.current?.getVisibleBounds();
              if (bounds) {
-                 const [ne, sw] = bounds; 
+                 const [ne, sw] = bounds;
                  onRegionChange({ ne: ne as [number, number], sw: sw as [number, number] });
              }
         } catch (e) {
@@ -35,10 +43,19 @@ export function StylistMap({ stylists, onRegionChange, onSelectStylist }: Stylis
         }
     };
 
-    if (!MAPBOX_TOKEN) {
+    const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN || process.env.MAPBOX_ACCESS_TOKEN || '';
+
+    // Show fallback if Mapbox isn't available (Expo Go) or token is missing
+    if (!Mapbox || !MAPBOX_TOKEN) {
         return (
              <Card className="h-64 bg-surfaceHighlight items-center justify-center mb-4">
-                <Text className="text-textMuted">Mapbox Token Missing</Text>
+                <Ionicons name="map-outline" size={48} color="#a1a1aa" />
+                <Text className="text-textMuted mt-2">
+                    {!Mapbox ? 'Map requires a native build' : 'Mapbox Token Missing'}
+                </Text>
+                <Text className="text-textMuted text-xs mt-1">
+                    {!Mapbox ? 'Use EAS Build for map functionality' : ''}
+                </Text>
             </Card>
         )
     }
@@ -46,11 +63,11 @@ export function StylistMap({ stylists, onRegionChange, onSelectStylist }: Stylis
     return (
         <View className="h-full w-full relative rounded-xl overflow-hidden border border-border">
              {/* Map */}
-            <Mapbox.MapView 
+            <Mapbox.MapView
                 ref={mapRef}
                 style={{ flex: 1 }}
-                styleURL={Mapbox.StyleURL.Dark} 
-                onMapIdle={handleRegionChange} // Updated from onRegionDidChange
+                styleURL={Mapbox.StyleURL.Dark}
+                onMapIdle={handleRegionChange}
                 scaleBarEnabled={false}
                 logoEnabled={false}
                 attributionEnabled={false}
@@ -60,7 +77,7 @@ export function StylistMap({ stylists, onRegionChange, onSelectStylist }: Stylis
                     zoomLevel={3}
                     centerCoordinate={centerCoordinate}
                 />
-                 
+
                  {/* Stylist Pins */}
                  {stylists.filter(s => s.latitude && s.longitude).map((stylist) => (
                      <Mapbox.PointAnnotation
