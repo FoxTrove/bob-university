@@ -29,7 +29,7 @@
   - Acceptance: When user_type='client', Home shows: "Find a Stylist" CTA, featured stylists carousel, upcoming events, quick tips.
   - Test: Log in as client → Home shows directory-focused content, no learning modules.
 
-- [ ] Create salon owner Home dashboard
+- [x] Create salon owner Home dashboard
   - Acceptance: When user_type='salon_owner', Home shows: Team overview card (X/5 members), team certification progress, "Book Event with Ray" CTA, recent activity.
   - Test: Log in as salon owner → Home shows team-focused dashboard.
 
