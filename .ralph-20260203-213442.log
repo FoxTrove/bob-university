@@ -92,3 +92,21 @@ Task completed successfully.
   [1mTask 7:[0m Add staff progress tracking to Team tab...
 
   [0;36m⟳[0m Claude working...
+Task completed successfully.
+
+**Summary:**
+- Added staff progress tracking to the Team tab (`app/(tabs)/team.tsx:274-362`)
+- Each staff member card now displays:
+  - Overall completion percentage (e.g., "50%") 
+  - A progress bar showing overall video completion
+  - Tap to expand reveals per-module progress with individual progress bars
+- Progress bars turn green (`success` variant) when 100% complete
+- Moved the "Remove from Team" option to the expanded view for a cleaner UI
+- Uses `LayoutAnimation` for smooth expand/collapse transitions on both iOS and Android
+  [0;32m✓[0m Task completed
+
+  [1m[[0;32m█████████████████████[0m[1m░░░░░░░░░] 70% (7/10)[0m  [0;33m20m elapsed[0m
+
+  [1mTask 8:[0m Add team certification status overview...
+
+  [0;36m⟳[0m Claude working...

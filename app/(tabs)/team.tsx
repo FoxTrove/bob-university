@@ -216,9 +216,28 @@ export default function TeamTab() {
       <ScrollView className="flex-1 bg-background">
         <View className="p-6">
           <Text className="text-3xl font-serifBold text-primary mb-2">My Team</Text>
-          <Text className="text-textMuted mb-6">
+          <Text className="text-textMuted mb-4">
             {salon?.name || 'Your Salon'} • {staff.length} / {salon?.max_staff || 5} Staff Members
           </Text>
+
+          {/* Team Certification Overview */}
+          {staff.length > 0 && (
+            <View className="flex-row items-center bg-surfaceHighlight rounded-xl p-3 mb-6">
+              <View className="bg-[#C68976]/20 p-2 rounded-full mr-3">
+                <Ionicons name="ribbon" size={20} color="#C68976" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-text font-bold">
+                  {staff.filter((m) => m.is_certified).length} of {staff.length} team members certified
+                </Text>
+                <Text className="text-textMuted text-xs">
+                  {staff.filter((m) => m.is_certified).length === staff.length
+                    ? 'Congratulations! Your whole team is certified.'
+                    : 'Certified members have a badge on their avatar.'}
+                </Text>
+              </View>
+            </View>
+          )}
 
           {/* Generate Access Code Button */}
           <TouchableOpacity
