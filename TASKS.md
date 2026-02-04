@@ -149,7 +149,7 @@
   - Acceptance: Tab bar shows different tabs based on user_type (see story for specs)
   - Test: Each user type sees their specific tabs
 
-- [ ] Add secondary navigation menu
+- [x] Add secondary navigation menu
   - Story: 1.2
   - Acceptance: Hamburger or profile sub-menu contains: Community, Directory, Notifications, Support
   - Test: Tap menu → See secondary items
