@@ -7,3 +7,4 @@ export type { NotificationPreferences } from './useNotificationPreferences';
 export { usePushNotifications } from './usePushNotifications';
 export { useProfile } from './useProfile';
 export type { UserType } from './useProfile';
+export { useSalonInvites } from './useSalonInvites';

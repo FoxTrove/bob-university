@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, ScrollView, Pressable, Linking, Modal, Te
 import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/auth';
-import { useEntitlement, useProfile } from '../../lib/hooks';
+import { useEntitlement, useProfile, useSalonInvites } from '../../lib/hooks';
 import { SafeContainer } from '../../components/layout/SafeContainer';
 import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
@@ -32,6 +32,7 @@ export default function Profile() {
   const { user } = useAuth();
   const { isPremium, plan } = useEntitlement();
   const { profile, userType, refetch: refetchProfile } = useProfile();
+  const { pendingCount: pendingInvites } = useSalonInvites();
   const router = useRouter();
 
   // Join Salon modal state
@@ -259,10 +260,34 @@ export default function Profile() {
                   <Ionicons name="chevron-forward" size={20} color="#52525b" />
                 </TouchableOpacity>
 
+                {/* Salon Invites - Show if there are pending invites and user not in a salon */}
+                {!profile?.salon_id && pendingInvites > 0 && (
+                  <TouchableOpacity
+                    className="flex-row items-center justify-between p-4 border-b border-border"
+                    onPress={() => router.push('/salon-invites')}
+                  >
+                    <View className="flex-row items-center">
+                      <View className="bg-purple-500/10 p-2 rounded-full mr-3">
+                        <Ionicons name="mail" size={24} color="#a855f7" />
+                      </View>
+                      <View>
+                        <Text className="text-text font-bold">Salon Invites</Text>
+                        <Text className="text-textMuted text-xs">You have team invitations waiting</Text>
+                      </View>
+                    </View>
+                    <View className="flex-row items-center">
+                      <View className="bg-purple-500 rounded-full px-2 py-0.5 mr-2">
+                        <Text className="text-white text-xs font-bold">{pendingInvites}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color="#52525b" />
+                    </View>
+                  </TouchableOpacity>
+                )}
+
                 {/* Join a Salon - Only for individual_stylists not already in a salon */}
                 {!profile?.salon_id && (
                   <TouchableOpacity
-                    className="flex-row items-center justify-between p-4"
+                    className={`flex-row items-center justify-between p-4 ${pendingInvites > 0 ? '' : ''}`}
                     onPress={() => setShowJoinModal(true)}
                   >
                     <View className="flex-row items-center">
