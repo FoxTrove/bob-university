@@ -44,7 +44,7 @@ export default function CreatePostScreen() {
   const [isFeedbackRequest, setIsFeedbackRequest] = useState(false);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [uploading, setUploading] = useState(false);
-  const contentInputRef = useRef<TextInput>(null);
+  const contentInputRef = useRef<TextInput | null>(null);
 
   const pickMedia = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({

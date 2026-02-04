@@ -70,7 +70,18 @@ export default function UserProfileScreen() {
         .single();
 
       if (profileError) throw profileError;
-      setProfile(profileData);
+
+      // Transform to UserProfile interface
+      const transformedProfile: UserProfile = {
+        id: profileData.id,
+        full_name: profileData.full_name,
+        avatar_url: profileData.avatar_url,
+        community_level: profileData.community_level ?? 1,
+        community_points: profileData.community_points ?? 0,
+        is_certified: profileData.is_certified ?? false,
+        created_at: profileData.created_at || new Date().toISOString(),
+      };
+      setProfile(transformedProfile);
 
       // Fetch user's posts
       const { data: postsData, error: postsError } = await supabase
@@ -88,41 +99,60 @@ export default function UserProfileScreen() {
 
       if (postsError) throw postsError;
 
+      // Transform Supabase data to match CommunityPost interface
+      const transformedPosts: CommunityPost[] = (postsData || []).map(p => ({
+        id: p.id,
+        user_id: p.user_id,
+        content: p.content,
+        media_urls: (p.media_urls as { url: string; type: 'image' | 'video' }[]) || [],
+        category: (p.category as CommunityPost['category']) || 'general',
+        is_feedback_request: p.is_feedback_request ?? false,
+        likes_count: p.likes_count ?? 0,
+        comments_count: p.comments_count ?? 0,
+        created_at: p.created_at || new Date().toISOString(),
+        profile: p.profile ? {
+          id: p.profile.id,
+          full_name: p.profile.full_name,
+          avatar_url: p.profile.avatar_url,
+          community_level: p.profile.community_level ?? undefined,
+          is_certified: p.profile.is_certified ?? undefined,
+        } : undefined,
+        user_reactions: [],
+      }));
+
       // Fetch user's reactions on these posts
-      if (user && postsData) {
-        const postIds = postsData.map(p => p.id);
-        if (postIds.length > 0) {
-          const { data: reactions } = await supabase
-            .from('community_reactions')
-            .select('post_id, reaction_type')
-            .eq('user_id', user.id)
-            .in('post_id', postIds);
+      if (user && transformedPosts.length > 0) {
+        const postIds = transformedPosts.map(p => p.id);
+        const { data: reactions } = await supabase
+          .from('community_reactions')
+          .select('post_id, reaction_type')
+          .eq('user_id', user.id)
+          .in('post_id', postIds);
 
-          const reactionsByPost = new Map<string, { reaction_type: string }[]>();
-          reactions?.forEach(r => {
-            if (!reactionsByPost.has(r.post_id)) {
-              reactionsByPost.set(r.post_id, []);
-            }
-            reactionsByPost.get(r.post_id)!.push({ reaction_type: r.reaction_type });
-          });
+        const reactionsByPost = new Map<string, { reaction_type: string }[]>();
+        reactions?.forEach(r => {
+          if (!reactionsByPost.has(r.post_id)) {
+            reactionsByPost.set(r.post_id, []);
+          }
+          reactionsByPost.get(r.post_id)!.push({ reaction_type: r.reaction_type });
+        });
 
-          postsData.forEach(post => {
-            post.user_reactions = reactionsByPost.get(post.id) || [];
-          });
-        }
+        transformedPosts.forEach(post => {
+          post.user_reactions = reactionsByPost.get(post.id) || [];
+        });
       }
 
-      setPosts(postsData || []);
+      setPosts(transformedPosts);
 
       // Calculate stats
-      const postsCount = postsData?.length || 0;
+      const postsCount = transformedPosts.length;
 
       // Get total reactions received on all posts
       let reactionsReceived = 0;
       let commentsReceived = 0;
-      postsData?.forEach(post => {
-        reactionsReceived += post.likes_count || 0;
-        commentsReceived += post.comments_count || 0;
+      transformedPosts.forEach(post => {
+        reactionsReceived += post.likes_count;
+        commentsReceived += post.comments_count;
       });
 
       setStats({ postsCount, reactionsReceived, commentsReceived });

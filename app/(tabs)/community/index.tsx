@@ -62,9 +62,30 @@ export default function CommunityScreen() {
       if (error) throw error;
 
       if (data) {
+        // Transform Supabase data to match CommunityPost interface
+        const transformedPosts: CommunityPost[] = data.map(p => ({
+          id: p.id,
+          user_id: p.user_id,
+          content: p.content,
+          media_urls: (p.media_urls as { url: string; type: 'image' | 'video' }[]) || [],
+          category: (p.category as CommunityPost['category']) || 'general',
+          is_feedback_request: p.is_feedback_request ?? false,
+          likes_count: p.likes_count ?? 0,
+          comments_count: p.comments_count ?? 0,
+          created_at: p.created_at || new Date().toISOString(),
+          profile: p.profile ? {
+            id: p.profile.id,
+            full_name: p.profile.full_name,
+            avatar_url: p.profile.avatar_url,
+            community_level: p.profile.community_level ?? undefined,
+            is_certified: p.profile.is_certified ?? undefined,
+          } : undefined,
+          user_reactions: [],
+        }));
+
         // Fetch user's reactions for these posts
         if (user) {
-          const postIds = data.map(p => p.id);
+          const postIds = transformedPosts.map(p => p.id);
           const { data: reactions } = await supabase
             .from('community_reactions')
             .select('post_id, reaction_type')
@@ -80,15 +101,15 @@ export default function CommunityScreen() {
             reactionsByPost.get(r.post_id)!.push({ reaction_type: r.reaction_type });
           });
 
-          data.forEach(post => {
+          transformedPosts.forEach(post => {
             post.user_reactions = reactionsByPost.get(post.id) || [];
           });
         }
 
         if (reset) {
-          setPosts(data);
+          setPosts(transformedPosts);
         } else {
-          setPosts(prev => [...prev, ...data]);
+          setPosts(prev => [...prev, ...transformedPosts]);
         }
         setHasMore(data.length === PAGE_SIZE);
         setPage(currentPage + 1);

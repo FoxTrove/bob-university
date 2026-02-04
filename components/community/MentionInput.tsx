@@ -24,7 +24,7 @@ interface MentionInputProps extends Omit<TextInputProps, 'value' | 'onChangeText
   value: string;
   onChangeText: (text: string) => void;
   onMentionsChange?: (mentions: { userId: string; username: string }[]) => void;
-  inputRef?: React.RefObject<TextInput>;
+  inputRef?: React.RefObject<TextInput | null>;
 }
 
 export function MentionInput({

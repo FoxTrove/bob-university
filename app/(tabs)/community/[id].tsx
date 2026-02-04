@@ -89,7 +89,7 @@ export default function PostDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const commentInputRef = useRef<TextInput>(null);
+  const commentInputRef = useRef<TextInput | null>(null);
 
   const fetchPost = useCallback(async () => {
     if (!id) return;
@@ -108,7 +108,27 @@ export default function PostDetailScreen() {
         .single();
 
       if (postError) throw postError;
-      setPost(postData);
+
+      // Transform to PostDetail interface
+      const transformedPost: PostDetail = {
+        id: postData.id,
+        user_id: postData.user_id,
+        content: postData.content,
+        media_urls: (postData.media_urls as { url: string; type: 'image' | 'video' }[]) || [],
+        category: postData.category || 'general',
+        is_feedback_request: postData.is_feedback_request ?? false,
+        likes_count: postData.likes_count ?? 0,
+        comments_count: postData.comments_count ?? 0,
+        created_at: postData.created_at || new Date().toISOString(),
+        profile: postData.profile ? {
+          id: postData.profile.id,
+          full_name: postData.profile.full_name,
+          avatar_url: postData.profile.avatar_url,
+          community_level: postData.profile.community_level ?? undefined,
+          is_certified: postData.profile.is_certified ?? undefined,
+        } : undefined,
+      };
+      setPost(transformedPost);
 
       // Fetch comments
       const { data: commentsData, error: commentsError } = await supabase
@@ -124,7 +144,24 @@ export default function PostDetailScreen() {
         .order('created_at', { ascending: true });
 
       if (commentsError) throw commentsError;
-      setComments(commentsData || []);
+
+      // Transform to Comment interface
+      const transformedComments: Comment[] = (commentsData || []).map(c => ({
+        id: c.id,
+        post_id: c.post_id,
+        user_id: c.user_id,
+        content: c.content,
+        likes_count: c.likes_count ?? 0,
+        created_at: c.created_at || new Date().toISOString(),
+        profile: c.profile ? {
+          id: c.profile.id,
+          full_name: c.profile.full_name,
+          avatar_url: c.profile.avatar_url,
+          community_level: c.profile.community_level ?? undefined,
+          is_certified: c.profile.is_certified ?? undefined,
+        } : undefined,
+      }));
+      setComments(transformedComments);
 
       // Fetch user's reactions and comment likes
       if (user) {
