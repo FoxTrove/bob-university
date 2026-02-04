@@ -169,7 +169,7 @@
   - Issues: Type compatibility for media_urls, likes_count, user_reactions, TextInput refs
   - Test: Run `npx tsc --noEmit 2>&1 | grep -v "^admin/"` returns no errors
 
-- [ ] Fix admin dashboard TypeScript path aliases
+- [x] Fix admin dashboard TypeScript path aliases
   - Story: N/A (Quality)
   - Acceptance: Admin dashboard `npm run build` passes
   - Issue: @/ path aliases not resolving to @/components/*, @/lib/*
