@@ -1,11 +1,11 @@
 # Migration Review
-Generated: 2026-02-04
+Generated: 2026-02-04 21:30 UTC
 
 ## Status Summary
 
-**All migrations are applied.** The database has 47 applied migrations, and all local migration files have corresponding entries in the database.
+**All migrations are applied.** The database has 50 applied migrations, and all local migration files have corresponding entries in the database.
 
-## Local Migration Files (27 files)
+## Local Migration Files (28 files)
 
 | File | Applied Version | Status |
 |------|-----------------|--------|
@@ -33,10 +33,33 @@ Generated: 2026-02-04
 | 023_revenue_ledger_fees.sql | 20260109190824 | ✓ Applied |
 | 024_backfill_revenue_net.sql | 20260109190901 | ✓ Applied |
 | 025_admin_profiles_select_admin_only.sql | 20260109191326 | ✓ Applied |
-| 026_user_types_and_new_plans.sql | 20260203225710 | ✓ Applied |
+| 026_user_types_and_new_plans.sql | 20260203223612 | ✓ Applied |
 | 027_staff_access_codes_email_invite.sql | 20260204185513 | ✓ Applied |
+| 028_certification_ticket_system.sql | 20260204195727 | ✓ Applied |
 
 ## Recent Migrations Analysis
+
+### Migration: 028_certification_ticket_system.sql
+- **Applied Version:** 20260204195727
+- **Status:** ✓ Applied
+
+#### Operations
+
+| Line | Operation | Risk | Status |
+|------|-----------|------|--------|
+| 3-13 | CREATE TABLE salon_certification_tickets | Safe | ✓ Applied |
+| 17-31 | CREATE TABLE certification_ticket_assignments | Safe | ✓ Applied |
+| 34-37 | CREATE INDEX (x4) | Safe | ✓ Applied |
+| 40-41 | ALTER TABLE ENABLE RLS (x2) | Safe | ✓ Applied |
+| 45-68 | CREATE POLICY (x3) for salon_certification_tickets | Safe | ✓ Applied |
+| 72-111 | CREATE POLICY (x5) for certification_ticket_assignments | Safe | ✓ Applied |
+| 114-120 | CREATE OR REPLACE FUNCTION | Safe | ✓ Applied |
+| 123-131 | CREATE TRIGGER (x2) | Safe | ✓ Applied |
+| 134-136 | COMMENT ON TABLE/COLUMN | Safe | ✓ Applied |
+
+**Assessment:** Safe - creates new tables with proper constraints, RLS policies, indexes, and triggers. No existing data affected.
+
+---
 
 ### Migration: 027_staff_access_codes_email_invite.sql
 - **Applied Version:** 20260204185513
@@ -46,7 +69,7 @@ Generated: 2026-02-04
 
 | Line | Operation | Risk | Status |
 |------|-----------|------|--------|
-| 2-4 | ALTER TABLE ADD COLUMN (nullable) | Safe | ✓ Applied |
+| 2-4 | ALTER TABLE ADD COLUMN (nullable x2) | Safe | ✓ Applied |
 | 7-9 | CREATE INDEX (partial) | Safe | ✓ Applied |
 
 **Assessment:** Safe - adds nullable columns and a partial index.
@@ -54,7 +77,7 @@ Generated: 2026-02-04
 ---
 
 ### Migration: 026_user_types_and_new_plans.sql
-- **Applied Version:** 20260203225710
+- **Applied Version:** 20260203223612 + 20260203225710
 - **Status:** ✓ Applied
 
 #### Operations
@@ -79,8 +102,8 @@ Generated: 2026-02-04
 
 | Line | Operation | Risk | Status |
 |------|-----------|------|--------|
-| 7 | DROP POLICY IF EXISTS | Caution | ✓ Applied |
-| 8-18 | CREATE POLICY | Safe | ✓ Applied |
+| - | DROP POLICY IF EXISTS | Caution | ✓ Applied |
+| - | CREATE POLICY | Safe | ✓ Applied |
 
 **Assessment:** Policy replacement - safe operation, idempotent.
 
@@ -94,7 +117,7 @@ Generated: 2026-02-04
 
 | Line | Operation | Risk | Status |
 |------|-----------|------|--------|
-| 5-7 | UPDATE (conditional) | Caution | ✓ Applied |
+| - | UPDATE (conditional) | Caution | ✓ Applied |
 
 **Assessment:** Conditional UPDATE with WHERE clause - backfills data without overwriting existing values.
 
@@ -108,7 +131,7 @@ Generated: 2026-02-04
 
 | Line | Operation | Risk | Status |
 |------|-----------|------|--------|
-| 5-7 | ALTER TABLE ADD COLUMN (with DEFAULT) | Safe | ✓ Applied |
+| 5-7 | ALTER TABLE ADD COLUMN (with DEFAULT x2) | Safe | ✓ Applied |
 
 **Assessment:** Safe - adds columns with defaults, no existing data modified.
 
@@ -137,9 +160,19 @@ Generated: 2026-02-04
 
 | Risk Level | Count | Status |
 |------------|-------|--------|
-| Safe | 45+ | ✓ All applied |
+| Safe | 50+ | ✓ All applied |
 | Caution | 5 | ✓ All applied (backfill operations) |
 | Blocked | 0 | N/A |
+
+## Database Tables Verified
+
+The following tables from recent migrations exist and have RLS enabled:
+
+- `salon_certification_tickets` - ✓ Created, RLS enabled
+- `certification_ticket_assignments` - ✓ Created, RLS enabled
+- `staff_access_codes` - ✓ Has `invited_email` and `invite_sent_at` columns
+- `profiles` - ✓ Has `user_type` column
+- `subscription_plans` - ✓ Includes `additional_seat` plan type
 
 ## Recommendations
 
@@ -149,21 +182,22 @@ Generated: 2026-02-04
 
 ## Notes
 
-- The database shows 47 applied migrations, some of which were applied via Supabase CLI with timestamped names
+- The database shows 50 applied migrations via Supabase CLI with timestamped names
 - Local files use a simpler numbered naming convention
 - No pending migrations detected
 - No dangerous operations (DROP, TRUNCATE, DELETE) found in recent migrations
+- All new tables have proper RLS policies
 
 ---
 
 ## Migration Review Complete
 
 ### Found
-- 27 local migration files scanned
-- 47 database migrations applied
+- 28 local migration files scanned
+- 50 database migrations applied
 
 ### Classification
-- ✓ Safe: 45+ operations (all applied)
+- ✓ Safe: 50+ operations (all applied)
 - ⏸ Caution: 5 operations (UPDATE backfills, policy changes - all applied)
 - ⛔ Blocked: 0 operations
 

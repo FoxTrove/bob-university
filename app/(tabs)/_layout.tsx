@@ -40,8 +40,8 @@ export default function TabLayout() {
         name="modules"
         options={{
           href: isClient ? null : undefined,
-          title: 'Learn',
-          tabBarIcon: ({ color }) => <Ionicons name="book-outline" size={24} color={color} />,
+          title: 'University',
+          tabBarIcon: ({ color }) => <Ionicons name="school-outline" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
