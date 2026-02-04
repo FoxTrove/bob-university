@@ -25,7 +25,7 @@
 
 ### Phase 2: Home Screen Customization
 
-- [ ] Create client-specific Home screen content
+- [x] Create client-specific Home screen content
   - Acceptance: When user_type='client', Home shows: "Find a Stylist" CTA, featured stylists carousel, upcoming events, quick tips.
   - Test: Log in as client → Home shows directory-focused content, no learning modules.
 
