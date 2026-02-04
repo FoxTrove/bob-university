@@ -839,13 +839,16 @@ export type Database = {
           event_date: string
           event_end_date: string | null
           id: string
+          is_private: boolean | null
           is_published: boolean | null
           location: string | null
           max_capacity: number | null
           poster_url: string | null
           price_cents: number | null
+          private_event_request_id: string | null
           promo_video_url: string | null
           registration_open: boolean | null
+          salon_id: string | null
           stripe_price_id: string | null
           stripe_product_id: string | null
           thumbnail_url: string | null
@@ -863,13 +866,16 @@ export type Database = {
           event_date: string
           event_end_date?: string | null
           id?: string
+          is_private?: boolean | null
           is_published?: boolean | null
           location?: string | null
           max_capacity?: number | null
           poster_url?: string | null
           price_cents?: number | null
+          private_event_request_id?: string | null
           promo_video_url?: string | null
           registration_open?: boolean | null
+          salon_id?: string | null
           stripe_price_id?: string | null
           stripe_product_id?: string | null
           thumbnail_url?: string | null
@@ -887,13 +893,16 @@ export type Database = {
           event_date?: string
           event_end_date?: string | null
           id?: string
+          is_private?: boolean | null
           is_published?: boolean | null
           location?: string | null
           max_capacity?: number | null
           poster_url?: string | null
           price_cents?: number | null
+          private_event_request_id?: string | null
           promo_video_url?: string | null
           registration_open?: boolean | null
+          salon_id?: string | null
           stripe_price_id?: string | null
           stripe_product_id?: string | null
           thumbnail_url?: string | null
@@ -908,6 +917,20 @@ export type Database = {
             columns: ["collection_id"]
             isOneToOne: false
             referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_private_event_request_id_fkey"
+            columns: ["private_event_request_id"]
+            isOneToOne: false
+            referencedRelation: "private_event_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
             referencedColumns: ["id"]
           },
         ]
@@ -1103,6 +1126,81 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      private_event_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          estimated_attendees: number
+          event_type: string
+          flexible_dates: boolean | null
+          id: string
+          location_type: string
+          preferred_city: string | null
+          preferred_end_date: string | null
+          preferred_start_date: string
+          requested_by_user_id: string
+          salon_address: string | null
+          salon_id: string
+          scheduled_call_at: string | null
+          special_requests: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          estimated_attendees: number
+          event_type: string
+          flexible_dates?: boolean | null
+          id?: string
+          location_type: string
+          preferred_city?: string | null
+          preferred_end_date?: string | null
+          preferred_start_date: string
+          requested_by_user_id: string
+          salon_address?: string | null
+          salon_id: string
+          scheduled_call_at?: string | null
+          special_requests?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          estimated_attendees?: number
+          event_type?: string
+          flexible_dates?: boolean | null
+          id?: string
+          location_type?: string
+          preferred_city?: string | null
+          preferred_end_date?: string | null
+          preferred_start_date?: string
+          requested_by_user_id?: string
+          salon_address?: string | null
+          salon_id?: string
+          scheduled_call_at?: string | null
+          special_requests?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "private_event_requests_requested_by_user_id_fkey"
+            columns: ["requested_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "private_event_requests_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
             referencedColumns: ["id"]
           },
         ]
