@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ClientHomeScreen } from '../../components/home/ClientHomeScreen';
 import { SalonOwnerHomeScreen } from '../../components/home/SalonOwnerHomeScreen';
 import { IndividualStylistHomeScreen } from '../../components/home/IndividualStylistHomeScreen';
+import { SecondaryNavMenu } from '../../components/navigation/SecondaryNavMenu';
 
 export default function Home() {
   const { user } = useAuth();
@@ -59,9 +60,7 @@ export default function Home() {
               What's something new you're going to learn today?
             </Text>
           </View>
-          <TouchableOpacity className="p-2 -mr-2">
-            <Ionicons name="notifications-outline" size={24} color="black" />
-          </TouchableOpacity>
+          <SecondaryNavMenu />
         </View>
       </SafeAreaView>
 

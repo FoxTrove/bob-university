@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SecondaryNavMenu } from '../navigation/SecondaryNavMenu';
 
 export function IndividualStylistHomeScreen() {
   const { user } = useAuth();
@@ -45,9 +46,7 @@ export function IndividualStylistHomeScreen() {
               Keep learning. Keep growing.
             </Text>
           </View>
-          <TouchableOpacity className="p-2 -mr-2">
-            <Ionicons name="notifications-outline" size={24} color="black" />
-          </TouchableOpacity>
+          <SecondaryNavMenu />
         </View>
       </SafeAreaView>
 

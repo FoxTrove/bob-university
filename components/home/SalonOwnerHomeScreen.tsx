@@ -9,6 +9,7 @@ import { Avatar } from '../ui/Avatar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import type { Profile, Salon } from '../../lib/database.types';
+import { SecondaryNavMenu } from '../navigation/SecondaryNavMenu';
 
 interface StaffWithProgress extends Profile {
   completedVideos: number;
@@ -170,9 +171,7 @@ export function SalonOwnerHomeScreen() {
               {salon?.name || 'Your Salon'} Dashboard
             </Text>
           </View>
-          <TouchableOpacity className="p-2 -mr-2">
-            <Ionicons name="notifications-outline" size={24} color="black" />
-          </TouchableOpacity>
+          <SecondaryNavMenu />
         </View>
       </SafeAreaView>
 
