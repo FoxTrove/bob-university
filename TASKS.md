@@ -158,3 +158,19 @@
   - Story: 2.4
   - Acceptance: Aggregate metrics: avg completion, most watched modules, engagement trends
   - Test: View Team tab → See team-wide statistics
+
+### Phase 6: Quality Fixes
+> From Review: TypeScript errors and code quality issues
+
+- [ ] Fix TypeScript errors in community feature
+  - Story: N/A (Quality)
+  - Acceptance: `npx tsc --noEmit` passes for mobile app files (excluding admin/)
+  - Files: community/index.tsx, community/[id].tsx, community/create.tsx
+  - Issues: Type compatibility for media_urls, likes_count, user_reactions, TextInput refs
+  - Test: Run `npx tsc --noEmit 2>&1 | grep -v "^admin/"` returns no errors
+
+- [ ] Fix admin dashboard TypeScript path aliases
+  - Story: N/A (Quality)
+  - Acceptance: Admin dashboard `npm run build` passes
+  - Issue: @/ path aliases not resolving to @/components/*, @/lib/*
+  - Test: `cd admin && npm run build` succeeds
