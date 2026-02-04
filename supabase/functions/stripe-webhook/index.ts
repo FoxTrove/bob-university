@@ -385,6 +385,39 @@ serve(async (req) => {
             const planTags: Record<string, string> = { signature: 'paid_signature', studio: 'paid_studio', salon: 'paid_salon', individual: 'paid_signature' };
             const planTag = planTags[planRow?.plan ?? ''] ?? 'paid_subscriber';
             await updateGHLTags(serviceKey, userId, [planTag], ['free_user']);
+
+            // Grant 3 free certification tickets for salon subscriptions
+            if (planRow?.plan === 'salon') {
+              // Find the salon owned by this user
+              const { data: salon } = await supabase
+                .from('salons')
+                .select('id')
+                .eq('owner_id', userId)
+                .single();
+
+              if (salon) {
+                // Create or update the certification tickets pool with 3 free tickets
+                const { error: ticketError } = await supabase
+                  .from('salon_certification_tickets')
+                  .upsert(
+                    {
+                      salon_id: salon.id,
+                      total_tickets: 3,
+                      available_tickets: 3,
+                      updated_at: new Date().toISOString(),
+                    },
+                    { onConflict: 'salon_id' }
+                  );
+
+                if (ticketError) {
+                  console.error('Failed to create certification tickets:', ticketError);
+                } else {
+                  console.log(`Granted 3 certification tickets to salon ${salon.id}`);
+                }
+              } else {
+                console.warn(`No salon found for user ${userId} with salon subscription`);
+              }
+            }
           }
 
           if (event.type === 'customer.subscription.deleted') {
