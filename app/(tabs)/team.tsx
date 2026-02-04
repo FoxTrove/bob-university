@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
@@ -6,17 +6,37 @@ import { SafeContainer } from '../../components/layout/SafeContainer';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Avatar } from '../../components/ui/Avatar';
+import { ProgressBar } from '../../components/ui/ProgressBar';
 import { Ionicons } from '@expo/vector-icons';
-import type { Profile, Salon } from '../../lib/database.types';
+import type { Profile, Salon, Module } from '../../lib/database.types';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+interface ModuleProgress {
+  id: string;
+  title: string;
+  completedVideos: number;
+  totalVideos: number;
+}
+
+interface StaffWithProgress extends Profile {
+  completedVideos: number;
+  totalVideos: number;
+  moduleProgress: ModuleProgress[];
+}
 
 export default function TeamTab() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [staff, setStaff] = useState<Profile[]>([]);
+  const [staff, setStaff] = useState<StaffWithProgress[]>([]);
   const [salon, setSalon] = useState<Salon | null>(null);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSalonData();
@@ -35,7 +55,7 @@ export default function TeamTab() {
       if (salonError && salonError.code !== 'PGRST116') throw salonError;
       setSalon(salonData);
 
-      // 2. Get Staff members
+      // 2. Get Staff members with progress
       if (salonData) {
         const { data: staffData, error: staffError } = await supabase
           .from('profiles')
@@ -43,7 +63,62 @@ export default function TeamTab() {
           .eq('salon_id', salonData.id);
 
         if (staffError) throw staffError;
-        setStaff(staffData || []);
+
+        // 3. Get modules with their videos for progress calculation
+        const { data: modulesData, error: modulesError } = await supabase
+          .from('modules')
+          .select(`
+            id,
+            title,
+            videos (
+              id,
+              is_published
+            )
+          `)
+          .eq('is_published', true)
+          .order('sort_order', { ascending: true });
+
+        if (modulesError) throw modulesError;
+
+        // 4. Get video progress for each staff member
+        const staffWithProgress: StaffWithProgress[] = await Promise.all(
+          (staffData || []).map(async (member) => {
+            const { data: progressData } = await supabase
+              .from('video_progress')
+              .select('video_id')
+              .eq('user_id', member.id)
+              .eq('completed', true);
+
+            const completedVideoIds = new Set(progressData?.map((p) => p.video_id) || []);
+
+            // Calculate per-module progress
+            const moduleProgress: ModuleProgress[] = (modulesData || []).map((module) => {
+              const publishedVideos = (module.videos || []).filter((v: { is_published: boolean | null }) => v.is_published === true);
+              const totalVideos = publishedVideos.length;
+              const completedVideos = publishedVideos.filter((v: { id: string }) => completedVideoIds.has(v.id)).length;
+
+              return {
+                id: module.id,
+                title: module.title,
+                completedVideos,
+                totalVideos,
+              };
+            }).filter((m) => m.totalVideos > 0); // Only include modules with videos
+
+            // Calculate overall progress
+            const totalVideos = moduleProgress.reduce((sum, m) => sum + m.totalVideos, 0);
+            const completedVideos = moduleProgress.reduce((sum, m) => sum + m.completedVideos, 0);
+
+            return {
+              ...member,
+              completedVideos,
+              totalVideos,
+              moduleProgress,
+            };
+          })
+        );
+
+        setStaff(staffWithProgress);
       }
     } catch (e) {
       console.error('Error fetching salon data:', e);
@@ -117,6 +192,15 @@ export default function TeamTab() {
     }
   }
 
+  function toggleExpanded(memberId: string) {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedId(expandedId === memberId ? null : memberId);
+  }
+
+  function getProgressPercent(completed: number, total: number): number {
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
+  }
+
   if (loading) {
     return (
       <SafeContainer>
@@ -187,32 +271,95 @@ export default function TeamTab() {
             </Card>
           ) : (
             <View className="gap-4">
-              {staff.map((member) => (
-                <Card key={member.id} className="flex-row items-center p-3">
-                  <Avatar
-                    name={member.full_name || member.email}
-                    source={member.avatar_url}
-                    size="md"
-                    level={member.community_level ?? undefined}
-                    isCertified={member.is_certified ?? undefined}
-                    className="mr-3"
-                  />
-                  <View className="flex-1">
-                    <Text className="text-text font-bold">{member.full_name || 'Stylist'}</Text>
-                    <Text className="text-textMuted text-xs">{member.email}</Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => confirmRemoveStaff(member)}
-                    disabled={removingId === member.id}
-                  >
-                    {removingId === member.id ? (
-                      <ActivityIndicator size="small" color="#71717a" />
-                    ) : (
-                      <Ionicons name="ellipsis-horizontal" size={20} color="#71717a" />
+              {staff.map((member) => {
+                const progressPercent = getProgressPercent(member.completedVideos, member.totalVideos);
+                const isExpanded = expandedId === member.id;
+
+                return (
+                  <Card key={member.id} className="p-3">
+                    <TouchableOpacity
+                      onPress={() => toggleExpanded(member.id)}
+                      activeOpacity={0.7}
+                      className="flex-row items-center"
+                    >
+                      <Avatar
+                        name={member.full_name || member.email}
+                        source={member.avatar_url}
+                        size="md"
+                        level={member.community_level ?? undefined}
+                        isCertified={member.is_certified ?? undefined}
+                        className="mr-3"
+                      />
+                      <View className="flex-1">
+                        <View className="flex-row items-center justify-between">
+                          <Text className="text-text font-bold">{member.full_name || 'Stylist'}</Text>
+                          <View className="flex-row items-center">
+                            <Text className="text-primary font-bold mr-2">{progressPercent}%</Text>
+                            <Ionicons
+                              name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                              size={16}
+                              color="#71717a"
+                            />
+                          </View>
+                        </View>
+                        <Text className="text-textMuted text-xs mb-2">{member.email}</Text>
+                        <ProgressBar
+                          progress={progressPercent}
+                          size="sm"
+                          variant={progressPercent === 100 ? 'success' : 'brand'}
+                        />
+                      </View>
+                    </TouchableOpacity>
+
+                    {/* Expanded Module Progress */}
+                    {isExpanded && (
+                      <View className="mt-4 pt-3 border-t border-surfaceHighlight">
+                        <View className="flex-row justify-between items-center mb-3">
+                          <Text className="text-textMuted text-sm font-medium">Module Progress</Text>
+                          <TouchableOpacity
+                            onPress={() => confirmRemoveStaff(member)}
+                            disabled={removingId === member.id}
+                            className="flex-row items-center"
+                          >
+                            {removingId === member.id ? (
+                              <ActivityIndicator size="small" color="#ef4444" />
+                            ) : (
+                              <>
+                                <Ionicons name="person-remove-outline" size={14} color="#ef4444" />
+                                <Text className="text-red-500 text-xs ml-1">Remove</Text>
+                              </>
+                            )}
+                          </TouchableOpacity>
+                        </View>
+                        {member.moduleProgress.length === 0 ? (
+                          <Text className="text-textMuted text-sm italic">No modules available</Text>
+                        ) : (
+                          member.moduleProgress.map((module) => {
+                            const modulePercent = getProgressPercent(module.completedVideos, module.totalVideos);
+                            return (
+                              <View key={module.id} className="mb-3">
+                                <View className="flex-row justify-between items-center mb-1">
+                                  <Text className="text-text text-sm flex-1 mr-2" numberOfLines={1}>
+                                    {module.title}
+                                  </Text>
+                                  <Text className="text-textMuted text-xs">
+                                    {module.completedVideos}/{module.totalVideos}
+                                  </Text>
+                                </View>
+                                <ProgressBar
+                                  progress={modulePercent}
+                                  size="sm"
+                                  variant={modulePercent === 100 ? 'success' : 'default'}
+                                />
+                              </View>
+                            );
+                          })
+                        )}
+                      </View>
                     )}
-                  </TouchableOpacity>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </View>
           )}
         </View>
