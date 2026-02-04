@@ -42,7 +42,7 @@
 ### Phase 1: Batch Email Invites
 > From Story 2.1: As a salon owner, I want to invite multiple team members at once
 
-- [ ] Update Team tab UI for batch email entry
+- [x] Update Team tab UI for batch email entry
   - Story: 2.1
   - Acceptance: TextInput accepts multiple comma-separated emails. UI shows count of emails entered.
   - Test: Enter "a@b.com, c@d.com" → Shows "2 emails"
