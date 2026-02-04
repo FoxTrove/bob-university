@@ -5,6 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { useAuth } from '../lib/auth';
 import { supabase } from '../lib/supabase';
+import { useEntitlement } from '../lib/hooks/useEntitlement';
 import { SafeContainer } from '../components/layout/SafeContainer';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -14,6 +15,7 @@ import logger from '../lib/utils/logger';
 export default function StylistSettings() {
   const { user } = useAuth();
   const router = useRouter();
+  const { isPremium } = useEntitlement();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -225,7 +227,21 @@ export default function StylistSettings() {
           updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' });
 
-      if (error) throw error;
+      if (error) {
+        // Check if it's the subscription requirement error from the database trigger
+        if (error.message?.includes('Active subscription required')) {
+          Alert.alert(
+            'Subscription Required',
+            'You need an active subscription to be listed in the stylist directory.',
+            [
+              { text: 'OK', style: 'cancel', onPress: () => setFormData(prev => ({ ...prev, is_public: false })) },
+              { text: 'Subscribe', onPress: () => router.push('/subscription') }
+            ]
+          );
+          return;
+        }
+        throw error;
+      }
 
       Alert.alert('Success', 'Your stylist profile has been updated.');
       router.back();
@@ -373,11 +389,30 @@ export default function StylistSettings() {
                     <Text className="text-textMuted text-sm">
                         Allow clients to find you in the directory.
                     </Text>
+                    {!isPremium && (
+                        <Text className="text-amber-500 text-xs mt-1">
+                            Requires an active subscription
+                        </Text>
+                    )}
                 </View>
-                <Switch 
+                <Switch
                     value={formData.is_public}
-                    onValueChange={(val) => setFormData({...formData, is_public: val})}
+                    onValueChange={(val) => {
+                        if (val && !isPremium) {
+                            Alert.alert(
+                                'Subscription Required',
+                                'You need an active subscription to be listed in the stylist directory. Subscribe now to get found by clients looking for Ray-trained stylists.',
+                                [
+                                    { text: 'Maybe Later', style: 'cancel' },
+                                    { text: 'Subscribe', onPress: () => router.push('/subscription') }
+                                ]
+                            );
+                            return;
+                        }
+                        setFormData({...formData, is_public: val});
+                    }}
                     trackColor={{ false: '#3f3f46', true: '#f472b6' }}
+                    disabled={!isPremium && !formData.is_public}
                 />
             </View>
 

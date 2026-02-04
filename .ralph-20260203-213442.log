@@ -110,3 +110,19 @@ Task completed successfully.
   [1mTask 8:[0m Add team certification status overview...
 
   [0;36m⟳[0m Claude working...
+Completed task: **Add team certification status overview**
+
+**What was done:**
+- Added a certification count banner in the Team tab header showing "X of Y team members certified"
+- The banner uses the brand certification color (#C68976) with a ribbon icon
+- Shows a congratulatory message when all team members are certified
+- Certified members already display badges on their avatars (via the Avatar component's `isCertified` prop)
+
+The task has been committed and pushed to `feature/ralph-session-20260203-2130`.
+  [0;32m✓[0m Task completed
+
+  [1m[[0;32m████████████████████████[0m[1m░░░░░░] 80% (8/10)[0m  [0;33m23m elapsed[0m
+
+  [1mTask 9:[0m Enforce subscription requirement for directory lis...
+
+  [0;36m⟳[0m Claude working...
