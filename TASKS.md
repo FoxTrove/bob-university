@@ -60,7 +60,7 @@
 ### Phase 2: Certification Ticket System
 > From Story 3.1-3.3: Salon certification ticket pool
 
-- [ ] Create certification tickets database migration
+- [x] Create certification tickets database migration
   - Story: 3.1
   - Acceptance: Tables for `salon_certification_tickets` and `certification_assignments` created
   - Test: Tables exist with correct schema
