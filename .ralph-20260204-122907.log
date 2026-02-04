@@ -1396,3 +1396,66 @@ The navigation now shows "University" instead of "Modules"/"Learn" with a gradua
   [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
   [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
   [0;36m⟳[0m Claude working...
+Task completed successfully.
+
+## Summary
+
+**Task:** Update app display name to Bob Company (Story 1.1)
+
+**Changes made:**
+- `app.json`: Updated `name` from `"bob-university"` to `"Bob Company"` - this is the app display name
+- `app/(auth)/sign-in.tsx`: Updated header from "Bob University" to "Bob Company"
+- `app/(auth)/sign-up.tsx`: Updated header from "Join Bob U" to "Join Bob Co"
+- `App.tsx`: Updated branding text from "Bob University" to "Bob Company"
+- `app/onboarding/index.tsx`: Updated welcome message from "Welcome to Bob University!" to "Welcome to Bob Company!" and certification text
+- `app/(tabs)/profile.tsx`: Updated support email subject line
+
+**Commits:**
+1. `feat: Update app display name to Bob Company` (Story: 1.1)
+2. `chore: Complete 'Update app display name to Bob Company' task`
+
+The task is complete and pushed to the feature branch.
+  [0;32m✓[0m Task completed
+  [0;36m↳[0m Checking CI status...
+  [0;33m![0m CI timeout - continuing without result
+
+  [1m[[0;32m███████████████████████████[0m[1m░░░] 91% (31/34)[0m  [0;33m210m elapsed[0m
+
+  [1mTask 32:[0m Implement user-type-based tab navigation...
+
+  [0;33m![0m Migration files detected, running safety review...
+## Migration Review Complete
+
+### Found
+- **29 migration files** scanned in `supabase/migrations/`
+- **100+ operations** analyzed
+
+### Classification
+
+| Risk Level | Count | Status |
+|------------|-------|--------|
+| ✓ Safe | 100+ | Auto-approved |
+| ⏸ Caution | 15 | All applied (backfill patterns) |
+| ⛔ Blocked | 0 | None |
+
+### Key Findings
+
+**New Migration Detected:** `029_salon_invites.sql`
+- Creates `salon_invites` table for in-app team invitations
+- All operations are **SAFE** (CREATE TABLE, CREATE POLICY, CREATE FUNCTION)
+- Proper RLS policies included
+- Wrapped in transaction
+- No data loss risk
+
+**Previously Applied (28 migrations):**
+- All safe operations or properly sequenced caution operations
+- No dangerous operations (DROP, TRUNCATE, DELETE) found
+- All tables have RLS enabled
+
+### Action Required
+**Review 029_salon_invites.sql** - Verify if this migration needs to be applied to the database. All operations are safe to execute.
+
+**BLOCKED=false**
+  [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
+  [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
+  [0;36m⟳[0m Claude working...

@@ -237,7 +237,49 @@ export default function Profile() {
             </View>
           )}
 
-          {/* Role Specific Actions - Only show for stylists (owners have Team tab) */}
+          {/* Quick Access - For all stylists (individual and salon owners) */}
+          {(userType === 'individual_stylist' || userType === 'salon_owner') && (
+            <View className="mb-8">
+              <Text className="text-textMuted text-sm font-medium uppercase tracking-wider mb-3">
+                Quick Access
+              </Text>
+              <Card padding="none" className="overflow-hidden">
+                <TouchableOpacity
+                  className="flex-row items-center justify-between p-4 border-b border-border"
+                  onPress={() => router.push('/(tabs)/community')}
+                >
+                  <View className="flex-row items-center">
+                    <View className="bg-blue-500/10 p-2 rounded-full mr-3">
+                      <Ionicons name="chatbubbles-outline" size={24} color="#3b82f6" />
+                    </View>
+                    <View>
+                      <Text className="text-text font-bold">Community</Text>
+                      <Text className="text-textMuted text-xs">Connect with other stylists</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#52525b" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className="flex-row items-center justify-between p-4"
+                  onPress={() => router.push('/(tabs)/directory')}
+                >
+                  <View className="flex-row items-center">
+                    <View className="bg-green-500/10 p-2 rounded-full mr-3">
+                      <Ionicons name="map-outline" size={24} color="#22c55e" />
+                    </View>
+                    <View>
+                      <Text className="text-text font-bold">Stylist Directory</Text>
+                      <Text className="text-textMuted text-xs">Find certified stylists nearby</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#52525b" />
+                </TouchableOpacity>
+              </Card>
+            </View>
+          )}
+
+          {/* Role Specific Actions - Only show for individual stylists */}
           {userType === 'individual_stylist' && (
             <View className="mb-8">
               <Text className="text-textMuted text-sm font-medium uppercase tracking-wider mb-3">
@@ -253,8 +295,8 @@ export default function Profile() {
                       <Ionicons name="cut-outline" size={24} color="#f472b6" />
                     </View>
                     <View>
-                      <Text className="text-text font-bold">Stylist Directory</Text>
-                      <Text className="text-textMuted text-xs">Manage your public profile</Text>
+                      <Text className="text-text font-bold">My Directory Profile</Text>
+                      <Text className="text-textMuted text-xs">Manage your public listing</Text>
                     </View>
                   </View>
                   <Ionicons name="chevron-forward" size={20} color="#52525b" />
