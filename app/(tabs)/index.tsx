@@ -2,15 +2,18 @@ import { View, Text, TouchableOpacity, ScrollView, Image, ImageBackground } from
 import { useEffect } from 'react';
 import { Link, useRouter } from 'expo-router';
 import { useAuth } from '../../lib/auth';
+import { useProfile } from '../../lib/hooks/useProfile';
 import { useContinueLearning, useRecentVideos } from '../../lib/hooks/useVideos';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ClientHomeScreen } from '../../components/home/ClientHomeScreen';
 
 export default function Home() {
   const { user } = useAuth();
+  const { userType } = useProfile();
   const { videos: continueVideos, loading: continueLoading } = useContinueLearning();
   const { videos: recentVideos, loading: recentLoading } = useRecentVideos();
   const router = useRouter();
@@ -24,6 +27,11 @@ export default function Home() {
       return () => clearTimeout(timer);
     }
   }, [user, onboardingComplete]);
+
+  // Render client-specific home screen
+  if (userType === 'client') {
+    return <ClientHomeScreen />;
+  }
 
   // Hero image from assets
   const heroImage = require('../../assets/Bob Company app photos/img_1614.jpg');

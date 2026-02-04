@@ -19,3 +19,20 @@
   [1mTask 2:[0m Add staff join flow with access code...
 
   [0;36m⟳[0m Claude working...
+Task completed successfully.
+
+**Summary:**
+- Implemented remove staff functionality in `app/(tabs)/team.tsx`
+- Added `confirmRemoveStaff()` function that shows a confirmation Alert dialog
+- Added `handleRemoveStaff()` function that sets `salon_id` to `null` in the profiles table
+- Added loading state (`removingId`) to show a spinner during removal
+- Connected the ellipsis button to trigger the confirmation flow
+- Committed: `feat: Implement remove staff functionality in Team tab`
+- Updated TASKS.md and pushed to remote
+  [0;32m✓[0m Task completed
+
+  [1m[[0;32m█████████[0m[1m░░░░░░░░░░░░░░░░░░░░░] 30% (3/10)[0m  [0;33m4m elapsed[0m
+
+  [1mTask 4:[0m Create client-specific Home screen content...
+
+  [0;36m⟳[0m Claude working...
