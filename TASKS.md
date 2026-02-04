@@ -70,7 +70,7 @@
   - Acceptance: Edge function/trigger creates 3 tickets when salon plan activates
   - Test: New salon subscriber has 3 tickets in pool
 
-- [ ] Build certification ticket dashboard in Team tab
+- [x] Build certification ticket dashboard in Team tab
   - Story: 3.1
   - Acceptance: Shows "X available / Y assigned" with list of assignments
   - Test: Salon owner sees ticket count and history
