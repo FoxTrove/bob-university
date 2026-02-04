@@ -47,7 +47,7 @@
   - Acceptance: TextInput accepts multiple comma-separated emails. UI shows count of emails entered.
   - Test: Enter "a@b.com, c@d.com" → Shows "2 emails"
 
-- [ ] Implement batch invite sending
+- [x] Implement batch invite sending
   - Story: 2.1
   - Acceptance: Generate unique code for each email, send all invites, show success for each
   - Test: Enter 3 emails → All 3 receive invites with unique codes
