@@ -86,6 +86,78 @@ export type Database = {
         }
         Relationships: []
       }
+      certification_ticket_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by_user_id: string
+          assigned_to_user_id: string
+          certification_id: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          notes: string | null
+          redeemed_at: string | null
+          salon_id: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by_user_id: string
+          assigned_to_user_id: string
+          certification_id: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          redeemed_at?: string | null
+          salon_id: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by_user_id?: string
+          assigned_to_user_id?: string
+          certification_id?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          redeemed_at?: string | null
+          salon_id?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      salon_certification_tickets: {
+        Row: {
+          available_tickets: number
+          created_at: string | null
+          id: string
+          salon_id: string
+          total_tickets: number
+          updated_at: string | null
+        }
+        Insert: {
+          available_tickets?: number
+          created_at?: string | null
+          id?: string
+          salon_id: string
+          total_tickets?: number
+          updated_at?: string | null
+        }
+        Update: {
+          available_tickets?: number
+          created_at?: string | null
+          id?: string
+          salon_id?: string
+          total_tickets?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       collection_access: {
         Row: {
           collection_id: string
@@ -1386,6 +1458,9 @@ export type Module = Tables<'modules'>
 export type SubscriptionPlan = Tables<'subscription_plans'>
 export type Salon = Tables<'salons'>
 export type StaffAccessCode = Tables<'staff_access_codes'>
+export type SalonCertificationTickets = Tables<'salon_certification_tickets'>
+export type CertificationTicketAssignment = Tables<'certification_ticket_assignments'>
+export type CertificationSetting = Tables<'certification_settings'>
 export type PlanType = 'free' | 'individual' | 'signature' | 'studio' | 'salon'
 
 // Extended types for hooks

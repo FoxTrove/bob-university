@@ -8,7 +8,7 @@ import { Card } from '../../components/ui/Card';
 import { Avatar } from '../../components/ui/Avatar';
 import { ProgressBar } from '../../components/ui/ProgressBar';
 import { Ionicons } from '@expo/vector-icons';
-import type { Profile, Salon, Module } from '../../lib/database.types';
+import type { Profile, Salon, Module, SalonCertificationTickets, CertificationTicketAssignment, CertificationSetting } from '../../lib/database.types';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -28,6 +28,11 @@ interface StaffWithProgress extends Profile {
   moduleProgress: ModuleProgress[];
 }
 
+interface TicketAssignmentWithDetails extends CertificationTicketAssignment {
+  assignedToProfile?: Profile;
+  certification?: CertificationSetting;
+}
+
 export default function TeamTab() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -40,6 +45,8 @@ export default function TeamTab() {
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [sendingInvite, setSendingInvite] = useState(false);
+  const [ticketPool, setTicketPool] = useState<SalonCertificationTickets | null>(null);
+  const [ticketAssignments, setTicketAssignments] = useState<TicketAssignmentWithDetails[]>([]);
 
   useEffect(() => {
     fetchSalonData();
@@ -122,6 +129,51 @@ export default function TeamTab() {
         );
 
         setStaff(staffWithProgress);
+
+        // 5. Fetch certification ticket pool
+        const { data: ticketData } = await supabase
+          .from('salon_certification_tickets')
+          .select('*')
+          .eq('salon_id', salonData.id)
+          .single();
+
+        setTicketPool(ticketData);
+
+        // 6. Fetch ticket assignments with profiles and certifications
+        const { data: assignmentsData } = await supabase
+          .from('certification_ticket_assignments')
+          .select('*')
+          .eq('salon_id', salonData.id)
+          .order('assigned_at', { ascending: false });
+
+        if (assignmentsData && assignmentsData.length > 0) {
+          // Get unique user IDs and certification IDs
+          const userIds = [...new Set(assignmentsData.map(a => a.assigned_to_user_id))];
+          const certIds = [...new Set(assignmentsData.map(a => a.certification_id))];
+
+          // Fetch profiles for assigned users
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('*')
+            .in('id', userIds);
+
+          // Fetch certification settings
+          const { data: certifications } = await supabase
+            .from('certification_settings')
+            .select('*')
+            .in('id', certIds);
+
+          // Map assignments with their related data
+          const assignmentsWithDetails: TicketAssignmentWithDetails[] = assignmentsData.map(assignment => ({
+            ...assignment,
+            assignedToProfile: profiles?.find(p => p.id === assignment.assigned_to_user_id),
+            certification: certifications?.find(c => c.id === assignment.certification_id),
+          }));
+
+          setTicketAssignments(assignmentsWithDetails);
+        } else {
+          setTicketAssignments([]);
+        }
       }
     } catch (e) {
       console.error('Error fetching salon data:', e);
@@ -365,6 +417,76 @@ export default function TeamTab() {
                 </Text>
               </View>
             </View>
+          )}
+
+          {/* Certification Tickets Dashboard */}
+          {ticketPool && (
+            <Card className="mb-6">
+              <View className="flex-row items-center justify-between mb-3">
+                <View className="flex-row items-center">
+                  <View className="bg-purple-500/20 p-2 rounded-full mr-3">
+                    <Ionicons name="ticket" size={20} color="#a855f7" />
+                  </View>
+                  <Text className="text-text font-bold text-lg">Certification Tickets</Text>
+                </View>
+                <View className="bg-purple-500/10 px-3 py-1 rounded-full">
+                  <Text className="text-purple-500 font-bold">
+                    {ticketPool.available_tickets} available / {ticketPool.total_tickets - ticketPool.available_tickets} assigned
+                  </Text>
+                </View>
+              </View>
+
+              <Text className="text-textMuted text-sm mb-4">
+                Assign tickets to team members so they can get certified at no extra cost.
+              </Text>
+
+              {/* Ticket Assignments List */}
+              {ticketAssignments.length > 0 ? (
+                <View className="border-t border-surfaceHighlight pt-3">
+                  <Text className="text-textMuted text-xs font-medium mb-2 uppercase">Assignment History</Text>
+                  {ticketAssignments.map((assignment) => (
+                    <View key={assignment.id} className="flex-row items-center py-2 border-b border-surfaceHighlight last:border-b-0">
+                      <Avatar
+                        name={assignment.assignedToProfile?.full_name || assignment.assignedToProfile?.email || 'Unknown'}
+                        source={assignment.assignedToProfile?.avatar_url}
+                        size="sm"
+                        className="mr-3"
+                      />
+                      <View className="flex-1">
+                        <Text className="text-text font-medium">
+                          {assignment.assignedToProfile?.full_name || 'Team Member'}
+                        </Text>
+                        <Text className="text-textMuted text-xs">
+                          {assignment.certification?.title || 'Certification'} • {assignment.status}
+                        </Text>
+                      </View>
+                      <View className={`px-2 py-1 rounded-full ${
+                        assignment.status === 'redeemed' ? 'bg-green-500/20' :
+                        assignment.status === 'assigned' ? 'bg-blue-500/20' :
+                        assignment.status === 'expired' ? 'bg-gray-500/20' :
+                        'bg-red-500/20'
+                      }`}>
+                        <Text className={`text-xs font-medium ${
+                          assignment.status === 'redeemed' ? 'text-green-600' :
+                          assignment.status === 'assigned' ? 'text-blue-600' :
+                          assignment.status === 'expired' ? 'text-gray-600' :
+                          'text-red-600'
+                        }`}>
+                          {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <View className="bg-surfaceHighlight rounded-lg p-4 items-center">
+                  <Ionicons name="ticket-outline" size={24} color="#71717a" />
+                  <Text className="text-textMuted text-sm mt-2 text-center">
+                    No tickets assigned yet. Assign tickets to help your team get certified.
+                  </Text>
+                </View>
+              )}
+            </Card>
           )}
 
           {/* Invite Staff Section */}
