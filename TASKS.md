@@ -43,7 +43,7 @@
   - Acceptance: Each staff member card shows overall completion percentage. Tap to expand shows per-module progress.
   - Test: Staff with 50% video completion shows "50% Complete" on their card.
 
-- [ ] Add team certification status overview
+- [x] Add team certification status overview
   - Acceptance: Team tab header shows "X of Y team members certified". Certified members show badge on card.
   - Test: Team with 2/5 certified shows this stat, certified members have visible badge.
 
