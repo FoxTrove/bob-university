@@ -30,7 +30,7 @@ serve(async (req) => {
         throw new Error('User not found');
     }
 
-    const { amountCents, certificationId, eventId, certificationTickets, salonId, description } = await req.json();
+    const { amountCents, certificationId, eventId, certificationTickets, salonId, description, teamEventRegistration } = await req.json();
 
     if (!amountCents) {
         throw new Error('Amount is required');
@@ -86,13 +86,24 @@ serve(async (req) => {
         // Check if early bird pricing applies
         const now = new Date();
         const earlyBirdDeadline = event.early_bird_deadline ? new Date(event.early_bird_deadline) : null;
+        let pricePerTicket: number;
         if (earlyBirdDeadline && now < earlyBirdDeadline && event.early_bird_price_cents) {
-          expectedAmount = event.early_bird_price_cents;
+          pricePerTicket = event.early_bird_price_cents;
         } else {
-          expectedAmount = event.price_cents;
+          pricePerTicket = event.price_cents || 0;
         }
+
+        // For team registrations, multiply by ticket count
+        if (teamEventRegistration && teamEventRegistration.ticketCount > 0) {
+          expectedAmount = pricePerTicket * teamEventRegistration.ticketCount;
+          productType = 'team_event';
+        } else {
+          expectedAmount = pricePerTicket;
+          productType = 'event';
+        }
+      } else {
+        productType = 'event';
       }
-      productType = 'event';
     }
 
     if (expectedAmount !== null && amountCents !== expectedAmount) {
@@ -143,8 +154,12 @@ serve(async (req) => {
         certificationId: certificationId || null,
         eventId: eventId || null,
         certificationTickets: certificationTickets || null,
-        salonId: salonId || null,
-        productType
+        salonId: salonId || teamEventRegistration?.salonId || null,
+        productType,
+        // For team event registrations
+        teamMemberIds: teamEventRegistration?.memberIds ? JSON.stringify(teamEventRegistration.memberIds) : null,
+        teamTicketCount: teamEventRegistration?.ticketCount || null,
+        teamPricePerTicket: teamEventRegistration?.pricePerTicket || null,
       }
     });
 

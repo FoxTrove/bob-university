@@ -49,9 +49,15 @@ export default function EventDetailScreen() {
   const [externalName, setExternalName] = useState('');
   const [sendingInvites, setSendingInvites] = useState(false);
 
+  // Team registration state (for public events)
+  const [showTeamRegisterModal, setShowTeamRegisterModal] = useState(false);
+  const [selectedTeamForRegistration, setSelectedTeamForRegistration] = useState<string[]>([]);
+  const [teamRegistrations, setTeamRegistrations] = useState<string[]>([]); // user IDs already registered
+
   const isSalonOwner = userType === 'salon_owner';
   const isPrivateEvent = event?.is_private === true;
   const isEventOwner = isPrivateEvent && event?.salon_id === profile?.salon_id && isSalonOwner;
+  const canRegisterTeam = isSalonOwner && !isPrivateEvent && profile?.salon_id;
 
   useEffect(() => {
     fetchEventDetails();
@@ -63,6 +69,14 @@ export default function EventDetailScreen() {
       fetchTeamMembers();
     }
   }, [isEventOwner, event?.id]);
+
+  // Fetch team members for team registration (public events)
+  useEffect(() => {
+    if (canRegisterTeam && event) {
+      fetchTeamMembers();
+      fetchTeamRegistrations();
+    }
+  }, [canRegisterTeam, event?.id]);
 
   const fetchEventDetails = async () => {
     try {
@@ -145,6 +159,37 @@ export default function EventDetailScreen() {
       console.error('Error fetching team members:', error);
     }
   }, [profile?.salon_id]);
+
+  const fetchTeamRegistrations = useCallback(async () => {
+    if (!event?.id || !profile?.salon_id) return;
+
+    try {
+      // Get all team member IDs
+      const { data: members, error: membersError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('salon_id', profile.salon_id);
+
+      if (membersError) throw membersError;
+
+      const memberIds = (members || []).map(m => m.id);
+      if (memberIds.length === 0) return;
+
+      // Check which team members are already registered
+      const { data: registrations, error: regError } = await supabase
+        .from('event_registrations')
+        .select('user_id')
+        .eq('event_id', event.id)
+        .in('user_id', memberIds)
+        .in('status', ['confirmed', 'pending']);
+
+      if (regError) throw regError;
+
+      setTeamRegistrations((registrations || []).map(r => r.user_id));
+    } catch (error) {
+      console.error('Error fetching team registrations:', error);
+    }
+  }, [event?.id, profile?.salon_id]);
 
   const handleSendTeamInvites = async () => {
     if (selectedTeamMembers.length === 0) {
@@ -256,6 +301,14 @@ export default function EventDetailScreen() {
     );
   };
 
+  const toggleTeamRegistrationSelection = (memberId: string) => {
+    setSelectedTeamForRegistration(prev =>
+      prev.includes(memberId)
+        ? prev.filter(id => id !== memberId)
+        : [...prev, memberId]
+    );
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'accepted':
@@ -292,6 +345,179 @@ export default function EventDetailScreen() {
   const isSoldOut = (): boolean => {
     if (!event?.max_capacity) return false;
     return registrationCount >= event.max_capacity;
+  };
+
+  const getAvailableSpots = (): number => {
+    if (!event?.max_capacity) return 999; // No limit
+    return Math.max(0, event.max_capacity - registrationCount);
+  };
+
+  const handleTeamRegistration = async () => {
+    if (!event || !user || !profile?.salon_id) return;
+
+    const memberCount = selectedTeamForRegistration.length;
+    if (memberCount === 0) {
+      Alert.alert('No Selection', 'Please select team members to register.');
+      return;
+    }
+
+    // Check capacity
+    const availableSpots = getAvailableSpots();
+    if (memberCount > availableSpots) {
+      Alert.alert(
+        'Not Enough Spots',
+        `Only ${availableSpots} spot${availableSpots !== 1 ? 's' : ''} available. Please select fewer team members.`
+      );
+      return;
+    }
+
+    setPurchasing(true);
+
+    try {
+      const pricePerTicket = getApplicablePrice();
+      const totalAmount = pricePerTicket * memberCount;
+      const ticketType = isEarlyBird() ? 'early_bird' : 'general';
+
+      // For free events, register directly
+      if (totalAmount === 0) {
+        const registrations = selectedTeamForRegistration.map(userId => ({
+          event_id: event.id,
+          user_id: userId,
+          status: 'confirmed',
+          ticket_type: ticketType,
+          amount_paid_cents: 0,
+          registered_at: new Date().toISOString(),
+          confirmed_at: new Date().toISOString(),
+          notes: `Team registration by ${profile.full_name || 'salon owner'}`,
+        }));
+
+        const { error: regError } = await supabase
+          .from('event_registrations')
+          .insert(registrations);
+
+        if (regError) throw regError;
+
+        // Send notifications to team members
+        await supabase.functions.invoke('team-event-notification', {
+          body: {
+            eventId: event.id,
+            userIds: selectedTeamForRegistration,
+            eventTitle: event.title,
+            eventDate: event.event_date,
+            registeredBy: profile.full_name || 'Your salon owner',
+          },
+        });
+
+        Alert.alert(
+          'Success',
+          `${memberCount} team member${memberCount !== 1 ? 's' : ''} registered!`
+        );
+        setShowTeamRegisterModal(false);
+        setSelectedTeamForRegistration([]);
+        fetchTeamRegistrations();
+        fetchEventDetails();
+        return;
+      }
+
+      // For paid events, use payment sheet with team registration metadata
+      const { data, error } = await supabase.functions.invoke('payment-sheet', {
+        body: {
+          amountCents: totalAmount,
+          description: `${memberCount} tickets for ${event.title}`,
+          eventId: event.id,
+          teamEventRegistration: {
+            memberIds: selectedTeamForRegistration,
+            ticketCount: memberCount,
+            pricePerTicket,
+            salonId: profile.salon_id,
+          },
+        },
+      });
+
+      if (error || !data) {
+        throw new Error(error?.message || 'Failed to initialize payment');
+      }
+
+      const { paymentIntent, ephemeralKey, customer } = data;
+      const paymentIntentId = typeof paymentIntent === 'string'
+        ? paymentIntent.split('_secret_')[0]
+        : null;
+
+      const { error: initError } = await initPaymentSheet({
+        merchantDisplayName: 'Bob University',
+        customerId: customer,
+        customerEphemeralKeySecret: ephemeralKey,
+        paymentIntentClientSecret: paymentIntent,
+        defaultBillingDetails: {
+          name: 'Bob University Team',
+        },
+        returnURL: 'bob-university://stripe-redirect',
+      });
+
+      if (initError) {
+        throw new Error(initError.message);
+      }
+
+      const { error: paymentError } = await presentPaymentSheet();
+
+      if (paymentError) {
+        if (paymentError.code !== 'Canceled') {
+          Alert.alert(`Error code: ${paymentError.code}`, paymentError.message);
+        }
+      } else {
+        // Create registrations for each team member
+        const registrations = selectedTeamForRegistration.map(userId => ({
+          event_id: event.id,
+          user_id: userId,
+          status: 'confirmed',
+          ticket_type: ticketType,
+          amount_paid_cents: pricePerTicket,
+          payment_id: paymentIntentId,
+          registered_at: new Date().toISOString(),
+          confirmed_at: new Date().toISOString(),
+          notes: `Team registration by ${profile.full_name || 'salon owner'}`,
+        }));
+
+        const { error: regError } = await supabase
+          .from('event_registrations')
+          .insert(registrations);
+
+        if (regError) {
+          console.error('Registration insert failed:', regError);
+          Alert.alert(
+            'Payment Confirmed',
+            'Payment received. Ticket confirmations are being processed.'
+          );
+        } else {
+          // Send notifications to team members
+          await supabase.functions.invoke('team-event-notification', {
+            body: {
+              eventId: event.id,
+              userIds: selectedTeamForRegistration,
+              eventTitle: event.title,
+              eventDate: event.event_date,
+              registeredBy: profile.full_name || 'Your salon owner',
+            },
+          });
+
+          Alert.alert(
+            'Success',
+            `${memberCount} team member${memberCount !== 1 ? 's' : ''} registered!`
+          );
+        }
+
+        setShowTeamRegisterModal(false);
+        setSelectedTeamForRegistration([]);
+        fetchTeamRegistrations();
+        fetchEventDetails();
+      }
+    } catch (error) {
+      console.error('Team registration error:', error);
+      const message = error instanceof Error ? error.message : 'Registration failed';
+      Alert.alert('Registration Failed', message);
+    } finally {
+      setPurchasing(false);
+    }
   };
 
   const handlePurchase = async () => {
@@ -618,6 +844,35 @@ export default function EventDetailScreen() {
           </Card>
         )}
 
+        {/* Team Registration Section - For salon owners on public events */}
+        {canRegisterTeam && !isSoldOut() && (
+          <Card className="p-4">
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-row items-center">
+                <Ionicons name="people" size={20} color="#3b82f6" />
+                <Text className="text-lg font-bold text-text ml-2">Team Registration</Text>
+              </View>
+            </View>
+            <Text className="text-textMuted mb-4">
+              Register multiple team members for this event in one purchase.
+            </Text>
+            {teamRegistrations.length > 0 && (
+              <View className="bg-green-500/10 p-3 rounded-lg mb-4">
+                <Text className="text-green-500 text-sm">
+                  {teamRegistrations.length} team member{teamRegistrations.length !== 1 ? 's' : ''} already registered
+                </Text>
+              </View>
+            )}
+            <Button
+              title="Register Team Members"
+              onPress={() => setShowTeamRegisterModal(true)}
+              variant="outline"
+              fullWidth
+              icon={<Ionicons name="people-outline" size={18} color="#3b82f6" />}
+            />
+          </Card>
+        )}
+
         {/* Action Button */}
         <View className="pt-4 pb-8">
             {isRegistered ? (
@@ -820,6 +1075,155 @@ export default function EventDetailScreen() {
                 }
                 fullWidth
               />
+            </View>
+          </View>
+        </SafeContainer>
+      </Modal>
+
+      {/* Team Registration Modal - For public events */}
+      <Modal
+        visible={showTeamRegisterModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => {
+          setShowTeamRegisterModal(false);
+          setSelectedTeamForRegistration([]);
+        }}
+      >
+        <SafeContainer edges={['top']}>
+          <View className="flex-1 bg-background">
+            {/* Modal Header */}
+            <View className="flex-row items-center justify-between p-4 border-b border-border">
+              <TouchableOpacity
+                onPress={() => {
+                  setShowTeamRegisterModal(false);
+                  setSelectedTeamForRegistration([]);
+                }}
+              >
+                <Text className="text-primary text-base">Cancel</Text>
+              </TouchableOpacity>
+              <Text className="text-lg font-bold text-text">Register Team</Text>
+              <View className="w-12" />
+            </View>
+
+            {/* Event Info */}
+            <View className="p-4 bg-surfaceHighlight">
+              <Text className="text-text font-bold">{event?.title}</Text>
+              <Text className="text-textMuted text-sm mt-1">
+                {event ? new Date(event.event_date).toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                }) : ''}
+              </Text>
+              <View className="flex-row items-center mt-2">
+                <Text className="text-primary font-bold">
+                  ${(getApplicablePrice() / 100).toFixed(2)}
+                </Text>
+                <Text className="text-textMuted ml-1">per ticket</Text>
+                {isEarlyBird() && (
+                  <View className="bg-green-500/20 px-2 py-0.5 rounded-full ml-2">
+                    <Text className="text-green-500 text-xs">Early Bird</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* Team Member List */}
+            <ScrollView className="flex-1 px-4 pt-4">
+              <Text className="text-textMuted text-sm mb-3">
+                Select team members to register ({selectedTeamForRegistration.length} selected)
+              </Text>
+
+              {teamMembers.length === 0 ? (
+                <View className="items-center py-8">
+                  <Ionicons name="people-outline" size={48} color="#6b7280" />
+                  <Text className="text-textMuted mt-2">No team members found</Text>
+                </View>
+              ) : (
+                teamMembers.map((member) => {
+                  const isSelected = selectedTeamForRegistration.includes(member.id);
+                  const isAlreadyRegistered = teamRegistrations.includes(member.id);
+
+                  return (
+                    <TouchableOpacity
+                      key={member.id}
+                      onPress={() => !isAlreadyRegistered && toggleTeamRegistrationSelection(member.id)}
+                      disabled={isAlreadyRegistered}
+                      className={`flex-row items-center p-3 rounded-lg mb-2 ${
+                        isAlreadyRegistered
+                          ? 'bg-surfaceHighlight/50 opacity-60'
+                          : isSelected
+                          ? 'bg-primary/20 border border-primary'
+                          : 'bg-surfaceHighlight'
+                      }`}
+                    >
+                      <View
+                        className={`w-6 h-6 rounded-full border-2 mr-3 items-center justify-center ${
+                          isSelected ? 'border-primary bg-primary' : 'border-gray-500'
+                        }`}
+                      >
+                        {isSelected && (
+                          <Ionicons name="checkmark" size={14} color="#ffffff" />
+                        )}
+                      </View>
+                      <Avatar
+                        name={member.full_name || member.email}
+                        source={member.avatar_url}
+                        size="sm"
+                        isCertified={member.is_certified ?? undefined}
+                        className="mr-3"
+                      />
+                      <View className="flex-1">
+                        <Text className="text-text font-medium">
+                          {member.full_name || 'Team Member'}
+                        </Text>
+                        <Text className="text-textMuted text-xs">{member.email}</Text>
+                      </View>
+                      {isAlreadyRegistered && (
+                        <View className="bg-green-500/20 px-2 py-1 rounded-full">
+                          <Text className="text-green-500 text-xs">Registered</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })
+              )}
+            </ScrollView>
+
+            {/* Total and Purchase Button */}
+            <View className="p-4 border-t border-border">
+              {selectedTeamForRegistration.length > 0 && (
+                <View className="flex-row items-center justify-between mb-4 px-2">
+                  <Text className="text-textMuted">
+                    {selectedTeamForRegistration.length} ticket{selectedTeamForRegistration.length !== 1 ? 's' : ''}
+                  </Text>
+                  <Text className="text-xl font-bold text-text">
+                    ${((getApplicablePrice() * selectedTeamForRegistration.length) / 100).toFixed(2)}
+                  </Text>
+                </View>
+              )}
+              <Button
+                title={
+                  purchasing
+                    ? 'Processing...'
+                    : selectedTeamForRegistration.length === 0
+                    ? 'Select Team Members'
+                    : getApplicablePrice() === 0
+                    ? `Register ${selectedTeamForRegistration.length} Member${selectedTeamForRegistration.length !== 1 ? 's' : ''} - Free`
+                    : `Purchase ${selectedTeamForRegistration.length} Ticket${selectedTeamForRegistration.length !== 1 ? 's' : ''}`
+                }
+                onPress={handleTeamRegistration}
+                loading={purchasing}
+                disabled={purchasing || selectedTeamForRegistration.length === 0}
+                fullWidth
+                size="lg"
+              />
+              {getApplicablePrice() > 0 && selectedTeamForRegistration.length > 0 && (
+                <Text className="text-xs text-textMuted text-center mt-2">
+                  Secure payment via Stripe
+                </Text>
+              )}
             </View>
           </View>
         </SafeContainer>
