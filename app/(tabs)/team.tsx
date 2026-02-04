@@ -27,6 +27,13 @@ interface ModuleProgress {
   totalVideos: number;
 }
 
+interface TeamAnalytics {
+  avgCompletion: number;
+  topModules: { id: string; title: string; completions: number; totalPossible: number }[];
+  activeThisWeek: number;
+  totalCompletionsThisWeek: number;
+}
+
 interface StaffWithProgress extends Profile {
   completedVideos: number;
   totalVideos: number;
@@ -64,6 +71,7 @@ export default function TeamTab() {
   const [showSeatLimitModal, setShowSeatLimitModal] = useState(false);
   const [seatsToPurchase, setSeatsToPurchase] = useState(1);
   const [purchasingSeats, setPurchasingSeats] = useState(false);
+  const [teamAnalytics, setTeamAnalytics] = useState<TeamAnalytics | null>(null);
 
   // Calculate current seat usage
   const maxSeats = salon?.max_staff || 5;
@@ -151,6 +159,60 @@ export default function TeamTab() {
         );
 
         setStaff(staffWithProgress);
+
+        // Calculate team analytics
+        if (staffWithProgress.length > 0) {
+          // Average completion rate
+          const avgCompletion = staffWithProgress.reduce((sum, member) => {
+            const percent = member.totalVideos > 0
+              ? (member.completedVideos / member.totalVideos) * 100
+              : 0;
+            return sum + percent;
+          }, 0) / staffWithProgress.length;
+
+          // Module completion rankings
+          const moduleCompletions: Record<string, { title: string; completions: number; totalPossible: number }> = {};
+          staffWithProgress.forEach(member => {
+            member.moduleProgress.forEach(mod => {
+              if (!moduleCompletions[mod.id]) {
+                moduleCompletions[mod.id] = {
+                  title: mod.title,
+                  completions: 0,
+                  totalPossible: mod.totalVideos * staffWithProgress.length,
+                };
+              }
+              moduleCompletions[mod.id].completions += mod.completedVideos;
+            });
+          });
+
+          const topModules = Object.entries(moduleCompletions)
+            .map(([id, data]) => ({ id, ...data }))
+            .sort((a, b) => b.completions - a.completions)
+            .slice(0, 3);
+
+          // Weekly activity - get video progress from the last 7 days
+          const oneWeekAgo = new Date();
+          oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+          const staffIds = staffWithProgress.map(s => s.id);
+          const { data: weeklyProgress } = await supabase
+            .from('video_progress')
+            .select('user_id, completed_at')
+            .in('user_id', staffIds)
+            .eq('completed', true)
+            .gte('completed_at', oneWeekAgo.toISOString());
+
+          const activeUsersThisWeek = new Set(weeklyProgress?.map(p => p.user_id) || []);
+
+          setTeamAnalytics({
+            avgCompletion: Math.round(avgCompletion),
+            topModules,
+            activeThisWeek: activeUsersThisWeek.size,
+            totalCompletionsThisWeek: weeklyProgress?.length || 0,
+          });
+        } else {
+          setTeamAnalytics(null);
+        }
 
         // 5. Fetch certification ticket pool
         const { data: ticketData } = await supabase
@@ -827,6 +889,74 @@ export default function TeamTab() {
                 </Text>
               </View>
             </View>
+          )}
+
+          {/* Team Progress Analytics */}
+          {teamAnalytics && staff.length > 0 && (
+            <Card className="mb-6">
+              <View className="flex-row items-center mb-4">
+                <View className="bg-blue-500/20 p-2 rounded-full mr-3">
+                  <Ionicons name="analytics" size={20} color="#3b82f6" />
+                </View>
+                <Text className="text-text font-bold text-lg">Team Progress</Text>
+              </View>
+
+              {/* Stats Row */}
+              <View className="flex-row mb-4">
+                {/* Average Completion */}
+                <View className="flex-1 bg-surfaceHighlight rounded-xl p-4 mr-2">
+                  <Text className="text-textMuted text-xs uppercase mb-1">Avg Completion</Text>
+                  <Text className="text-3xl font-bold text-primary">{teamAnalytics.avgCompletion}%</Text>
+                  <Text className="text-textMuted text-xs">across all modules</Text>
+                </View>
+
+                {/* Weekly Activity */}
+                <View className="flex-1 bg-surfaceHighlight rounded-xl p-4 ml-2">
+                  <Text className="text-textMuted text-xs uppercase mb-1">This Week</Text>
+                  <Text className="text-3xl font-bold text-green-500">{teamAnalytics.activeThisWeek}</Text>
+                  <Text className="text-textMuted text-xs">
+                    active • {teamAnalytics.totalCompletionsThisWeek} videos
+                  </Text>
+                </View>
+              </View>
+
+              {/* Most Watched Modules */}
+              {teamAnalytics.topModules.length > 0 && (
+                <View>
+                  <Text className="text-textMuted text-xs uppercase mb-2">Most Watched Modules</Text>
+                  {teamAnalytics.topModules.map((module, index) => {
+                    const percent = module.totalPossible > 0
+                      ? Math.round((module.completions / module.totalPossible) * 100)
+                      : 0;
+                    return (
+                      <View key={module.id} className="flex-row items-center py-2 border-b border-surfaceHighlight last:border-b-0">
+                        <View className={`w-6 h-6 rounded-full items-center justify-center mr-3 ${
+                          index === 0 ? 'bg-yellow-500/20' :
+                          index === 1 ? 'bg-gray-400/20' :
+                          'bg-orange-700/20'
+                        }`}>
+                          <Text className={`text-xs font-bold ${
+                            index === 0 ? 'text-yellow-600' :
+                            index === 1 ? 'text-gray-500' :
+                            'text-orange-700'
+                          }`}>
+                            {index + 1}
+                          </Text>
+                        </View>
+                        <View className="flex-1 mr-3">
+                          <Text className="text-text text-sm" numberOfLines={1}>{module.title}</Text>
+                          <ProgressBar progress={percent} size="sm" variant="brand" />
+                        </View>
+                        <View className="items-end">
+                          <Text className="text-primary font-bold">{percent}%</Text>
+                          <Text className="text-textMuted text-xs">team avg</Text>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </Card>
           )}
 
           {/* Certification Tickets Dashboard */}
