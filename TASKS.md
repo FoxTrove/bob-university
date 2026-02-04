@@ -126,7 +126,7 @@
   - Acceptance: Invite team members or external guests, track RSVP status
   - Test: Invite 3 people → They receive invite, status tracked
 
-- [ ] Add team event registration for public events
+- [x] Add team event registration for public events
   - Story: 5.1
   - Acceptance: Multi-select team members, bulk ticket purchase, each gets digital ticket
   - Test: Register 3 team members → 3 tickets purchased, 3 notifications sent
