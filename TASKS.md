@@ -162,7 +162,7 @@
 ### Phase 6: Quality Fixes
 > From Review: TypeScript errors and code quality issues
 
-- [ ] Fix TypeScript errors in community feature
+- [x] Fix TypeScript errors in community feature
   - Story: N/A (Quality)
   - Acceptance: `npx tsc --noEmit` passes for mobile app files (excluding admin/)
   - Files: community/index.tsx, community/[id].tsx, community/create.tsx
