@@ -1,15 +1,14 @@
-import { View, Text, TouchableOpacity, ScrollView, Pressable, Linking } from 'react-native';
-import React from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Pressable, Linking, Modal, TextInput, ActivityIndicator, Alert } from 'react-native';
+import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/auth';
-import { useEntitlement } from '../../lib/hooks/useEntitlement';
-import type { Profile } from '../../lib/database.types';
+import { useEntitlement, useProfile } from '../../lib/hooks';
 import { SafeContainer } from '../../components/layout/SafeContainer';
 import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
-import { ProgressBar, getLevelProgress, LEVEL_THRESHOLDS } from '../../components/ui/CircularProgress';
+import { getLevelProgress } from '../../components/ui/CircularProgress';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
@@ -32,37 +31,80 @@ const levelTitles: Record<number, string> = {
 export default function Profile() {
   const { user } = useAuth();
   const { isPremium, plan } = useEntitlement();
+  const { profile, userType, refetch: refetchProfile } = useProfile();
   const router = useRouter();
-  const [profile, setProfile] = React.useState<Profile | null>(null);
-  const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    async function fetchProfile() {
-      if (!user?.id) return;
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        
-        if (error) {
-          console.error('Error fetching profile:', error);
-        } else {
-          setProfile(data);
-        }
-      } catch (e) {
-        console.error('Error:', e);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchProfile();
-  }, [user?.id]);
+  // Join Salon modal state
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [accessCode, setAccessCode] = useState('');
+  const [joining, setJoining] = useState(false);
 
   async function signOut() {
     await supabase.auth.signOut();
+  }
+
+  async function handleJoinSalon() {
+    if (!user?.id || !accessCode.trim()) return;
+
+    const normalizedCode = accessCode.trim().toUpperCase();
+    if (normalizedCode.length !== 6) {
+      Alert.alert('Invalid Code', 'Please enter a 6-character access code.');
+      return;
+    }
+
+    setJoining(true);
+    try {
+      // 1. Find the access code
+      const { data: codeData, error: codeError } = await supabase
+        .from('staff_access_codes')
+        .select('*')
+        .eq('code', normalizedCode)
+        .single();
+
+      if (codeError || !codeData) {
+        Alert.alert('Invalid Code', 'This access code was not found. Please check and try again.');
+        return;
+      }
+
+      // 2. Check if code is expired
+      if (codeData.expires_at && new Date(codeData.expires_at) < new Date()) {
+        Alert.alert('Expired Code', 'This access code has expired. Please ask your salon owner for a new code.');
+        return;
+      }
+
+      // 3. Check if code has remaining uses
+      const usedCount = codeData.used_count || 0;
+      const maxUses = codeData.max_uses || 1;
+      if (usedCount >= maxUses) {
+        Alert.alert('Code Already Used', 'This access code has already been used. Please ask your salon owner for a new code.');
+        return;
+      }
+
+      // 4. Update user's profile with salon_id
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ salon_id: codeData.salon_id })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      // 5. Increment used_count on the code
+      await supabase
+        .from('staff_access_codes')
+        .update({ used_count: usedCount + 1 })
+        .eq('id', codeData.id);
+
+      // 6. Refresh profile and close modal
+      await refetchProfile();
+      setShowJoinModal(false);
+      setAccessCode('');
+      Alert.alert('Success', 'You have successfully joined the salon!');
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to join salon';
+      Alert.alert('Error', message);
+    } finally {
+      setJoining(false);
+    }
   }
 
   const handleUpgrade = () => {
@@ -71,10 +113,6 @@ export default function Profile() {
 
   const navigateToStylistSettings = () => {
     router.push('/stylist-settings');
-  };
-
-  const navigateToSalonTeam = () => {
-    router.push('/salon-team');
   };
 
   const openPrivacyPolicy = () => {
@@ -195,52 +233,48 @@ export default function Profile() {
             </Card>
           </View>
 
-          {/* Role Specific Actions */}
-          {(profile?.role === 'stylist' || profile?.role === 'owner') && (
+          {/* Role Specific Actions - Only show for stylists (owners have Team tab) */}
+          {profile?.role === 'stylist' && (
             <View className="mb-8">
               <Text className="text-textMuted text-sm font-medium uppercase tracking-wider mb-3">
                 Professional Tools
               </Text>
-              
-              {profile?.role === 'stylist' && (
-                <Card className="mb-4">
-                  <TouchableOpacity 
-                    className="flex-row items-center justify-between p-2"
-                    onPress={navigateToStylistSettings}
-                  >
-                     <View className="flex-row items-center">
-                      <View className="bg-primary/10 p-2 rounded-full mr-3">
-                        <Ionicons name="cut-outline" size={24} color="#f472b6" />
-                      </View>
-                      <View>
-                        <Text className="text-text font-bold">Stylist Directory</Text>
-                        <Text className="text-textMuted text-xs">Manage your public profile</Text>
-                      </View>
+              <Card padding="none" className="overflow-hidden">
+                <TouchableOpacity
+                  className="flex-row items-center justify-between p-4 border-b border-border"
+                  onPress={navigateToStylistSettings}
+                >
+                   <View className="flex-row items-center">
+                    <View className="bg-primary/10 p-2 rounded-full mr-3">
+                      <Ionicons name="cut-outline" size={24} color="#f472b6" />
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color="#52525b" />
-                  </TouchableOpacity>
-                </Card>
-              )}
+                    <View>
+                      <Text className="text-text font-bold">Stylist Directory</Text>
+                      <Text className="text-textMuted text-xs">Manage your public profile</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#52525b" />
+                </TouchableOpacity>
 
-              {profile?.role === 'owner' && (
-                <Card>
-                  <TouchableOpacity 
-                    className="flex-row items-center justify-between p-2"
-                    onPress={navigateToSalonTeam}
+                {/* Join a Salon - Only for individual_stylists not already in a salon */}
+                {userType === 'individual_stylist' && !profile?.salon_id && (
+                  <TouchableOpacity
+                    className="flex-row items-center justify-between p-4"
+                    onPress={() => setShowJoinModal(true)}
                   >
                     <View className="flex-row items-center">
                       <View className="bg-purple-500/10 p-2 rounded-full mr-3">
-                        <Ionicons name="people-outline" size={24} color="#a855f7" />
+                        <Ionicons name="people" size={24} color="#a855f7" />
                       </View>
                       <View>
-                         <Text className="text-text font-bold">Salon Team</Text>
-                         <Text className="text-textMuted text-xs">Manage staff access</Text>
+                        <Text className="text-text font-bold">Join a Salon</Text>
+                        <Text className="text-textMuted text-xs">Enter an access code from your salon owner</Text>
                       </View>
                     </View>
                     <Ionicons name="chevron-forward" size={20} color="#52525b" />
                   </TouchableOpacity>
-                </Card>
-              )}
+                )}
+              </Card>
             </View>
           )}
 
@@ -378,6 +412,57 @@ export default function Profile() {
           )}
         </View>
       </ScrollView>
+
+      {/* Join Salon Modal */}
+      <Modal
+        visible={showJoinModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowJoinModal(false)}
+      >
+        <Pressable
+          className="flex-1 bg-black/60 justify-center items-center px-6"
+          onPress={() => setShowJoinModal(false)}
+        >
+          <Pressable
+            className="bg-surface w-full rounded-2xl p-6"
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-text font-serifBold text-xl">Join a Salon</Text>
+              <TouchableOpacity onPress={() => setShowJoinModal(false)}>
+                <Ionicons name="close" size={24} color="#71717a" />
+              </TouchableOpacity>
+            </View>
+
+            <Text className="text-textMuted mb-4">
+              Enter the 6-character access code provided by your salon owner.
+            </Text>
+
+            <TextInput
+              className="bg-background border border-border rounded-xl px-4 py-3 text-text text-center text-2xl font-mono tracking-widest mb-4"
+              placeholder="ABC123"
+              placeholderTextColor="#71717a"
+              value={accessCode}
+              onChangeText={(text) => setAccessCode(text.toUpperCase())}
+              maxLength={6}
+              autoCapitalize="characters"
+              autoCorrect={false}
+            />
+
+            <Button
+              title={joining ? 'Joining...' : 'Join Salon'}
+              onPress={handleJoinSalon}
+              disabled={joining || accessCode.length !== 6}
+              fullWidth
+            />
+
+            {joining && (
+              <ActivityIndicator size="small" color="#a855f7" className="mt-4" />
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeContainer>
   );
 }

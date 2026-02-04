@@ -5,3 +5,5 @@ export { useSubscriptionPlans, formatPlanPrice } from './useSubscriptionPlans';
 export { useNotificationPreferences } from './useNotificationPreferences';
 export type { NotificationPreferences } from './useNotificationPreferences';
 export { usePushNotifications } from './usePushNotifications';
+export { useProfile } from './useProfile';
+export type { UserType } from './useProfile';
