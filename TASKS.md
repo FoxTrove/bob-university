@@ -139,7 +139,7 @@
   - Acceptance: Tab label shows "University" with graduation cap icon
   - Test: Navigation shows "University" not "Modules"
 
-- [ ] Update app display name to Bob Company
+- [x] Update app display name to Bob Company
   - Story: 1.1
   - Acceptance: App name in app.json, splash screen, about screen all say "Bob Company"
   - Test: App appears as "Bob Company" everywhere
