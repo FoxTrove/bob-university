@@ -1,4 +1,4 @@
-# Bob University - User Types & Salon Features
+# Bob Company - v2.3 Features
 
 ## Session Info
 - Branch: feature/ralph-session-20260203-2130
@@ -7,52 +7,154 @@
 
 ## Completed
 
+### Previous Session (User Types & Salon Features)
 - [x] Create salon setup flow for salon owners
-  - Acceptance: When a salon_owner completes onboarding, they're prompted to create their salon (name, optional logo). Salon is created in `salons` table with `owner_id`.
-  - Test: New salon owner sees "Create Your Salon" screen, enters name, salon appears in database.
-
 - [x] Add staff join flow with access code
-  - Acceptance: Add "Join a Salon" option in profile for individual_stylists. Enter 6-char code → validates against `staff_access_codes` → links user to salon via `salon_id` in profiles.
-  - Test: Generate code in Team tab, use code in another account, that user's profile.salon_id is set.
-
 - [x] Implement remove staff functionality in Team tab
-  - Acceptance: Each staff member in Team tab has options menu with "Remove from Team". Removes their `salon_id` from profiles.
-  - Test: Tap options → Remove → Confirm → Staff member no longer appears in list.
+- [x] Create client-specific Home screen content
+- [x] Create salon owner Home dashboard
+- [x] Add learning progress to individual stylist Home
+- [x] Add staff progress tracking to Team tab
+- [x] Add team certification status overview
+- [x] Enforce subscription requirement for directory listing
+- [x] Customize Profile tab by user type
+
+### Email Invite Feature
+- [x] Add email invite columns to staff_access_codes table
+  - Story: 6.1
+  - Acceptance: Migration adds `invited_email` and `invite_sent_at` columns
+  - Test: Columns exist in Supabase
+
+- [x] Create team-invite email template
+  - Story: 6.1
+  - Acceptance: Edge function has `team-invite` template with salon name, code, expiration
+  - Test: Email sends with correct content
+
+- [x] Add email invite UI to Team tab
+  - Story: 6.1
+  - Acceptance: "Invite via Email" button, email input, validation, success message
+  - Test: Enter email → Send → Email received with code
 
 ## In Progress
 
 ## Backlog
 
-### Phase 2: Home Screen Customization
+### Phase 1: Batch Email Invites
+> From Story 2.1: As a salon owner, I want to invite multiple team members at once
 
-- [x] Create client-specific Home screen content
-  - Acceptance: When user_type='client', Home shows: "Find a Stylist" CTA, featured stylists carousel, upcoming events, quick tips.
-  - Test: Log in as client → Home shows directory-focused content, no learning modules.
+- [ ] Update Team tab UI for batch email entry
+  - Story: 2.1
+  - Acceptance: TextInput accepts multiple comma-separated emails. UI shows count of emails entered.
+  - Test: Enter "a@b.com, c@d.com" → Shows "2 emails"
 
-- [x] Create salon owner Home dashboard
-  - Acceptance: When user_type='salon_owner', Home shows: Team overview card (X/5 members), team certification progress, "Book Event with Ray" CTA, recent activity.
-  - Test: Log in as salon owner → Home shows team-focused dashboard.
+- [ ] Implement batch invite sending
+  - Story: 2.1
+  - Acceptance: Generate unique code for each email, send all invites, show success for each
+  - Test: Enter 3 emails → All 3 receive invites with unique codes
 
-- [x] Add learning progress to individual stylist Home
-  - Acceptance: When user_type='individual_stylist', Home shows: Continue watching section, module progress, certification upsell if not certified.
-  - Test: Stylist with partial progress sees relevant content on Home.
+- [ ] Handle partial failures in batch invites
+  - Story: 2.1
+  - Acceptance: If 1 of 3 emails fails, show which succeeded and which failed
+  - Test: Enter 1 invalid + 2 valid emails → See success for 2, error for 1
 
-### Phase 3: Team Management Polish
+### Phase 2: Certification Ticket System
+> From Story 3.1-3.3: Salon certification ticket pool
 
-- [x] Add staff progress tracking to Team tab
-  - Acceptance: Each staff member card shows overall completion percentage. Tap to expand shows per-module progress.
-  - Test: Staff with 50% video completion shows "50% Complete" on their card.
+- [ ] Create certification tickets database migration
+  - Story: 3.1
+  - Acceptance: Tables for `salon_certification_tickets` and `certification_assignments` created
+  - Test: Tables exist with correct schema
 
-- [x] Add team certification status overview
-  - Acceptance: Team tab header shows "X of Y team members certified". Certified members show badge on card.
-  - Test: Team with 2/5 certified shows this stat, certified members have visible badge.
+- [ ] Add 3 free tickets when salon subscription starts
+  - Story: 3.1
+  - Acceptance: Edge function/trigger creates 3 tickets when salon plan activates
+  - Test: New salon subscriber has 3 tickets in pool
 
-### Phase 4: Directory & Profile Polish
+- [ ] Build certification ticket dashboard in Team tab
+  - Story: 3.1
+  - Acceptance: Shows "X available / Y assigned" with list of assignments
+  - Test: Salon owner sees ticket count and history
 
-- [x] Enforce subscription requirement for directory listing
-  - Acceptance: `stylist_profiles.is_public` can only be true if user has active subscription. Edge function or RLS enforces this.
-  - Test: Cancelled subscriber's profile automatically becomes private.
+- [ ] Implement assign ticket to team member flow
+  - Story: 3.2
+  - Acceptance: Select team member → Select certification type → Assign → Notification sent
+  - Test: Assign ticket → Team member receives notification, can access certification
 
-- [x] Customize Profile tab by user type
-  - Acceptance: Clients see simplified profile (no certifications, no directory listing). Salon owners see salon management link. Stylists see full profile with directory settings.
-  - Test: Each user type sees appropriate profile options.
+- [ ] Add purchase additional tickets flow
+  - Story: 3.3
+  - Acceptance: "Buy More Tickets" button → Stripe checkout at ~30% discount → Tickets added
+  - Test: Purchase 2 tickets → Pool increases by 2
+
+### Phase 3: Additional Seats & Auto-Join
+> From Story 2.2-2.3: Scale team beyond 5 seats, handle existing users
+
+- [ ] Add seat limit enforcement
+  - Story: 2.2
+  - Acceptance: Trying to add 6th member shows upsell modal for additional seats
+  - Test: With 5 active members, invite 6th → See "Add Seats" prompt
+
+- [ ] Implement additional seat purchase via Stripe
+  - Story: 2.2
+  - Acceptance: Purchase $99/month per seat via Stripe (not Apple IAP), seat count increases
+  - Test: Buy 2 seats → Can now have 7 team members
+
+- [ ] Create existing user detection in invite flow
+  - Story: 2.3
+  - Acceptance: If invited email has existing account, send in-app notification instead of email
+  - Test: Invite existing user → They see in-app invite notification
+
+- [ ] Implement auto-join and subscription transfer
+  - Story: 2.3
+  - Acceptance: Existing user accepts → Joins salon, individual subscription cancelled if any
+  - Test: Paying individual accepts → Joins salon, old subscription cancelled
+
+### Phase 4: Private Events
+> From Story 4.1-4.3: Request and manage private events
+
+- [ ] Create private event request form
+  - Story: 4.1
+  - Acceptance: Form with event type, dates, size, location, notes. Submits to admin dashboard.
+  - Test: Submit request → Confirmation shown, appears in admin
+
+- [ ] Build private events section in Events tab
+  - Story: 4.2
+  - Acceptance: "My Private Events" section separate from public events
+  - Test: Salon with private event sees it in dedicated section
+
+- [ ] Implement private event invitations
+  - Story: 4.3
+  - Acceptance: Invite team members or external guests, track RSVP status
+  - Test: Invite 3 people → They receive invite, status tracked
+
+- [ ] Add team event registration for public events
+  - Story: 5.1
+  - Acceptance: Multi-select team members, bulk ticket purchase, each gets digital ticket
+  - Test: Register 3 team members → 3 tickets purchased, 3 notifications sent
+
+### Phase 5: Navigation & Branding
+> From Story 1.1-1.2: Rebrand and optimize navigation
+
+- [ ] Rename Modules tab to University
+  - Story: 1.1
+  - Acceptance: Tab label shows "University" with graduation cap icon
+  - Test: Navigation shows "University" not "Modules"
+
+- [ ] Update app display name to Bob Company
+  - Story: 1.1
+  - Acceptance: App name in app.json, splash screen, about screen all say "Bob Company"
+  - Test: App appears as "Bob Company" everywhere
+
+- [ ] Implement user-type-based tab navigation
+  - Story: 1.2
+  - Acceptance: Tab bar shows different tabs based on user_type (see story for specs)
+  - Test: Each user type sees their specific tabs
+
+- [ ] Add secondary navigation menu
+  - Story: 1.2
+  - Acceptance: Hamburger or profile sub-menu contains: Community, Directory, Notifications, Support
+  - Test: Tap menu → See secondary items
+
+- [ ] Enhance team progress dashboard
+  - Story: 2.4
+  - Acceptance: Aggregate metrics: avg completion, most watched modules, engagement trends
+  - Test: View Team tab → See team-wide statistics
