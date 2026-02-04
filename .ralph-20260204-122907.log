@@ -530,3 +530,171 @@ Task completed successfully. Here's a summary:
   [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
   [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
   [0;36m⟳[0m Claude working...
+Task completed successfully. Here's a summary of what was implemented:
+
+## Completed: Implement assign ticket to team member flow (Story 3.2)
+
+**Changes made:**
+
+1. **New Edge Function** (`supabase/functions/assign-certification-ticket/index.ts`):
+   - Validates salon ownership
+   - Verifies team member belongs to salon
+   - Checks available ticket count
+   - Prevents duplicate active assignments for same certification
+   - Creates assignment record in database
+   - Decrements available ticket count
+   - Sends push notification to assigned team member
+   - Returns assignment details and notification status
+
+2. **Team Tab UI Updates** (`app/(tabs)/team.tsx`):
+   - Added "Assign Ticket" button in the certification tickets dashboard
+   - Created modal with two-step selection:
+     - Step 1: Select certification type (shows all active certifications with price value)
+     - Step 2: Select team member (filters out those with existing active assignments for selected certification)
+   - Radio button selection UI with visual feedback
+   - Assign button shows dynamic text based on selections
+   - Success alert confirms assignment and notification status
+   - Local state updates immediately after successful assignment
+
+**Acceptance criteria met:**
+- ✅ Select team member → Select certification type → Assign flow works
+- ✅ Notification sent to team member via push notification
+- ✅ Available ticket count decreases by 1
+- ✅ Prevents duplicate assignments for same certification
+  [0;32m✓[0m Task completed
+  [0;36m↳[0m Checking CI status...
+  [0;33m![0m CI timeout - continuing without result
+
+  [1m[[0;32m█████████████████[0m[1m░░░░░░░░░░░░░] 58% (20/34)[0m  [0;33m71m elapsed[0m
+
+  [1mTask 21:[0m Add purchase additional tickets flow...
+
+  [0;33m![0m Migration files detected, running safety review...
+## Migration Review Complete
+
+### Found
+- **28** local migration files scanned
+- **50** database migrations applied
+
+### Classification
+
+| Risk Level | Count | Status |
+|------------|-------|--------|
+| ✓ Safe | 48+ | All applied |
+| ⏸ Caution | 2 | Already applied (UPDATE backfills) |
+| ⛔ Blocked | 0 | N/A |
+
+### Recent Migrations Analysis
+
+**028_certification_ticket_system.sql** (Applied: 20260204195727)
+| Operation | Risk |
+|-----------|------|
+| CREATE TABLE salon_certification_tickets | Safe |
+| CREATE TABLE certification_ticket_assignments | Safe |
+| CREATE INDEX (4 indexes) | Safe |
+| ALTER TABLE ENABLE RLS (2 tables) | Safe |
+| CREATE POLICY (7 policies) | Safe |
+| CREATE FUNCTION update_certification_tickets_updated_at | Safe |
+| CREATE TRIGGER (2 triggers) | Safe |
+| COMMENT ON | Safe |
+
+**027_staff_access_codes_email_invite.sql** (Applied: 20260204185513)
+| Operation | Risk |
+|-----------|------|
+| ADD COLUMN invited_email TEXT (nullable) | Safe |
+| ADD COLUMN invite_sent_at TIMESTAMPTZ (nullable) | Safe |
+| CREATE INDEX (partial) | Safe |
+
+**026_user_types_and_new_plans.sql** (Applied: 20260203223612)
+| Operation | Risk |
+|-----------|------|
+| ADD COLUMN user_type TEXT (nullable with CHECK) | Safe |
+| CREATE INDEX | Safe |
+| UPDATE profiles (conditional backfill) | Caution ✓ |
+
+### Action Required
+**None** - All migrations are applied. No pending or blocked operations.
+
+**BLOCKED=false**
+  [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
+  [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
+  [0;36m⟳[0m Claude working...
+Task completed successfully. Here's what I implemented:
+
+## Summary: Add purchase additional tickets flow (Story 3.3)
+
+### Changes Made:
+
+1. **`app/(tabs)/team.tsx`** - Added purchase tickets UI:
+   - Added "Buy Tickets" button alongside "Assign Ticket" button
+   - Created purchase modal with quantity selector (+/- buttons)
+   - Shows 30% discount prominently ($207 vs $297 per ticket)
+   - Displays price summary with savings calculation
+   - Integrated with Stripe payment sheet for mobile payments
+   - Optimistic local state update after purchase
+   - Added warning message when no tickets available
+
+2. **`supabase/functions/payment-sheet/index.ts`** - Added certification tickets support:
+   - New `certificationTickets` and `salonId` parameters
+   - Server-side price validation ($207 = 20700 cents per ticket)
+   - Verifies user owns the salon before processing
+   - Added `certification_tickets` product type to metadata
+
+3. **`supabase/functions/stripe-webhook/index.ts`** - Added ticket purchase handling:
+   - Handles `productType === 'certification_tickets'` in payment_intent.succeeded
+   - Increments salon's ticket pool (total_tickets and available_tickets)
+   - Creates new pool if one doesn't exist (edge case)
+   - Triggers GHL workflow for ticket purchases
+   - Updated `mapProductType` function for new product type
+
+### Acceptance Criteria Met:
+- ✅ "Buy More Tickets" button visible in Team tab
+- ✅ Stripe checkout at ~30% discount ($207 vs $297)
+- ✅ Purchased tickets added to salon pool
+- ✅ Works for any certification type (tickets are generic)
+  [0;32m✓[0m Task completed
+  [0;36m↳[0m Checking CI status...
+  [0;33m![0m CI timeout - continuing without result
+
+  [1m[[0;32m██████████████████[0m[1m░░░░░░░░░░░░] 61% (21/34)[0m  [0;33m86m elapsed[0m
+
+  [1mTask 22:[0m Add seat limit enforcement...
+
+  [0;33m![0m Migration files detected, running safety review...
+## Migration Review Complete
+
+### Found
+- **28** local migration files scanned
+- **49** database migrations applied
+
+### Classification
+- ✓ **Safe:** 50+ operations (all applied)
+- ⏸ **Caution:** 5 operations (UPDATE backfills, policy changes - all applied)  
+- ⛔ **Blocked:** 0 operations
+
+### Recent Migrations (All Applied)
+
+| Migration | Status | Risk Assessment |
+|-----------|--------|-----------------|
+| 028_certification_ticket_system.sql | ✓ Applied | **Safe** - Creates 2 new tables, RLS policies, indexes, triggers |
+| 027_staff_access_codes_email_invite.sql | ✓ Applied | **Safe** - Adds nullable columns |
+| 026_user_types_and_new_plans.sql | ✓ Applied | **Caution** - Includes UPDATE backfills (safe, conditional) |
+
+### New Migration Details (028)
+
+The certification ticket system migration creates:
+- `salon_certification_tickets` table - tracks ticket pool per salon
+- `certification_ticket_assignments` table - tracks tickets assigned to team members
+- 4 indexes for query performance
+- 7 RLS policies for proper access control
+- Timestamp update triggers
+
+All operations are **CREATE TABLE**, **CREATE INDEX**, **CREATE POLICY**, and **CREATE FUNCTION** - no data modification or destructive operations.
+
+### Action Required
+**None** - All migrations have been applied to the database.
+
+**BLOCKED=false**
+  [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
+  [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
+  [0;36m⟳[0m Claude working...

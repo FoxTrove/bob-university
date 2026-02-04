@@ -61,6 +61,12 @@ export default function TeamTab() {
   const [selectedTeamMember, setSelectedTeamMember] = useState<StaffWithProgress | null>(null);
   const [selectedCertification, setSelectedCertification] = useState<CertificationSetting | null>(null);
   const [assigning, setAssigning] = useState(false);
+  const [showSeatLimitModal, setShowSeatLimitModal] = useState(false);
+
+  // Calculate current seat usage
+  const maxSeats = salon?.max_staff || 5;
+  const currentSeats = staff.length;
+  const isAtSeatLimit = currentSeats >= maxSeats;
 
   useEffect(() => {
     fetchSalonData();
@@ -229,7 +235,17 @@ export default function TeamTab() {
     return code;
   }
 
+  function checkSeatLimit(): boolean {
+    if (isAtSeatLimit) {
+      setShowSeatLimitModal(true);
+      return false;
+    }
+    return true;
+  }
+
   async function handleGenerateCodeOnly() {
+    if (!checkSeatLimit()) return;
+
     setGenerating(true);
     try {
       const code = await generateAccessCode();
@@ -262,6 +278,8 @@ export default function TeamTab() {
       Alert.alert('Error', 'You must be logged in.');
       return;
     }
+
+    if (!checkSeatLimit()) return;
 
     const emails = parseEmails(inviteEmail);
 
@@ -799,7 +817,11 @@ export default function TeamTab() {
             <View className="flex-row gap-3 mb-6">
               <TouchableOpacity
                 className="flex-1 flex-row items-center justify-center bg-purple-500/20 py-3 px-4 rounded-xl"
-                onPress={() => setShowEmailForm(true)}
+                onPress={() => {
+                  if (checkSeatLimit()) {
+                    setShowEmailForm(true);
+                  }
+                }}
                 disabled={generating}
               >
                 <Ionicons name="mail-outline" size={20} color="#a855f7" />
@@ -1219,6 +1241,86 @@ export default function TeamTab() {
                   </Text>
                 </>
               )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Seat Limit Upsell Modal */}
+      <Modal
+        visible={showSeatLimitModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowSeatLimitModal(false)}
+      >
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-surface rounded-t-3xl p-6">
+            {/* Header */}
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-text font-bold text-xl">Team at Capacity</Text>
+              <TouchableOpacity onPress={() => setShowSeatLimitModal(false)}>
+                <Ionicons name="close" size={24} color="#71717a" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Icon and Message */}
+            <View className="items-center mb-6">
+              <View className="bg-orange-500/20 p-4 rounded-full mb-4">
+                <Ionicons name="people" size={40} color="#f97316" />
+              </View>
+              <Text className="text-text text-center text-lg mb-2">
+                Your team has reached the {maxSeats}-member limit
+              </Text>
+              <Text className="text-textMuted text-center">
+                Add more seats to invite additional team members to your salon's training program.
+              </Text>
+            </View>
+
+            {/* Pricing Info */}
+            <View className="bg-surfaceHighlight rounded-xl p-4 mb-6">
+              <View className="flex-row items-center mb-2">
+                <Ionicons name="add-circle" size={20} color="#a855f7" />
+                <Text className="text-text font-bold ml-2">Additional Seats</Text>
+              </View>
+              <Text className="text-textMuted mb-3">
+                Expand your team with additional seats at $99/month per seat.
+              </Text>
+              <View className="flex-row items-center">
+                <Text className="text-2xl font-bold text-primary">$99</Text>
+                <Text className="text-textMuted ml-1">/month per seat</Text>
+              </View>
+            </View>
+
+            {/* Current Status */}
+            <View className="flex-row items-center justify-between bg-surfaceHighlight rounded-xl p-4 mb-6">
+              <View className="flex-row items-center">
+                <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
+                <Text className="text-text ml-2">Current team</Text>
+              </View>
+              <Text className="text-text font-bold">{currentSeats} / {maxSeats} seats</Text>
+            </View>
+
+            {/* Action Buttons */}
+            <TouchableOpacity
+              className="bg-purple-500 py-4 px-6 rounded-xl flex-row items-center justify-center mb-3"
+              onPress={() => {
+                setShowSeatLimitModal(false);
+                // This will be implemented in the next task - navigate to seat purchase
+                Alert.alert(
+                  'Coming Soon',
+                  'Additional seat purchases will be available shortly. Contact support for immediate assistance.'
+                );
+              }}
+            >
+              <Ionicons name="cart-outline" size={20} color="#ffffff" />
+              <Text className="text-white font-bold ml-2">Add Seats</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="py-4 px-6 rounded-xl flex-row items-center justify-center"
+              onPress={() => setShowSeatLimitModal(false)}
+            >
+              <Text className="text-textMuted font-medium">Maybe Later</Text>
             </TouchableOpacity>
           </View>
         </View>
