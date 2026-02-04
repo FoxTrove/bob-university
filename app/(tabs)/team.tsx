@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, LayoutAnimation, Platform, UIManager, TextInput } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
@@ -37,6 +37,9 @@ export default function TeamTab() {
   const [generating, setGenerating] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [sendingInvite, setSendingInvite] = useState(false);
 
   useEffect(() => {
     fetchSalonData();
@@ -127,33 +130,129 @@ export default function TeamTab() {
     }
   }
 
-  async function generateAccessCode() {
+  async function generateAccessCode(email?: string) {
     if (!user?.id || !salon?.id) {
       Alert.alert('Error', 'No salon found for this user.');
-      return;
+      return null;
     }
 
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 2); // 48 hours
+
+    const { error } = await supabase.from('staff_access_codes').insert({
+      owner_id: user.id,
+      salon_id: salon.id,
+      code: code,
+      max_uses: 1,
+      expires_at: expiresAt.toISOString(),
+      invited_email: email || null,
+      invite_sent_at: email ? new Date().toISOString() : null,
+    });
+
+    if (error) throw error;
+    return code;
+  }
+
+  async function handleGenerateCodeOnly() {
     setGenerating(true);
     try {
-      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 2); // 48 hours
-
-      const { error } = await supabase.from('staff_access_codes').insert({
-        owner_id: user.id,
-        salon_id: salon.id,
-        code: code,
-        max_uses: 1,
-        expires_at: expiresAt.toISOString(),
-      });
-
-      if (error) throw error;
-      setGeneratedCode(code);
+      const code = await generateAccessCode();
+      if (code) {
+        setGeneratedCode(code);
+        setShowEmailForm(false);
+      }
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Failed to generate code';
       Alert.alert('Error', message);
     } finally {
       setGenerating(false);
+    }
+  }
+
+  function parseEmails(input: string): string[] {
+    return input
+      .split(',')
+      .map(e => e.trim().toLowerCase())
+      .filter(e => e.length > 0);
+  }
+
+  function validateEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  async function sendEmailInvite() {
+    if (!user?.id) {
+      Alert.alert('Error', 'You must be logged in.');
+      return;
+    }
+
+    const emails = parseEmails(inviteEmail);
+
+    if (emails.length === 0) {
+      Alert.alert('Error', 'Please enter at least one email address.');
+      return;
+    }
+
+    // Validate all emails and find invalid ones
+    const invalidEmails = emails.filter(e => !validateEmail(e));
+    if (invalidEmails.length > 0) {
+      Alert.alert(
+        'Invalid Email(s)',
+        `The following email${invalidEmails.length > 1 ? 's are' : ' is'} invalid:\n${invalidEmails.join('\n')}`
+      );
+      return;
+    }
+
+    // For now, only support single email - batch implementation is next task
+    if (emails.length > 1) {
+      Alert.alert(
+        'Coming Soon',
+        'Batch email invites are coming soon. For now, please send invites one at a time.'
+      );
+      return;
+    }
+
+    setSendingInvite(true);
+    try {
+      const email = emails[0];
+      const code = await generateAccessCode(email);
+      if (!code) return;
+
+      // Get owner profile for the email
+      const { data: ownerProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      // Send the invite email via edge function
+      const { error: emailError } = await supabase.functions.invoke('send-email', {
+        body: {
+          to: email,
+          template: 'team-invite',
+          data: {
+            salonName: salon?.name,
+            ownerName: ownerProfile?.full_name,
+            accessCode: code,
+            expiresIn: 'in 48 hours',
+          },
+          skip_preference_check: true,
+        },
+      });
+
+      if (emailError) throw emailError;
+
+      setGeneratedCode(code);
+      Alert.alert('Invite Sent!', `An invitation has been sent to ${email}`);
+      setInviteEmail('');
+      setShowEmailForm(false);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to send invite';
+      Alert.alert('Error', message);
+    } finally {
+      setSendingInvite(false);
     }
   }
 
@@ -239,21 +338,92 @@ export default function TeamTab() {
             </View>
           )}
 
-          {/* Generate Access Code Button */}
-          <TouchableOpacity
-            className="flex-row items-center justify-center bg-purple-500/20 py-3 px-4 rounded-xl mb-6"
-            onPress={generateAccessCode}
-            disabled={generating}
-          >
-            {generating ? (
-              <ActivityIndicator size="small" color="#a855f7" />
-            ) : (
-              <>
-                <Ionicons name="add-circle-outline" size={20} color="#a855f7" />
-                <Text className="text-purple-500 font-bold ml-2">Generate Access Code</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          {/* Invite Staff Section */}
+          {showEmailForm ? (
+            <Card className="mb-6 bg-surfaceHighlight">
+              <View className="flex-row items-center justify-between mb-3">
+                <Text className="text-text font-bold">Invite via Email</Text>
+                <TouchableOpacity onPress={() => setShowEmailForm(false)}>
+                  <Ionicons name="close" size={20} color="#71717a" />
+                </TouchableOpacity>
+              </View>
+              <TextInput
+                className="bg-surface border border-surfaceHighlight rounded-lg px-4 py-3 text-text mb-2"
+                placeholder="Enter email addresses (comma-separated)"
+                placeholderTextColor="#71717a"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                value={inviteEmail}
+                onChangeText={setInviteEmail}
+                editable={!sendingInvite}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+              {/* Email count helper */}
+              {(() => {
+                const emails = inviteEmail
+                  .split(',')
+                  .map(e => e.trim())
+                  .filter(e => e.length > 0);
+                const count = emails.length;
+                return (
+                  <Text className="text-textMuted text-xs mb-3">
+                    {count === 0
+                      ? 'Separate multiple emails with commas'
+                      : count === 1
+                        ? '1 email entered'
+                        : `${count} emails entered`}
+                  </Text>
+                );
+              })()}
+              <TouchableOpacity
+                className="bg-purple-500 py-3 px-4 rounded-lg flex-row items-center justify-center"
+                onPress={sendEmailInvite}
+                disabled={sendingInvite}
+              >
+                {sendingInvite ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <>
+                    <Ionicons name="send" size={18} color="#ffffff" />
+                    <Text className="text-white font-bold ml-2">
+                      {(() => {
+                        const emails = inviteEmail
+                          .split(',')
+                          .map(e => e.trim())
+                          .filter(e => e.length > 0);
+                        return emails.length > 1 ? 'Send Invites' : 'Send Invite';
+                      })()}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </Card>
+          ) : (
+            <View className="flex-row gap-3 mb-6">
+              <TouchableOpacity
+                className="flex-1 flex-row items-center justify-center bg-purple-500/20 py-3 px-4 rounded-xl"
+                onPress={() => setShowEmailForm(true)}
+                disabled={generating}
+              >
+                <Ionicons name="mail-outline" size={20} color="#a855f7" />
+                <Text className="text-purple-500 font-bold ml-2">Invite via Email</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="bg-purple-500/20 py-3 px-4 rounded-xl"
+                onPress={handleGenerateCodeOnly}
+                disabled={generating}
+              >
+                {generating ? (
+                  <ActivityIndicator size="small" color="#a855f7" />
+                ) : (
+                  <Ionicons name="key-outline" size={20} color="#a855f7" />
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Generated Code Display */}
           {generatedCode && (

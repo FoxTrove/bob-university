@@ -773,6 +773,8 @@ export type Database = {
           created_at: string | null
           expires_at: string | null
           id: string
+          invite_sent_at: string | null
+          invited_email: string | null
           max_uses: number | null
           owner_id: string
           salon_id: string | null
@@ -784,6 +786,8 @@ export type Database = {
           created_at?: string | null
           expires_at?: string | null
           id?: string
+          invite_sent_at?: string | null
+          invited_email?: string | null
           max_uses?: number | null
           owner_id: string
           salon_id?: string | null
@@ -795,6 +799,8 @@ export type Database = {
           created_at?: string | null
           expires_at?: string | null
           id?: string
+          invite_sent_at?: string | null
+          invited_email?: string | null
           max_uses?: number | null
           owner_id?: string
           salon_id?: string | null

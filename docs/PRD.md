@@ -1,27 +1,35 @@
-# Bob University Mobile Application
+# Bob Company Mobile Application
 ## Product Requirements Document
 
-**Version 2.2**
-**February 3, 2026**
+**Version 2.3**
+**February 4, 2026**
 **Prepared by FoxTrove.ai for Ray Hornback**
 
 | Metadata | Details |
 | :--- | :--- |
-| **Document Status** | Updated - New Pricing Tiers & User Types (Paige Meeting Feb 3) |
-| **Project Name** | Bob University Mobile App |
+| **Document Status** | Updated - Rebrand to Bob Company + Salon Enhancements |
+| **Project Name** | Bob Company Mobile App |
 | **Client** | Ray Hornback |
 | **Development Partner** | FoxTrove.ai (Kyle Rasmussen) |
 | **Target Launch** | January/February 2026 |
 | **Platforms** | iOS (App Store) & Android (Google Play) |
 
+> **BRAND CLARIFICATION**: Bob Company is the parent brand. Bob University is a subsidiary brand that lives within the app as the "University" section (educational content). The app itself is branded as "Bob Company" since it serves clients, individual stylists, and salons.
+
 
 ## 1. Executive Summary
 
 ### 1.1 Product Vision
-The Bob Company Hair Education App is a premium mobile platform designed to transform
-how hairstylists learn and master cutting techniques. Built for Ray Hornback's established
-hair education business, this app will serve as the primary delivery mechanism for
-educational content, certifications, community building, and live event management.
+The Bob Company mobile app is a premium platform designed to serve the complete Bob Company ecosystem—connecting clients with certified stylists, empowering individual stylists to master cutting techniques, and providing salons with comprehensive team training tools.
+
+**Brand Architecture:**
+- **Bob Company** (Parent Brand): The app name and overall brand identity
+- **Bob University** (Subsidiary Brand): The educational content section within the app, branded as "University" in navigation
+
+The app serves three distinct user types with tailored experiences:
+- **Clients**: Find Ray-certified stylists in their area via the directory
+- **Individual Stylists**: Access training content, earn certifications, get listed in directory
+- **Salon Owners**: Manage team training, assign certifications, track progress, request private events
 
 The app addresses critical friction points in the current delivery and marketing system by
 providing a native mobile experience that meets Gen Z stylists where they already are—on
@@ -214,7 +222,9 @@ When users attempt to cancel their subscription:
 - Exit survey data informs product improvements
 
 
-### 3.3 Content Library & Collections
+### 3.3 Content Library & Collections (University Section)
+
+> **Navigation Note:** The educational content section is branded as "University" in the app navigation, representing the Bob University subsidiary brand within the Bob Company app.
 
 #### 3.3.1 Content Organization
 The library is organized into Modules and Collections.
@@ -269,19 +279,90 @@ access revocation.
 - Receipt & History: View payment history and download receipts in-app.
 
 #### 3.4.3 Salon Owner Features
+
+**Team Seat Management:**
 - **5 Included Seats**: Salon subscription includes 5 team member seats by default.
 - **Seat Shuffling**: Can reassign seats to different team members (unlimited shuffles per year).
+- **Additional Seats**: Purchase extra seats at **$99/month per seat** via Stripe (not Apple IAP to minimize fees).
 - **Staff Access Codes**: Generate unique invite codes for team members.
-- **Team Management**: View list of active staff, revoke access, resend invites.
+- **Batch Email Invites**: Invite multiple team members at once by entering multiple email addresses.
+- **Team Management**: View list of active staff, easily revoke access, resend invites.
 - **Detailed Analytics**: Monitor stylist engagement, video completion percentages, and module progress dashboards.
 - **Billing Consolidation**: Single invoice for salon owner covering all staff access.
-- **Certification Discounts**: Team members get ~30% off certification purchases.
-- **Additional Seats**: Can purchase extra seats beyond 5 at discounted rate.
 
-**Salon Dashboard Features**:
-- Quick action: "Book a Live Event with Ray" button
-- Team certification status overview
+**Existing User Invitation Flow:**
+When a salon owner invites a user who already has an app account:
+1. Existing user receives in-app notification (not email)
+2. User automatically joins the salon team
+3. If user had an individual subscription, it is automatically cancelled (salon now covers their access)
+4. User's progress and data is preserved
+
+**Certification Ticket System:**
+- **3 Free Certifications Included**: Salon package includes a pool of 3 certification tickets.
+- **Assignable Pool**: Salon owners can assign tickets to any team member for any certification type.
+- **Track Usage**: Dashboard shows available vs assigned tickets.
+- **Purchase Additional**: Buy more certification tickets at discounted rate (~30% off individual price).
+- **Future Certifications**: Tickets work for any certification (Bob, Pixie, Shag, etc. as they launch).
+- **UX Clarity**: Clear separation between "Get Certified" (for salon owner) and "Assign Team Certifications" flows.
+
+**Salon Dashboard Features:**
+- Team certification status overview (assigned vs unassigned tickets)
 - Aggregate team progress metrics
+- Quick action: "Book a Live Event with Ray" button
+- Quick action: "Request Private Event" button
+
+**Private/Custom Event Requests:**
+Salon owners can request custom events (in-person or virtual) for their team:
+1. Tap "Request Private Event" → Opens request form
+2. Fill out: event type, preferred dates, team size, location, special requests
+3. Submit → Confirmation that Ray will review and schedule a call
+4. Ray reviews request and provides quote via phone
+5. Once approved, Ray creates private event in admin (visible only to salon)
+6. Salon owner can invite additional attendees through the app
+7. Private events appear in a separate section from public events
+
+### 3.4.4 Navigation Structure by User Type
+
+The app navigation adapts based on user type. All educational content appears under the "University" tab (representing the Bob University brand within the Bob Company app).
+
+**Individual Stylist Navigation:**
+| Tab | Purpose |
+| :--- | :--- |
+| Home | Personalized dashboard, continue watching |
+| University | Educational content (modules, videos) |
+| Certify | Certification status and purchases |
+| Events | Upcoming events and tickets |
+| Profile | Settings, subscription, directory listing |
+
+**Salon Owner Navigation (Simplified):**
+The salon owner experience has additional features. To prevent clutter:
+
+| Tab | Purpose |
+| :--- | :--- |
+| Home | Personalized dashboard with team overview |
+| University | Educational content (modules, videos) |
+| Team | Staff management, invites, progress tracking, certification assignment |
+| Events | Public events + Private event requests |
+| Profile | Settings, subscription, certifications |
+
+**Secondary Navigation (Hamburger Menu or Profile Sub-menu):**
+- Community
+- Directory
+- Notifications
+- Support
+
+**Client Navigation:**
+| Tab | Purpose |
+| :--- | :--- |
+| Directory | Find certified stylists (map/list view) |
+| Profile | Settings |
+
+**Design Principles:**
+- Prioritize most-used features per user type in primary nav
+- Collapse less frequently accessed items into secondary menu
+- Team tab is unique to salon owners
+- Clients only see directory-focused navigation
+
 
 ### 3.5 Certification Program
 
@@ -324,11 +405,21 @@ Certifications are premium add-ons that validate mastery of specific methods thr
 ### 3.6 Live Events & Workshops
 
 #### 3.6.1 Event Types
-- Live Virtual Sessions: Real-time haircut demonstrations streamed within the app.
-- In-Person Workshops: Hands-on classes in physical locations.
-- Certification Bootcamps: Intensive in-person training leading to certification.
+- **Live Virtual Sessions**: Real-time haircut demonstrations streamed within the app.
+- **In-Person Workshops**: Hands-on classes in physical locations.
+- **Certification Bootcamps**: Intensive in-person training leading to certification.
+- **Private Salon Events** (NEW): Custom events created for specific salons (visible only to that salon).
 
-#### 3.6.2 Event Discovery & Registration
+#### 3.6.2 Public vs Private Events
+| Aspect | Public Events | Private Events |
+| :--- | :--- | :--- |
+| Visibility | All users can see | Only requesting salon |
+| Creation | Admin creates | Admin creates after request approval |
+| Registration | Individual users register | Salon owner invites attendees |
+| Pricing | Standard pricing | Custom quote from Ray |
+| Discovery | Events tab for all users | Separate "My Private Events" section |
+
+#### 3.6.3 Event Discovery & Registration
 - Event Calendar: Browse upcoming events with filters (type, location, date).
 - Event Details: Description, instructor, location/platform, date/time, price, capacity.
 - Preview Videos: Short preview clips for in-person workshops showing what to
@@ -336,22 +427,61 @@ expect.
 - In-App Ticket Purchase/Registration: Seamless checkout with Stripe integration.
 - Member Discounts: Automatic discount application for subscribers (10-15%).
 
-#### 3.6.3 Ticket Management
+#### 3.6.4 Ticket Management
 - Digital Tickets: PDF tickets with QR code for check-in at in-person events.
 - Apple Wallet / Google Wallet: Add tickets to native wallet apps.
 - Email Confirmation: Triggered via Go High Level integration.
 - My Tickets: View purchased tickets and event history in profile.
 
-#### 3.6.4 Live Event Features
+#### 3.6.5 Live Event Features
 - Timings: Events now support specific Start and End times.
-- Virtual Events: Zooom integration with automated link delivery upon ticket purchase.
+- Virtual Events: Zoom integration with automated link delivery upon ticket purchase.
 - Calendar: Dedicated event calendar view with preview videos.
 - Discounts: Automated member discount recognition at checkout.
 - Push Notifications: Reminder 1 week before, 24 hours before, and 1 hour before.
 - Live Chat: Real-time Q&A during virtual sessions.
 - Recording Access: Ticket holders get replay access for 30 days after event.
-- Certification Upsell: Prompt attendees to pursue certification after workshop
-completion.
+- Certification Upsell: Prompt attendees to pursue certification after workshop completion.
+
+#### 3.6.6 Team Event Registration (Salon Owners)
+Salon owners can register team members for events:
+- **Multi-Select**: Select multiple team members when registering for an event
+- **Bulk Tickets**: Purchase tickets for selected team members in one transaction
+- **Team Discounts**: Salon team members receive automatic discounts
+- **Notification**: Team members receive notification of their registration
+- **Ticket Distribution**: Each team member gets their own digital ticket
+
+#### 3.6.7 Private Event Request Workflow
+Salon owners can request custom events for their team:
+
+**Request Process:**
+1. Salon owner taps "Request Private Event" in Events tab
+2. Fills out request form:
+   - Event type (in-person workshop, virtual session, certification bootcamp)
+   - Preferred date range
+   - Team size / expected attendees
+   - Location preference (for in-person)
+   - Special requests or topics
+3. Submits request
+4. Confirmation screen: "Ray will review your request and schedule a call to discuss details"
+5. Request logged in admin dashboard
+
+**Admin Review Process:**
+1. Ray reviews request in admin dashboard
+2. Schedules phone call with salon owner
+3. Discusses details, confirms scope, provides quote
+4. If approved, creates private event in admin with:
+   - Visibility: Private (linked to requesting salon)
+   - Custom pricing (per quote)
+   - Attendee capacity
+
+**Invitation Flow:**
+1. Salon owner receives notification that event is created
+2. Event appears in "My Private Events" section (separate from public events)
+3. Salon owner can invite attendees:
+   - Team members (from roster)
+   - External guests (via email invite)
+4. Both Ray and salon owner can send invites through the app
 
 
 ### 3.7 Certified Stylist Directory
@@ -462,7 +592,7 @@ location.
 ### 3.10 Community Feature
 
 #### 3.10.1 Overview
-The Community feature provides a social space within the app where stylists can share their work, ask questions, exchange tips, and request feedback from peers. This feature serves as a key selling point for the app, fostering engagement and creating a sense of belonging among Bob University members.
+The Community feature provides a social space within the app where stylists can share their work, ask questions, exchange tips, and request feedback from peers. This feature serves as a key selling point for the app, fostering engagement and creating a sense of belonging among Bob Company members.
 
 **Key Value Propositions:**
 - Peer-to-peer learning and support
@@ -604,23 +734,36 @@ Supabase backend, and key third-party integrations for payments, CRM, and AI cap
 ### 4.3 Data Architecture
 
 #### 4.3.1 Core Database Tables
-- users: User accounts and profile information
-- subscriptions: Subscription status, tier, billing info (synced with Stripe)
-- modules: Course modules and organization
-- videos: Video metadata, storage URLs, access level
-- user_progress: Video completion, timestamps, module progress
-- certifications: Available certifications and requirements
-- user_certifications: User certification status, submissions, results
-- events: Live events and workshops
-- tickets: Event ticket purchases and QR codes
-- stylist_profiles: Public directory listings
-- staff_access_codes: Salon owner team management
-- ai_conversations: Chat history with AI assistant
-- community_posts: User-generated community posts
-- community_comments: Comments on community posts
-- community_reactions: Reactions (likes, fire, haircut, helpful)
-- community_reports: Flagged content for moderation
-- community_bans: Banned community users
+- **profiles**: User accounts and profile information (includes user_type: salon_owner/individual_stylist/client)
+- **salons**: Salon entities with owner_id and max_staff
+- **subscriptions / entitlements**: Subscription status, tier, billing info (synced with Stripe)
+- **modules**: Course modules and organization
+- **videos**: Video metadata, storage URLs, access level
+- **video_progress**: Video completion, timestamps, module progress
+- **certification_settings**: Available certifications and requirements
+- **user_certifications**: User certification status, submissions, results
+- **events**: Live events and workshops (includes is_private flag, salon_id for private events)
+- **event_registrations**: Event ticket purchases and QR codes
+- **stylist_profiles**: Public directory listings
+- **staff_access_codes**: Salon owner team management (includes invited_email, invite_sent_at)
+- **ai_conversations**: Chat history with AI assistant
+- **community_posts**: User-generated community posts
+- **community_comments**: Comments on community posts
+- **community_reactions**: Reactions (likes, fire, haircut, helpful)
+- **community_reports**: Flagged content for moderation
+- **community_bans**: Banned community users
+
+**New Tables (v2.3):**
+- **salon_certification_tickets**: Pool of certification tickets owned by salon
+  - salon_id, certification_type, quantity_total, quantity_assigned
+- **certification_assignments**: Tracks which team member received which ticket
+  - salon_id, user_id, certification_id, assigned_at, assigned_by
+- **additional_seat_purchases**: Tracks $99/month additional seat purchases
+  - salon_id, stripe_subscription_id, quantity, started_at, cancelled_at
+- **private_event_requests**: Salon requests for custom events
+  - salon_id, event_type, preferred_dates, team_size, location, notes, status, created_at
+- **event_invitations**: Invitations for private events
+  - event_id, inviter_id, invitee_email, invitee_user_id, status, sent_at
 
 #### 4.3.2 Row Level Security (RLS)
 Supabase RLS policies will enforce data access at the database level:
@@ -700,10 +843,10 @@ Total time from Instagram to paid subscriber: 5-10 minutes
 
 ### 6.1 Overview
 The Admin Dashboard is a separate web application for Ray to manage all aspects of
-Bob University. It provides full control over content, users, events, certifications,
+Bob Company. It provides full control over content, users, events, certifications,
 and push notifications without requiring technical knowledge.
 
-- URL: admin.bobuniversity.com (placeholder pending confirmation)
+- URL: admin.bobcompany.com (placeholder pending confirmation)
 - Technology: Next.js web application with Tailwind CSS
 - Authentication: Supabase Auth with admin role verification
 - Hosting: Vercel (recommended for Next.js optimization)
@@ -1030,6 +1173,7 @@ by Week 5 to support content migration and soft launch preparation.
 
 | Date | Version | Description | Author |
 | :--- | :--- | :--- | :--- |
+| **Feb 4, 2026** | **2.3** | **Rebrand to Bob Company + Salon Enhancements**<br>Major brand and feature update:<br>- **REBRAND:** App renamed from "Bob University" to "Bob Company" (parent brand). Bob University becomes the "University" section within the app for educational content.<br>- **Additional Seats:** Salon owners can purchase extra seats at $99/month via Stripe (not Apple IAP to minimize fees).<br>- **Batch Email Invites:** Invite multiple team members at once by entering multiple email addresses.<br>- **Existing User Invites:** Users with existing accounts auto-join salon and have individual subscription cancelled (salon covers access).<br>- **Certification Ticket Pool:** Salon package includes 3 free certifications as assignable tickets. Track available vs assigned. Purchase additional at ~30% discount.<br>- **Team Event Registration:** Salon owners can register multiple team members for events in one transaction.<br>- **Private Event Requests:** New workflow for salons to request custom events → Ray reviews → Phone call → Quote → Private event created.<br>- **Navigation Simplification:** Reorganized salon owner nav with primary tabs (Home, University, Team, Events, Profile) and secondary menu for less-used items.<br>- **Private Events UI:** Separate section for salon's private events vs public events. | FoxTrove.ai |
 | **Feb 3, 2026** | **2.2** | **New Pricing Tiers & User Types (Paige Meeting)**<br>Major pricing and user flow overhaul:<br>- **User Types:** Added 3 profile types during onboarding (Salon Owner, Individual Stylist, Client/Customer)<br>- **Individual Tiers:** Free → Signature ($69/mo) → Studio ($149/mo) with distinct feature sets<br>- **Studio Tier:** Weekly "Ask Ray" live, Demand content, studio-only replays, reserved event seats<br>- **Salon Pricing:** $150/mo or $997/year with 5 seats included, certification discounts<br>- **Certification:** $297 upsell, quarterly 4-week live cohorts, starts with Bob<br>- **Directory:** Requires active subscription to maintain listing (churn reduction)<br>- **Cancellation Flow:** Exit survey, directory warning, retention offer (2-3 months free)<br>- **Community Badges:** Tier badges (Signature, Studio, Certified) on posts<br>- **Client Profile:** Directory-only access, no community or education | FoxTrove.ai |
 | **Jan 13, 2026** | **2.1** | **Community Feature**<br>Added Section 3.10 Community Feature:<br>- Social feed with posts, comments, and reactions<br>- Media support (images, videos)<br>- "Requesting Feedback" mode for peer critique<br>- Category filters (Show Your Work, Questions, Tips)<br>- Post-moderation system with admin queue<br>- Database schema (5 tables) and storage bucket | FoxTrove.ai |
 | **Dec 16, 2025** | **2.0** | **Major V2 Update**<br>Integrated changes from Dec 12 & Dec 15 meetings:<br>- **Features:** Collections, Rich Media Lessons, Virtual Events, Certified Stylist Directory.<br>- **Monetization:** Defined subscription tiers, gating logic, and one-time purchases (Certifications/Events).<br>- **Admin:** Expanded analytics, event management, and notification center. | FoxTrove.ai |

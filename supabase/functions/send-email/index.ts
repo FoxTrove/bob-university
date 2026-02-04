@@ -16,7 +16,8 @@ type EmailTemplate =
   | "new-module"
   | "progress-milestone"
   | "newsletter"
-  | "promotional";
+  | "promotional"
+  | "team-invite";
 
 interface EmailRequest {
   to: string;
@@ -41,6 +42,7 @@ const templatePreferences: Record<EmailTemplate, string | null> = {
   "progress-milestone": "progress_milestones",
   newsletter: "newsletter",
   promotional: "promotional_emails",
+  "team-invite": null, // Always send - transactional invite
 };
 
 interface TemplateContent {
@@ -393,6 +395,31 @@ function generateTemplate(
               <p>${data.description || "Keep up the great work!"}</p>
             </div>
             <a href="https://app.bobuniversity.com" class="button">Continue Learning</a>
+          </div>
+        `),
+      };
+
+    case "team-invite":
+      return {
+        subject: `You're invited to join ${data.salonName || "a salon"} on Bob University`,
+        html: wrapHtml(`
+          <div class="content">
+            <h2>You've Been Invited!</h2>
+            <p>${data.ownerName ? `${data.ownerName} has` : "Your salon owner has"} invited you to join <strong>${data.salonName || "their salon"}</strong> on Bob University.</p>
+            <p>Use the access code below to get started with your team's training:</p>
+            <div class="details-box" style="text-align: center;">
+              <p style="font-size: 36px; font-family: monospace; letter-spacing: 8px; font-weight: bold; color: #000; margin: 16px 0;">${data.accessCode || "------"}</p>
+              <p style="color: #666; font-size: 14px; margin: 0;">This code expires ${data.expiresIn || "in 48 hours"}</p>
+            </div>
+            <h3>How to Join:</h3>
+            <ol>
+              <li>Download the Bob University app</li>
+              <li>Create your account or sign in</li>
+              <li>Enter the access code above when prompted</li>
+              <li>Start learning with your team!</li>
+            </ol>
+            <a href="https://apps.apple.com/app/bob-university" class="button">Download the App</a>
+            <p style="margin-top: 24px; font-size: 14px; color: #666;">Questions? Contact your salon owner or reply to this email.</p>
           </div>
         `),
       };
