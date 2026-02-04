@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { Header } from '@/components/Header';
 import Link from 'next/link';
-import { Plus, Calendar, MapPin, Users, DollarSign, Edit, Clock } from 'lucide-react';
+import { Plus, Calendar, MapPin, Users, DollarSign, Edit, Clock, Inbox } from 'lucide-react';
 
 interface Event {
   id: string;
@@ -45,6 +45,22 @@ async function getEvents(): Promise<Event[]> {
   }));
 }
 
+async function getPendingPrivateRequestsCount(): Promise<number> {
+  const supabase = await createClient();
+
+  const { count, error } = await supabase
+    .from('private_event_requests')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pending');
+
+  if (error) {
+    console.error('Error fetching private request count:', error);
+    return 0;
+  }
+
+  return count || 0;
+}
+
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', {
     weekday: 'short',
@@ -73,7 +89,10 @@ function isUpcoming(dateStr: string): boolean {
 export default async function EventsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const events = await getEvents();
+  const [events, pendingPrivateRequests] = await Promise.all([
+    getEvents(),
+    getPendingPrivateRequestsCount(),
+  ]);
 
   const upcomingEvents = events.filter((e) => isUpcoming(e.event_date));
   const pastEvents = events.filter((e) => !isUpcoming(e.event_date));
@@ -134,13 +153,27 @@ export default async function EventsPage() {
         {/* Actions */}
         <div className="flex justify-between items-center mb-6">
           <p className="text-gray-600">{events.length} events</p>
-          <Link
-            href="/events/new"
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            New Event
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/events/requests"
+              className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors relative"
+            >
+              <Inbox className="w-5 h-5 mr-2" />
+              Private Requests
+              {pendingPrivateRequests > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {pendingPrivateRequests}
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/events/new"
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              New Event
+            </Link>
+          </div>
         </div>
 
         {/* Upcoming Events */}
