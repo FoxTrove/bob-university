@@ -65,7 +65,7 @@
   - Acceptance: Tables for `salon_certification_tickets` and `certification_assignments` created
   - Test: Tables exist with correct schema
 
-- [ ] Add 3 free tickets when salon subscription starts
+- [x] Add 3 free tickets when salon subscription starts
   - Story: 3.1
   - Acceptance: Edge function/trigger creates 3 tickets when salon plan activates
   - Test: New salon subscriber has 3 tickets in pool
