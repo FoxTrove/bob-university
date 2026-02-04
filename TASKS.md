@@ -80,7 +80,7 @@
   - Acceptance: Select team member → Select certification type → Assign → Notification sent
   - Test: Assign ticket → Team member receives notification, can access certification
 
-- [ ] Add purchase additional tickets flow
+- [x] Add purchase additional tickets flow
   - Story: 3.3
   - Acceptance: "Buy More Tickets" button → Stripe checkout at ~30% discount → Tickets added
   - Test: Purchase 2 tickets → Pool increases by 2

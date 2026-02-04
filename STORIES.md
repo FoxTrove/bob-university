@@ -142,18 +142,19 @@
 
 ---
 
-### Story 3.3: Purchase Additional Certification Tickets
+### Story 3.3: Purchase Additional Certification Tickets ✅
 **As a** salon owner,
 **I want** to buy more certification tickets at a discounted rate,
 **So that** more of my team can get certified.
 
 **Acceptance Criteria:**
-- [ ] Given I have 0 available tickets, I see option to "Purchase More Tickets"
-- [ ] Given I purchase tickets, they're added to my pool at ~30% discount ($207 vs $297)
-- [ ] Given tickets are purchased, they work for any certification type (Bob, Pixie, Shag)
+- [x] Given I have 0 available tickets, I see option to "Purchase More Tickets"
+- [x] Given I purchase tickets, they're added to my pool at ~30% discount ($207 vs $297)
+- [x] Given tickets are purchased, they work for any certification type (Bob, Pixie, Shag)
 
 **Priority:** Medium
 **Complexity:** M
+**Status:** ✅ Implemented
 
 ---
 
