@@ -1587,3 +1587,162 @@ All migrations are safe to execute. No human approval required.
   [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
   [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
   [0;36m⟳[0m Claude working...
+Task completed successfully.
+
+## Summary
+
+**Task completed:** Enhance team progress dashboard
+
+**Story:** 2.4 - Team Progress Dashboard
+
+**Changes made to `app/(tabs)/team.tsx`:**
+1. Added `TeamAnalytics` interface to track aggregate metrics
+2. Added `teamAnalytics` state variable
+3. Enhanced `fetchSalonData()` to calculate:
+   - Average completion percentage across all team members
+   - Top 3 most watched modules ranked by total completions
+   - Weekly activity metrics (active members, videos completed this week)
+4. Added "Team Progress" card to the UI showing:
+   - Large avg completion percentage stat
+   - Weekly activity count with videos completed
+   - Top 3 modules with progress bars and team average percentage
+   - Medal-style ranking (gold/silver/bronze colors)
+
+**Verification:**
+- App bundles successfully for iOS (`npx expo export --platform ios`)
+- Code committed and pushed to feature branch
+  [0;32m✓[0m Task completed
+  [0;36m↳[0m Checking CI status...
+  [0;33m![0m CI timeout - continuing without result
+
+  [0;32m✓[0m All current tasks complete!
+
+[1m[0;35m════════════════════════════════════════[0m
+[1m  PRD Review (1/3)[0m
+[1m[0;35m════════════════════════════════════════[0m
+
+  [0;36m⟳[0m Comparing completed work against PRD...
+## Review Summary
+
+### Story Status
+| Story | Title | Status |
+|-------|-------|--------|
+| 1.1 | Rebrand App to Bob Company | ✅ Complete |
+| 1.2 | User Type-Based Navigation | ✅ Complete |
+| 2.1 | Batch Email Invites | ✅ Complete |
+| 2.2 | Additional Seat Purchases | ✅ Complete |
+| 2.3 | Existing User Auto-Join | ✅ Complete |
+| 2.4 | Team Progress Dashboard | ✅ Complete |
+| 3.1 | Certification Ticket Pool | ✅ Complete |
+| 3.2 | Assign Certification to Team Member | ✅ Complete |
+| 3.3 | Purchase Additional Certification Tickets | ✅ Complete |
+| 4.1 | Request Private Event | ✅ Complete |
+| 4.2 | View Private Events | ✅ Complete |
+| 4.3 | Invite Attendees to Private Event | ✅ Complete |
+| 5.1 | Register Team for Public Event | ✅ Complete |
+| 6.1 | Single Email Invite | ✅ Complete |
+
+### PRD Coverage
+- [x] User types (salon_owner, individual_stylist, client)
+- [x] User-type-based navigation  
+- [x] Salon team management (invite, remove, track progress)
+- [x] Certification ticket system for salons
+- [x] Private event requests and management
+- [x] Team event registration
+- [x] Rebranding to Bob Company / University
+
+### Codebase Issues Found
+- 6 TypeScript errors in community feature (type compatibility)
+- Admin dashboard path alias configuration issues
+
+### Changes Made
+- New stories added: 0
+- New tasks added: 2 (quality fixes)
+
+```
+CONTINUE_RALPH=true
+```
+  [0;33m+[0m New tasks identified from PRD review
+  [0;36m↻[0m Continuing with new tasks...
+
+  [1m[[0;32m████████████████████████████[0m[1m░░] 94% (34/36)[0m  [0;33m244m elapsed[0m
+
+  [1mTask 35:[0m Fix TypeScript errors in community feature...
+
+  [0;33m![0m Migration files detected, running safety review...
+The MIGRATIONS.md file already exists and is up-to-date. Let me provide a summary of the migration review.
+
+## Migration Review Complete
+
+### Found
+- **29** migration files scanned in `supabase/migrations/`
+- **100+** operations analyzed
+
+### Classification Summary
+
+| Risk Level | Count | Status |
+|------------|-------|--------|
+| Safe | 100+ | ✓ All operations auto-approved |
+| Caution | 15 | ✓ All properly handled (backfill patterns) |
+| Blocked | 0 | N/A |
+
+### Latest Migration: 029_salon_invites.sql
+
+**Status:** ⏳ Pending Review
+
+| Operation | Risk |
+|-----------|------|
+| CREATE TABLE salon_invites | Safe |
+| ALTER TABLE ENABLE RLS | Safe |
+| CREATE POLICY (x5) | Safe |
+| CREATE INDEX (x2) | Safe |
+| CREATE FUNCTION | Safe |
+| GRANT EXECUTE | Safe |
+
+**Assessment:** Safe - purely additive migration creating:
+- New `salon_invites` table for in-app team invitations
+- Full RLS policy coverage
+- Helper function `get_pending_salon_invites_count()`
+- Wrapped in transaction
+
+### No Dangerous Operations Found
+
+No `DROP TABLE`, `DROP COLUMN`, `TRUNCATE`, or unqualified `DELETE` statements detected in any migration.
+
+### All Tables Have Proper Security
+
+All tables have RLS enabled with appropriate policies.
+
+---
+
+**BLOCKED=false**
+
+All migrations are safe to execute. No items require addition to SAFETY_QUEUE.md.
+  [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
+  [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
+  [0;36m⟳[0m Claude working...
+Task completed successfully.
+
+**Summary:**
+- Fixed TypeScript errors in community feature files (community/index.tsx, community/[id].tsx, community/create.tsx, and profile/[id].tsx)
+- Issues resolved:
+  1. **Nullable Supabase fields**: Added proper data transformation functions to convert nullable fields from Supabase to non-nullable interface types with sensible defaults
+  2. **TextInput ref types**: Changed `MentionInput` prop type from `RefObject<TextInput>` to `RefObject<TextInput | null>` and updated calling components accordingly
+  3. **Type coercion**: Added explicit type casting for `media_urls` (JSON array), `category` (enum), and numeric fields (`likes_count`, `comments_count`)
+
+- All community feature files now pass `npx tsc --noEmit` check
+- Committed: `fix: Resolve TypeScript errors in community feature`
+- Pushed to remote
+  [0;32m✓[0m Task completed
+  [0;36m↳[0m Checking CI status...
+  [0;33m![0m CI timeout - continuing without result
+
+  [1m[[0;32m█████████████████████████████[0m[1m░] 97% (35/36)[0m  [0;33m254m elapsed[0m
+
+  [1mTask 36:[0m Fix admin dashboard TypeScript path aliases...
+
+  [0;33m![0m Migration files detected, running safety review...
+[Migration review timed out]
+  [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
+  [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
+  [0;36m⟳[0m Claude working...
