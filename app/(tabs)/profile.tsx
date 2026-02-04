@@ -135,8 +135,8 @@ export default function Profile() {
               name={profile?.full_name || user?.email || 'User'}
               source={profile?.avatar_url}
               size="lg"
-              level={profile?.community_level}
-              isCertified={profile?.is_certified}
+              level={profile?.community_level ?? undefined}
+              isCertified={profile?.is_certified ?? undefined}
               className="mr-4"
             />
             <View className="flex-1">
