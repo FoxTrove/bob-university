@@ -52,7 +52,7 @@
   - Acceptance: Generate unique code for each email, send all invites, show success for each
   - Test: Enter 3 emails → All 3 receive invites with unique codes
 
-- [ ] Handle partial failures in batch invites
+- [x] Handle partial failures in batch invites
   - Story: 2.1
   - Acceptance: If 1 of 3 emails fails, show which succeeded and which failed
   - Test: Enter 1 invalid + 2 valid emails → See success for 2, error for 1

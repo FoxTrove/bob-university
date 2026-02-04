@@ -44,19 +44,20 @@
 
 ## Epic 2: Salon Team Management
 
-### Story 2.1: Batch Email Invites
+### Story 2.1: Batch Email Invites ✅
 **As a** salon owner,
 **I want** to invite multiple team members at once by entering multiple emails,
 **So that** I can quickly onboard my entire team.
 
 **Acceptance Criteria:**
-- [ ] Given I'm on the Team tab, when I tap "Invite via Email", I can enter multiple email addresses
-- [ ] Given I enter 3 emails, when I tap "Send Invites", all 3 receive invite emails with unique access codes
-- [ ] Given invites are sent, I see a success message listing all invited emails
-- [ ] Given an email fails validation, that specific email is highlighted with an error
+- [x] Given I'm on the Team tab, when I tap "Invite via Email", I can enter multiple email addresses
+- [x] Given I enter 3 emails, when I tap "Send Invites", all 3 receive invite emails with unique access codes
+- [x] Given invites are sent, I see a success message listing all invited emails
+- [x] Given an email fails validation, that specific email is highlighted with an error
 
 **Priority:** High
 **Complexity:** M
+**Status:** ✅ Implemented
 
 ---
 
@@ -246,7 +247,7 @@
 
 ### Phase 1: Foundation (Current Session)
 - Story 6.1: Single Email Invite ✅ (Complete)
-- Story 2.1: Batch Email Invites (UI extension of 6.1)
+- Story 2.1: Batch Email Invites ✅ (Complete)
 
 ### Phase 2: Certification System
 - Story 3.1: Certification Ticket Pool
