@@ -205,54 +205,87 @@ export default function TeamTab() {
       return;
     }
 
-    // For now, only support single email - batch implementation is next task
-    if (emails.length > 1) {
-      Alert.alert(
-        'Coming Soon',
-        'Batch email invites are coming soon. For now, please send invites one at a time.'
-      );
-      return;
+    setSendingInvite(true);
+
+    // Get owner profile once for all emails
+    const { data: ownerProfile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single();
+
+    // Track results for each email
+    const results: { email: string; success: boolean; code?: string; error?: string }[] = [];
+
+    // Process each email
+    for (const email of emails) {
+      try {
+        const code = await generateAccessCode(email);
+        if (!code) {
+          results.push({ email, success: false, error: 'Failed to generate code' });
+          continue;
+        }
+
+        // Send the invite email via edge function
+        const { error: emailError } = await supabase.functions.invoke('send-email', {
+          body: {
+            to: email,
+            template: 'team-invite',
+            data: {
+              salonName: salon?.name,
+              ownerName: ownerProfile?.full_name,
+              accessCode: code,
+              expiresIn: 'in 48 hours',
+            },
+            skip_preference_check: true,
+          },
+        });
+
+        if (emailError) {
+          results.push({ email, success: false, error: emailError.message || 'Failed to send' });
+        } else {
+          results.push({ email, success: true, code });
+        }
+      } catch (e) {
+        const message = e instanceof Error ? e.message : 'Failed to send invite';
+        results.push({ email, success: false, error: message });
+      }
     }
 
-    setSendingInvite(true);
-    try {
-      const email = emails[0];
-      const code = await generateAccessCode(email);
-      if (!code) return;
+    setSendingInvite(false);
 
-      // Get owner profile for the email
-      const { data: ownerProfile } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', user.id)
-        .single();
+    // Build result message
+    const successful = results.filter(r => r.success);
+    const failed = results.filter(r => !r.success);
 
-      // Send the invite email via edge function
-      const { error: emailError } = await supabase.functions.invoke('send-email', {
-        body: {
-          to: email,
-          template: 'team-invite',
-          data: {
-            salonName: salon?.name,
-            ownerName: ownerProfile?.full_name,
-            accessCode: code,
-            expiresIn: 'in 48 hours',
-          },
-          skip_preference_check: true,
-        },
-      });
-
-      if (emailError) throw emailError;
-
-      setGeneratedCode(code);
-      Alert.alert('Invite Sent!', `An invitation has been sent to ${email}`);
+    if (successful.length > 0 && failed.length === 0) {
+      // All succeeded
+      if (successful.length === 1) {
+        setGeneratedCode(successful[0].code!);
+        Alert.alert('Invite Sent!', `An invitation has been sent to ${successful[0].email}`);
+      } else {
+        Alert.alert(
+          'Invites Sent!',
+          `${successful.length} invitations sent successfully:\n${successful.map(r => `• ${r.email}`).join('\n')}`
+        );
+      }
       setInviteEmail('');
       setShowEmailForm(false);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : 'Failed to send invite';
-      Alert.alert('Error', message);
-    } finally {
-      setSendingInvite(false);
+    } else if (successful.length === 0 && failed.length > 0) {
+      // All failed
+      Alert.alert(
+        'Failed to Send',
+        `Unable to send invites:\n${failed.map(r => `• ${r.email}: ${r.error}`).join('\n')}`
+      );
+    } else {
+      // Mixed results
+      Alert.alert(
+        'Partial Success',
+        `Sent: ${successful.length}\n${successful.map(r => `✓ ${r.email}`).join('\n')}\n\nFailed: ${failed.length}\n${failed.map(r => `✗ ${r.email}: ${r.error}`).join('\n')}`
+      );
+      // Clear only successful emails from input (leave failed ones for retry)
+      const failedEmails = failed.map(r => r.email);
+      setInviteEmail(failedEmails.join(', '));
     }
   }
 
