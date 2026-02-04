@@ -195,16 +195,6 @@ export default function TeamTab() {
       return;
     }
 
-    // Validate all emails and find invalid ones
-    const invalidEmails = emails.filter(e => !validateEmail(e));
-    if (invalidEmails.length > 0) {
-      Alert.alert(
-        'Invalid Email(s)',
-        `The following email${invalidEmails.length > 1 ? 's are' : ' is'} invalid:\n${invalidEmails.join('\n')}`
-      );
-      return;
-    }
-
     setSendingInvite(true);
 
     // Get owner profile once for all emails
@@ -217,8 +207,14 @@ export default function TeamTab() {
     // Track results for each email
     const results: { email: string; success: boolean; code?: string; error?: string }[] = [];
 
-    // Process each email
+    // Process each email - validate and send individually
     for (const email of emails) {
+      // Validate this email first
+      if (!validateEmail(email)) {
+        results.push({ email, success: false, error: 'Invalid email format' });
+        continue;
+      }
+
       try {
         const code = await generateAccessCode(email);
         if (!code) {
@@ -278,7 +274,7 @@ export default function TeamTab() {
         `Unable to send invites:\n${failed.map(r => `• ${r.email}: ${r.error}`).join('\n')}`
       );
     } else {
-      // Mixed results
+      // Mixed results - partial success
       Alert.alert(
         'Partial Success',
         `Sent: ${successful.length}\n${successful.map(r => `✓ ${r.email}`).join('\n')}\n\nFailed: ${failed.length}\n${failed.map(r => `✗ ${r.email}: ${r.error}`).join('\n')}`

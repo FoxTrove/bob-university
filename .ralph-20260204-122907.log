@@ -192,3 +192,68 @@ The **CAUTION** items (backfill UPDATEs in 024 and 026) have already executed su
 BLOCKED=false
 ```
   [0;36m⟳[0m Claude working...
+**Task Complete!**
+
+I've implemented batch invite sending for Story 2.1. The changes:
+
+1. **Modified `sendEmailInvite()` in `app/(tabs)/team.tsx`** (lines 185-278):
+   - Loops through all parsed emails
+   - Generates unique access code for each email via `generateAccessCode()`
+   - Sends each invite via the `send-email` edge function
+   - Tracks success/failure results for each email
+   - Shows appropriate alert messages:
+     - Single success: Shows code and "Invite Sent!"
+     - Multiple success: Lists all emails sent
+     - Partial success: Shows which succeeded (✓) and failed (✗) with reasons
+     - All failed: Shows error messages for each
+   - Failed emails remain in the input field for easy retry
+
+**Verification:**
+- TypeScript check passed for team.tsx
+- Expo app loads without errors
+- Committed and pushed to feature branch
+  [0;32m✓[0m Task completed
+  [0;36m↳[0m Checking CI status...
+  [0;33m![0m CI timeout - continuing without result
+
+  [1m[[0;32m█████████████[0m[1m░░░░░░░░░░░░░░░░░] 44% (15/34)[0m  [0;33m17m elapsed[0m
+
+  [1mTask 16:[0m Handle partial failures in batch invites...
+
+  [0;33m![0m Migration files detected, running safety review...
+## Migration Review Complete
+
+### Found
+- **27** local migration files scanned
+- **47** database migrations applied
+
+### Classification
+
+| Risk Level | Count | Status |
+|------------|-------|--------|
+| ✓ Safe | 45+ | All applied |
+| ⏸ Caution | 5 | All applied (UPDATE backfills, policy replacements) |
+| ⛔ Blocked | 0 | N/A |
+
+### Recent Migrations (Last 5)
+
+| Migration | Risk | Status |
+|-----------|------|--------|
+| 027_staff_access_codes_email_invite.sql | Safe | ✓ Applied |
+| 026_user_types_and_new_plans.sql | Safe/Caution | ✓ Applied |
+| 025_admin_profiles_select_admin_only.sql | Safe | ✓ Applied |
+| 024_backfill_revenue_net.sql | Caution | ✓ Applied |
+| 023_revenue_ledger_fees.sql | Safe | ✓ Applied |
+
+### Action Required
+
+**None** - All migrations are applied to the database. No pending migrations detected.
+
+Full report saved to `MIGRATIONS.md`.
+
+```
+BLOCKED=false
+```
+  [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
+  [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
+  [0;36m⟳[0m Claude working...
