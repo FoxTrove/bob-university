@@ -93,7 +93,7 @@
   - Acceptance: Trying to add 6th member shows upsell modal for additional seats
   - Test: With 5 active members, invite 6th → See "Add Seats" prompt
 
-- [ ] Implement additional seat purchase via Stripe
+- [x] Implement additional seat purchase via Stripe
   - Story: 2.2
   - Acceptance: Purchase $99/month per seat via Stripe (not Apple IAP), seat count increases
   - Test: Buy 2 seats → Can now have 7 team members
