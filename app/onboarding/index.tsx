@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Pressable, Dimensions, Image, Animated } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Pressable, Dimensions, Image, Animated, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { MuxVideoPlayer } from '../../components/video';
@@ -12,15 +12,16 @@ import logger from '../../lib/utils/logger';
 
 const { width } = Dimensions.get('window');
 
-// Total steps: Welcome (1) + User Type (1) + Assessment (4) + Guide (3) = 9 (upsell is conditional)
+// Total steps: Welcome (1) + User Type (1) + Assessment (3) + Salon Setup (1, salon owners only) + Guide (3) = 9 (upsell is conditional)
 const TOTAL_BASE_STEPS = 9;
 
 // Steps definition
 // 0: Welcome (Video)
 // 1: User Type Selection
-// 2: Assessment (stylists only)
-// 3: Upsell (if not premium)
-// 4-6: Guide Steps
+// 2: Assessment (stylists and salon owners)
+// 3: Salon Setup (salon owners only)
+// 4: Upsell (if not premium)
+// 5-7: Guide Steps
 
 // User Type options
 type UserType = 'salon_owner' | 'individual_stylist' | 'client';
@@ -54,18 +55,45 @@ interface QuestionConfig {
   options?: QuestionOption[];
 }
 
-const ASSESSMENT_QUESTIONS: QuestionConfig[] = [
+// Questions specific to Salon Owners
+const SALON_OWNER_QUESTIONS: QuestionConfig[] = [
   {
-    id: 'role',
-    question: "What describes you best?",
+    id: 'team_size',
+    question: "How many stylists are on your team?",
     type: 'single',
     options: [
-      { value: 'stylist', label: 'Professional Stylist', icon: 'cut-outline' },
-      { value: 'owner', label: 'Salon Owner', icon: 'business-outline' },
-      { value: 'student', label: 'Student / Apprentice', icon: 'school-outline' },
-      { value: 'educator', label: 'Educator', icon: 'book-outline' }
+      { value: '1-3', label: '1-3 Stylists', icon: 'person-outline' },
+      { value: '4-7', label: '4-7 Stylists', icon: 'people-outline' },
+      { value: '8-15', label: '8-15 Stylists', icon: 'people-circle-outline' },
+      { value: '15+', label: '15+ Stylists', icon: 'business-outline' }
     ]
   },
+  {
+    id: 'training_goal',
+    question: "What's your main training priority?",
+    type: 'single',
+    options: [
+      { value: 'consistency', label: 'Team Consistency', icon: 'git-merge-outline' },
+      { value: 'skill_gaps', label: 'Fill Skill Gaps', icon: 'trending-up-outline' },
+      { value: 'new_hires', label: 'Onboard New Hires', icon: 'person-add-outline' },
+      { value: 'specialization', label: 'Add Specializations', icon: 'ribbon-outline' }
+    ]
+  },
+  {
+    id: 'challenge',
+    question: "Biggest business challenge?",
+    type: 'single',
+    options: [
+      { value: 'retention', label: 'Staff Retention', icon: 'heart-outline' },
+      { value: 'pricing', label: 'Pricing Strategy', icon: 'cash-outline' },
+      { value: 'marketing', label: 'Attracting Clients', icon: 'megaphone-outline' },
+      { value: 'quality', label: 'Quality Control', icon: 'checkmark-circle-outline' }
+    ]
+  }
+];
+
+// Questions specific to Individual Stylists
+const INDIVIDUAL_STYLIST_QUESTIONS: QuestionConfig[] = [
   {
     id: 'experience',
     question: "How long have you been cutting?",
@@ -78,28 +106,40 @@ const ASSESSMENT_QUESTIONS: QuestionConfig[] = [
     ]
   },
   {
+    id: 'skill_focus',
+    question: "What do you want to master?",
+    type: 'single',
+    options: [
+      { value: 'precision', label: 'Precision Cutting', icon: 'cut-outline' },
+      { value: 'texture', label: 'Texture & Movement', icon: 'water-outline' },
+      { value: 'consultation', label: 'Client Consultations', icon: 'chatbubbles-outline' },
+      { value: 'styling', label: 'Styling & Finishing', icon: 'brush-outline' }
+    ]
+  },
+  {
     id: 'goal',
-    question: "What is your primary goal?",
-    type: 'single', // Changed to single for simplicity as per request "primary goal"
+    question: "What's your primary goal?",
+    type: 'single',
     options: [
       { value: 'master_bob', label: 'Master the Bob', icon: 'shapes-outline' },
       { value: 'grow_revenue', label: 'Grow My Revenue', icon: 'trending-up-outline' },
-      { value: 'train_staff', label: 'Train My Staff', icon: 'people-outline' },
-      { value: 'inspiration', label: 'Daily Inspiration', icon: 'bulb-outline' }
-    ]
-  },
-   {
-    id: 'challenge',
-    question: "Biggest challenge right now?",
-    type: 'single',
-    options: [
-      { value: 'precision', label: 'Precision Cutting', icon: 'scan-outline' },
-      { value: 'consultation', label: 'Client Consultations', icon: 'chatbubbles-outline' },
-      { value: 'pricing', label: 'Pricing & Business', icon: 'cash-outline' },
-      { value: 'styling', label: 'Styling & Finishing', icon: 'brush-outline' }
+      { value: 'get_certified', label: 'Get Certified', icon: 'school-outline' },
+      { value: 'build_brand', label: 'Build My Brand', icon: 'star-outline' }
     ]
   }
 ];
+
+// Helper to get questions based on user type
+const getQuestionsForUserType = (userType: UserType | null): QuestionConfig[] => {
+  switch (userType) {
+    case 'salon_owner':
+      return SALON_OWNER_QUESTIONS;
+    case 'individual_stylist':
+      return INDIVIDUAL_STYLIST_QUESTIONS;
+    default:
+      return INDIVIDUAL_STYLIST_QUESTIONS; // Fallback
+  }
+};
 
 const GUIDE_STEPS = [
   {
@@ -128,6 +168,8 @@ export default function OnboardingWizard() {
   const [assessmentIndex, setAssessmentIndex] = useState(0);
   const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
+  const [salonName, setSalonName] = useState('');
+  const [salonSetupError, setSalonSetupError] = useState<string | null>(null);
   const progressAnim = useRef(new Animated.Value(0)).current;
 
   // MUX ID
@@ -143,12 +185,16 @@ export default function OnboardingWizard() {
       return (2 + assessmentIndex) / TOTAL_BASE_STEPS;
     }
     if (currentStep === 3) {
-      // Upsell - halfway through
+      // Salon setup (for salon owners) - step 3
+      return 5 / TOTAL_BASE_STEPS;
+    }
+    if (currentStep === 4) {
+      // Upsell - step 4
       return 6 / TOTAL_BASE_STEPS;
     }
-    // Guide steps (4, 5, 6 -> indices 0, 1, 2)
-    const guideIndex = currentStep - 4;
-    return (6 + guideIndex + 1) / TOTAL_BASE_STEPS;
+    // Guide steps (5, 6, 7 -> indices 0, 1, 2)
+    const guideIndex = currentStep - 5;
+    return (7 + guideIndex + 1) / TOTAL_BASE_STEPS;
   };
 
   // Animate progress bar
@@ -180,6 +226,9 @@ export default function OnboardingWizard() {
     }
   };
 
+  // Get the appropriate questions based on selected user type
+  const assessmentQuestions = getQuestionsForUserType(userType);
+
   const handleNext = async () => {
     if (loading) return;
 
@@ -190,12 +239,16 @@ export default function OnboardingWizard() {
       // User Type Selection -> Assessment or Finish (for clients)
       if (!userType) return;
 
-      // Save user type to database
+      // Save user type to database (handle missing column gracefully)
       if (user?.id) {
-        await supabase
-          .from('profiles')
-          .update({ user_type: userType })
-          .eq('id', user.id);
+        try {
+          await supabase
+            .from('profiles')
+            .update({ user_type: userType })
+            .eq('id', user.id);
+        } catch (e) {
+          logger.warn("Could not save user_type - column may not exist yet", e);
+        }
       }
 
       if (userType === 'client') {
@@ -203,27 +256,35 @@ export default function OnboardingWizard() {
         await finishOnboarding(true); // Pass flag to route to directory
       } else {
         // Stylists and salon owners continue to assessment
+        setAssessmentIndex(0); // Reset assessment index for new question set
+        setAssessmentAnswers({}); // Clear any previous answers
         setCurrentStep(2);
       }
     } else if (currentStep === 2) {
       // Assessment Logic
-      if (assessmentIndex < ASSESSMENT_QUESTIONS.length - 1) {
+      if (assessmentIndex < assessmentQuestions.length - 1) {
           setAssessmentIndex(i => i + 1);
       } else {
-          // Assessment Done -> Upsell or Guide
+          // Assessment Done
           // Save final assessment state
           await saveAssessmentProgress(assessmentAnswers);
 
-          if (isPremium) {
-            setCurrentStep(4); // Skip Upsell
+          if (userType === 'salon_owner') {
+            // Salon owners go to salon setup
+            setCurrentStep(3);
+          } else if (isPremium) {
+            setCurrentStep(5); // Skip Upsell, go to Guide
           } else {
-            setCurrentStep(3); // Go to Upsell
+            setCurrentStep(4); // Go to Upsell
           }
       }
     } else if (currentStep === 3) {
+      // Salon Setup -> create salon and proceed
+      await handleSalonSetup();
+    } else if (currentStep === 4) {
       // Upsell -> Guide
-      setCurrentStep(4);
-    } else if (currentStep >= 4 && currentStep < 4 + GUIDE_STEPS.length - 1) {
+      setCurrentStep(5);
+    } else if (currentStep >= 5 && currentStep < 5 + GUIDE_STEPS.length - 1) {
       // Advance Guide
       setCurrentStep(c => c + 1);
     } else {
@@ -233,7 +294,7 @@ export default function OnboardingWizard() {
   };
   
   const handleAssessmentAnswer = (val: string | string[]) => {
-      const currentQ = ASSESSMENT_QUESTIONS[assessmentIndex];
+      const currentQ = assessmentQuestions[assessmentIndex];
       logger.debug('Onboarding', 'Answer received:', currentQ.id, val);
       const newAnswers = { ...assessmentAnswers, [currentQ.id]: val };
       setAssessmentAnswers(newAnswers);
@@ -242,15 +303,18 @@ export default function OnboardingWizard() {
       // Auto-advance for single choice questions after a brief delay
       if (currentQ.type === 'single' && val) {
         setTimeout(() => {
-          if (assessmentIndex < ASSESSMENT_QUESTIONS.length - 1) {
+          if (assessmentIndex < assessmentQuestions.length - 1) {
             setAssessmentIndex(i => i + 1);
           } else {
             // Last question - save and move to next step
             saveAssessmentProgress(newAnswers);
-            if (isPremium) {
-              setCurrentStep(4); // Skip Upsell, go to Guide
+            if (userType === 'salon_owner') {
+              // Salon owners go to salon setup
+              setCurrentStep(3);
+            } else if (isPremium) {
+              setCurrentStep(5); // Skip Upsell, go to Guide
             } else {
-              setCurrentStep(3); // Go to Upsell
+              setCurrentStep(4); // Go to Upsell
             }
           }
         }, 300);
@@ -261,35 +325,109 @@ export default function OnboardingWizard() {
     router.push('/subscribe');
   };
 
+  // Create salon for salon owners
+  const handleSalonSetup = async () => {
+    if (!user?.id) return;
+
+    const trimmedName = salonName.trim();
+    if (!trimmedName) {
+      setSalonSetupError('Please enter your salon name');
+      return;
+    }
+
+    setLoading(true);
+    setSalonSetupError(null);
+
+    try {
+      // Create the salon
+      const { data: salon, error: salonError } = await supabase
+        .from('salons')
+        .insert({
+          name: trimmedName,
+          owner_id: user.id,
+        })
+        .select()
+        .single();
+
+      if (salonError) {
+        logger.error('Failed to create salon:', salonError);
+        setSalonSetupError('Failed to create salon. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      // Update the user's profile with the salon_id
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ salon_id: salon.id })
+        .eq('id', user.id);
+
+      if (profileError) {
+        logger.warn('Failed to link salon to profile:', profileError);
+        // Continue anyway - the salon was created
+      }
+
+      logger.info('Salon created successfully:', salon.id);
+
+      // Proceed to next step (upsell or guide)
+      if (isPremium) {
+        setCurrentStep(5); // Skip Upsell, go to Guide
+      } else {
+        setCurrentStep(4); // Go to Upsell
+      }
+    } catch (e) {
+      logger.error('Salon setup error:', e);
+      setSalonSetupError('An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const finishOnboarding = async (isClient: boolean = false) => {
     if (!user?.id) return;
     setLoading(true);
     try {
         // 1. Update DB - prioritize has_completed_onboarding, assessment is optional
-        const updateData: any = {
+        // Start with core data that always exists
+        const coreUpdateData: any = {
             has_completed_onboarding: true,
         };
 
-        if (userType) {
-            updateData.user_type = userType;
-        }
-
         if (Object.keys(assessmentAnswers).length > 0) {
-            updateData.skills_assessment = assessmentAnswers;
+            coreUpdateData.skills_assessment = assessmentAnswers;
         }
 
-        const { error } = await supabase
-            .from('profiles')
-            .update(updateData)
-            .eq('id', user.id);
-
-        if (error) {
-            console.error('Error saving onboarding:', error);
-            // Try to at least mark onboarding as complete
-            await supabase
+        // Try to save with user_type first
+        let saveSucceeded = false;
+        if (userType) {
+            const { error: fullError } = await supabase
                 .from('profiles')
-                .update({ has_completed_onboarding: true })
+                .update({ ...coreUpdateData, user_type: userType })
                 .eq('id', user.id);
+
+            if (fullError) {
+                // user_type column might not exist, try without it
+                logger.warn('Could not save user_type, trying without:', fullError.message);
+            } else {
+                saveSucceeded = true;
+            }
+        }
+
+        // Fallback: save without user_type if the full save failed
+        if (!saveSucceeded) {
+            const { error } = await supabase
+                .from('profiles')
+                .update(coreUpdateData)
+                .eq('id', user.id);
+
+            if (error) {
+                console.error('Error saving onboarding:', error);
+                // Last resort: just mark onboarding complete
+                await supabase
+                    .from('profiles')
+                    .update({ has_completed_onboarding: true })
+                    .eq('id', user.id);
+            }
         }
 
         // 2. Refresh Local State (CRITICAL to fix loop)
@@ -421,11 +559,11 @@ export default function OnboardingWizard() {
   );
 
   const renderAssessment = () => {
-      const q = ASSESSMENT_QUESTIONS[assessmentIndex];
+      const q = assessmentQuestions[assessmentIndex];
       const answer = assessmentAnswers[q.id];
-      
+
       return (
-          <AssessmentQuestion 
+          <AssessmentQuestion
             question={q.question}
             type={q.type}
             options={q.options}
@@ -435,6 +573,56 @@ export default function OnboardingWizard() {
           />
       );
   };
+
+  const renderSalonSetup = () => (
+    <View className="items-center">
+        <View className="bg-primary/20 p-4 rounded-full mb-4">
+            <Ionicons name="business" size={40} color="#C68976" />
+        </View>
+        <Text className="text-2xl font-bold text-white text-center mb-2 font-serifBold">
+            Create Your Salon
+        </Text>
+        <Text className="text-gray-400 text-center text-base mb-6 font-sans">
+            Set up your salon to invite and manage your team.
+        </Text>
+
+        <View className="w-full mb-4">
+            <Text className="text-gray-300 text-sm mb-2 font-sans">Salon Name *</Text>
+            <View className={`bg-white/5 border rounded-xl p-4 ${
+                salonSetupError ? 'border-red-500' : 'border-white/10'
+            }`}>
+                <TextInput
+                    className="text-white text-lg font-sans"
+                    placeholder="Enter your salon name"
+                    placeholderTextColor="#666"
+                    value={salonName}
+                    onChangeText={(text) => {
+                        setSalonName(text);
+                        if (salonSetupError) setSalonSetupError(null);
+                    }}
+                    autoFocus
+                />
+            </View>
+            {salonSetupError && (
+                <Text className="text-red-500 text-sm mt-2 font-sans">{salonSetupError}</Text>
+            )}
+        </View>
+
+        <View className="w-full bg-white/5 p-4 rounded-xl border border-white/10 mb-4">
+            <View className="flex-row items-center">
+                <View className="bg-primary/20 p-2 rounded-full mr-3">
+                    <Ionicons name="people" size={20} color="#C68976" />
+                </View>
+                <View className="flex-1">
+                    <Text className="text-white font-bold text-sm font-serifBold">Invite Your Team</Text>
+                    <Text className="text-gray-400 text-xs font-sans">
+                        After setup, you'll be able to generate invite codes for your stylists.
+                    </Text>
+                </View>
+            </View>
+        </View>
+    </View>
+  );
 
   const renderUpsell = () => (
     <View className="items-center">
@@ -474,7 +662,7 @@ export default function OnboardingWizard() {
         >
           <Text className="text-white font-bold">Unlock Full Access</Text>
         </Button>
-        <TouchableOpacity onPress={() => setCurrentStep(4)} className="py-2">
+        <TouchableOpacity onPress={() => setCurrentStep(5)} className="py-2">
             <Text className="text-gray-400 text-sm font-bold">Maybe Later</Text>
         </TouchableOpacity>
     </View>
@@ -521,25 +709,17 @@ export default function OnboardingWizard() {
       showNext = false; // User type auto-advances on selection
   } else if (currentStep === 2) {
       content = renderAssessment();
-      // Logic to disable Next if no answer selected?
-      const currentQ = ASSESSMENT_QUESTIONS[assessmentIndex];
-      const hasAnswer = assessmentAnswers[currentQ.id];
-      if (!hasAnswer && currentQ.type !== 'text') { // Allow empty text? Probably not.
-          // For now, let's strictly require an answer
-          // Actually, let's keep it simple, if no answer, disable button logic in handleNext?
-          // Or just disable button visually
-      }
-      // Check if button disabled
-     if (!hasAnswer || (Array.isArray(hasAnswer) && hasAnswer.length === 0)) {
-         // showNext = false; // Or show disabled button? Button component handles disabled
-     }
-
+      // Auto-advance handles progression, Next button is fallback
   } else if (currentStep === 3) {
+      // Salon Setup (for salon owners only)
+      content = renderSalonSetup();
+      nextLabel = loading ? "Creating..." : "Create Salon";
+  } else if (currentStep === 4) {
       content = renderUpsell();
       showNext = false;
   } else {
-      // Guide steps map to 4, 5, 6
-      const guideIndex = currentStep - 4;
+      // Guide steps map to 5, 6, 7
+      const guideIndex = currentStep - 5;
       content = renderGuide(guideIndex);
       if (guideIndex === GUIDE_STEPS.length - 1) {
           nextLabel = loading ? "Finishing..." : "Start Learning";
@@ -558,12 +738,18 @@ export default function OnboardingWizard() {
             return true;
           }
       }
-      if (currentStep === 2) {
-          const currentQ = ASSESSMENT_QUESTIONS[assessmentIndex];
+      if (currentStep === 2 && assessmentQuestions.length > 0) {
+          const currentQ = assessmentQuestions[assessmentIndex];
           const hasAnswer = assessmentAnswers[currentQ.id];
-          logger.debug('Onboarding', 'Checking answer for', currentQ.id, ':', hasAnswer, 'assessmentAnswers:', assessmentAnswers);
+          logger.debug('Onboarding', 'Checking answer for', currentQ.id, ':', hasAnswer);
           if (!hasAnswer || (Array.isArray(hasAnswer) && hasAnswer.length === 0)) {
             logger.debug('Onboarding', 'Next disabled: no answer');
+            return true;
+          }
+      }
+      if (currentStep === 3) {
+          // Salon setup - disabled if no salon name
+          if (!salonName.trim()) {
             return true;
           }
       }
@@ -591,7 +777,8 @@ export default function OnboardingWizard() {
             )}
 
             {/* Skip Button - larger touch area for better mobile UX */}
-            {currentStep > 0 && currentStep !== 1 && currentStep !== 3 && (
+            {/* Hide skip on: user type selection (1), salon setup (3), upsell (4) */}
+            {currentStep > 0 && currentStep !== 1 && currentStep !== 3 && currentStep !== 4 && (
               <Pressable
                 onPress={handleSkip}
                 disabled={loading}
