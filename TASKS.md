@@ -88,7 +88,7 @@
 ### Phase 3: Additional Seats & Auto-Join
 > From Story 2.2-2.3: Scale team beyond 5 seats, handle existing users
 
-- [ ] Add seat limit enforcement
+- [x] Add seat limit enforcement
   - Story: 2.2
   - Acceptance: Trying to add 6th member shows upsell modal for additional seats
   - Test: With 5 active members, invite 6th → See "Add Seats" prompt
