@@ -10,6 +10,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ClientHomeScreen } from '../../components/home/ClientHomeScreen';
+import { SalonOwnerHomeScreen } from '../../components/home/SalonOwnerHomeScreen';
 
 export default function Home() {
   const { user } = useAuth();
@@ -28,9 +29,13 @@ export default function Home() {
     }
   }, [user, onboardingComplete]);
 
-  // Render client-specific home screen
+  // Render user-type-specific home screens
   if (userType === 'client') {
     return <ClientHomeScreen />;
+  }
+
+  if (userType === 'salon_owner') {
+    return <SalonOwnerHomeScreen />;
   }
 
   // Hero image from assets
