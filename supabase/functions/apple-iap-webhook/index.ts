@@ -37,7 +37,9 @@ interface AppleReceiptResponse {
 
 // Map Apple product IDs to our plan names
 function getPlanFromProductId(productId: string): string | null {
-  if (productId.includes("individual")) return "individual";
+  if (productId.includes("signature")) return "signature";
+  if (productId.includes("studio")) return "studio";
+  if (productId.includes("individual")) return "individual"; // Legacy support
   if (productId.includes("salon")) return "salon";
   return null;
 }

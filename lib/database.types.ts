@@ -1380,7 +1380,7 @@ export type Module = Tables<'modules'>
 export type SubscriptionPlan = Tables<'subscription_plans'>
 export type Salon = Tables<'salons'>
 export type StaffAccessCode = Tables<'staff_access_codes'>
-export type PlanType = 'free' | 'individual' | 'salon'
+export type PlanType = 'free' | 'individual' | 'signature' | 'studio' | 'salon'
 
 // Extended types for hooks
 export interface VideoMinimal {

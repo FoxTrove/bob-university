@@ -1,8 +1,16 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { useProfile } from '../../lib/hooks';
 
 export default function TabLayout() {
+  const { userType, loading } = useProfile();
+
+  // While loading, show all tabs to prevent layout shift
+  // Tabs will be filtered once userType is known
+  const isClient = userType === 'client';
+  const isSalonOwner = userType === 'salon_owner';
+
   return (
     <Tabs
       screenOptions={{
@@ -31,6 +39,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="modules"
         options={{
+          href: isClient ? null : undefined,
           title: 'Learn',
           tabBarIcon: ({ color }) => <Ionicons name="book-outline" size={24} color={color} />,
         }}
@@ -38,6 +47,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="certification"
         options={{
+          href: isClient ? null : undefined,
           title: 'Certify',
           tabBarIcon: ({ color }) => <Ionicons name="ribbon-outline" size={24} color={color} />,
         }}
@@ -52,6 +62,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="community"
         options={{
+          href: isClient ? null : undefined,
           title: 'Community',
           tabBarIcon: ({ color }) => <Ionicons name="chatbubbles-outline" size={24} color={color} />,
         }}
@@ -61,6 +72,22 @@ export default function TabLayout() {
         options={{
           title: 'Stylists',
           tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="inspiration"
+        options={{
+          href: isClient ? undefined : null,
+          title: 'Inspiration',
+          tabBarIcon: ({ color }) => <Ionicons name="sparkles-outline" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="team"
+        options={{
+          href: isSalonOwner ? undefined : null,
+          title: 'Team',
+          tabBarIcon: ({ color }) => <Ionicons name="people-circle-outline" size={24} color={color} />,
         }}
       />
       <Tabs.Screen

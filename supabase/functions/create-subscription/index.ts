@@ -41,7 +41,7 @@ serve(async (req) => {
 
     const { plan, platform, successUrl, cancelUrl, returnUrl } = await req.json();
 
-    if (!plan || !['individual', 'salon'].includes(plan)) {
+    if (!plan || !['individual', 'signature', 'studio', 'salon'].includes(plan)) {
       return new Response(JSON.stringify({ error: 'Invalid plan' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

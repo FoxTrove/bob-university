@@ -114,7 +114,7 @@ export function useEntitlement(): UseEntitlementResult {
   }, [entitlement]);
 
   const isPremium = useMemo(() => {
-    return isActive && (plan === 'individual' || plan === 'salon');
+    return isActive && (plan === 'individual' || plan === 'signature' || plan === 'studio' || plan === 'salon');
   }, [isActive, plan]);
 
   const subscriptionStartDate = useMemo(() => {

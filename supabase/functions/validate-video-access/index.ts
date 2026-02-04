@@ -121,7 +121,7 @@ serve(async (req) => {
     const isPremium =
       entitlement &&
       entitlement.status === "active" &&
-      ["individual", "salon"].includes(entitlement.plan) &&
+      ["individual", "signature", "studio", "salon"].includes(entitlement.plan) &&
       (!entitlement.current_period_end ||
         new Date(entitlement.current_period_end) > new Date());
 

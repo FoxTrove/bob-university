@@ -361,7 +361,8 @@ serve(async (req) => {
 
         if (profile?.email) {
           const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-          const planName = planRow?.plan === 'individual' ? 'Individual' : planRow?.plan === 'salon' ? 'Salon' : 'Premium';
+          const planNames: Record<string, string> = { signature: 'Signature', studio: 'Studio', salon: 'Salon', individual: 'Signature' };
+          const planName = planNames[planRow?.plan ?? ''] ?? 'Premium';
           const nextBillingDate = new Date(subscription.current_period_end * 1000).toLocaleDateString();
 
           if (event.type === 'customer.subscription.created') {
@@ -381,7 +382,8 @@ serve(async (req) => {
             }, userId);
 
             // Update GHL tags
-            const planTag = planRow?.plan === 'salon' ? 'paid_salon' : 'paid_individual';
+            const planTags: Record<string, string> = { signature: 'paid_signature', studio: 'paid_studio', salon: 'paid_salon', individual: 'paid_signature' };
+            const planTag = planTags[planRow?.plan ?? ''] ?? 'paid_subscriber';
             await updateGHLTags(serviceKey, userId, [planTag], ['free_user']);
           }
 
@@ -392,7 +394,7 @@ serve(async (req) => {
             }, userId);
 
             // Update GHL tags
-            await updateGHLTags(serviceKey, userId, ['churned'], ['paid_individual', 'paid_salon']);
+            await updateGHLTags(serviceKey, userId, ['churned'], ['paid_signature', 'paid_studio', 'paid_salon', 'paid_individual']);
           }
         }
       }

@@ -130,7 +130,7 @@ serve(async (req) => {
         .filter((entitlement) => {
           if (audience === "subscribers") {
             return entitlement.status === "active" &&
-              (entitlement.plan === "individual" || entitlement.plan === "salon");
+              ["individual", "signature", "studio", "salon"].includes(entitlement.plan);
           }
           return entitlement.plan === "free";
         })

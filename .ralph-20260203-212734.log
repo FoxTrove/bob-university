@@ -1,0 +1,13 @@
+Ralph Wiggum Loop
+Directory: bob-university
+Max: 50 iterations
+Timeout: 28800s
+Log: .ralph-20260203-212734.log
+---
+Branch: feature/ralph-session-20260203-2130
+Resuming from iteration 7
+
+[21:27] Task 1 | 10 remaining | 0s elapsed
+Running health check...
+[21:32] Task 2 | 9 remaining | 307s elapsed
+Running health check...
