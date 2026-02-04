@@ -1130,6 +1130,80 @@ export type Database = {
           },
         ]
       }
+      private_event_invitations: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          invited_by_user_id: string
+          invited_email: string | null
+          invited_name: string | null
+          invited_user_id: string | null
+          responded_at: string | null
+          response_message: string | null
+          salon_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          invited_by_user_id: string
+          invited_email?: string | null
+          invited_name?: string | null
+          invited_user_id?: string | null
+          responded_at?: string | null
+          response_message?: string | null
+          salon_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          invited_by_user_id?: string
+          invited_email?: string | null
+          invited_name?: string | null
+          invited_user_id?: string | null
+          responded_at?: string | null
+          response_message?: string | null
+          salon_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "private_event_invitations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "private_event_invitations_invited_by_user_id_fkey"
+            columns: ["invited_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "private_event_invitations_invited_user_id_fkey"
+            columns: ["invited_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "private_event_invitations_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       private_event_requests: {
         Row: {
           admin_notes: string | null
@@ -2222,35 +2296,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
-// Custom type exports for convenience
-export type Entitlement = Tables<'entitlements'>
-export type Profile = Tables<'profiles'>
-export type Video = Tables<'videos'>
-export type Module = Tables<'modules'>
-export type SubscriptionPlan = Tables<'subscription_plans'>
-export type Salon = Tables<'salons'>
-export type StaffAccessCode = Tables<'staff_access_codes'>
-export type SalonCertificationTickets = Tables<'salon_certification_tickets'>
-export type CertificationTicketAssignment = Tables<'certification_ticket_assignments'>
-export type CertificationSetting = Tables<'certification_settings'>
-export type SalonInvite = Tables<'salon_invites'>
-export type PlanType = 'free' | 'individual' | 'signature' | 'studio' | 'salon'
-
-// Extended types for hooks
-export interface VideoMinimal {
-  id: string;
-  duration_seconds: number | null;
-  is_published: boolean | null;
-}
-
-export interface ModuleWithVideos extends Module {
-  videos: Video[];
-}
-
-export interface ModuleWithProgress extends Module {
-  videos: VideoMinimal[];
-  totalVideos: number;
-  completedVideos: number;
-  progressPercent: number;
-}

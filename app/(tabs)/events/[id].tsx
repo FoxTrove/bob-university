@@ -1,15 +1,31 @@
-import { View, Text, ScrollView, Image, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Image, Alert, TouchableOpacity, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeContainer } from '../../../components/layout/SafeContainer';
 import { Button } from '../../../components/ui/Button';
+import { Card } from '../../../components/ui/Card';
+import { Avatar } from '../../../components/ui/Avatar';
 import { Ionicons } from '@expo/vector-icons';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import type { Tables } from '../../../lib/database.types';
 import { useStripe } from '@stripe/stripe-react-native';
 import { useAuth } from '../../../lib/auth';
+import { useProfile } from '../../../lib/hooks/useProfile';
 
 type Event = Tables<'events'>;
+type PrivateEventInvitation = Tables<'private_event_invitations'>;
+
+interface TeamMember {
+  id: string;
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  is_certified: boolean | null;
+}
+
+interface InvitationWithProfile extends PrivateEventInvitation {
+  invited_user?: TeamMember | null;
+}
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -21,10 +37,32 @@ export default function EventDetailScreen() {
   const [registrationCount, setRegistrationCount] = useState(0);
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const { user } = useAuth();
+  const { userType, profile } = useProfile();
+
+  // Private event invitation state
+  const [invitations, setInvitations] = useState<InvitationWithProfile[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteMode, setInviteMode] = useState<'team' | 'external'>('team');
+  const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
+  const [externalEmail, setExternalEmail] = useState('');
+  const [externalName, setExternalName] = useState('');
+  const [sendingInvites, setSendingInvites] = useState(false);
+
+  const isSalonOwner = userType === 'salon_owner';
+  const isPrivateEvent = event?.is_private === true;
+  const isEventOwner = isPrivateEvent && event?.salon_id === profile?.salon_id && isSalonOwner;
 
   useEffect(() => {
     fetchEventDetails();
   }, [id]);
+
+  useEffect(() => {
+    if (isEventOwner && event) {
+      fetchInvitations();
+      fetchTeamMembers();
+    }
+  }, [isEventOwner, event?.id]);
 
   const fetchEventDetails = async () => {
     try {
@@ -67,6 +105,167 @@ export default function EventDetailScreen() {
       Alert.alert('Error', 'Could not load event details');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchInvitations = useCallback(async () => {
+    if (!event?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('private_event_invitations')
+        .select(`
+          *,
+          invited_user:profiles!private_event_invitations_invited_user_id_fkey(
+            id, email, full_name, avatar_url, is_certified
+          )
+        `)
+        .eq('event_id', event.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setInvitations((data as InvitationWithProfile[]) || []);
+    } catch (error) {
+      console.error('Error fetching invitations:', error);
+    }
+  }, [event?.id]);
+
+  const fetchTeamMembers = useCallback(async () => {
+    if (!profile?.salon_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, email, full_name, avatar_url, is_certified')
+        .eq('salon_id', profile.salon_id);
+
+      if (error) throw error;
+      setTeamMembers((data as TeamMember[]) || []);
+    } catch (error) {
+      console.error('Error fetching team members:', error);
+    }
+  }, [profile?.salon_id]);
+
+  const handleSendTeamInvites = async () => {
+    if (selectedTeamMembers.length === 0) {
+      Alert.alert('No Selection', 'Please select at least one team member to invite.');
+      return;
+    }
+
+    if (!event || !profile?.salon_id || !user) return;
+
+    setSendingInvites(true);
+
+    try {
+      // Filter out already invited team members
+      const alreadyInvited = invitations
+        .filter(inv => inv.invited_user_id)
+        .map(inv => inv.invited_user_id);
+
+      const newInvites = selectedTeamMembers.filter(id => !alreadyInvited.includes(id));
+
+      if (newInvites.length === 0) {
+        Alert.alert('Already Invited', 'All selected team members have already been invited.');
+        setSendingInvites(false);
+        return;
+      }
+
+      const invitationsToInsert = newInvites.map(userId => ({
+        event_id: event.id,
+        salon_id: profile.salon_id!,
+        invited_user_id: userId,
+        invited_by_user_id: user.id,
+        status: 'pending',
+      }));
+
+      const { error } = await supabase
+        .from('private_event_invitations')
+        .insert(invitationsToInsert);
+
+      if (error) throw error;
+
+      Alert.alert('Success', `${newInvites.length} invitation(s) sent!`);
+      setSelectedTeamMembers([]);
+      setShowInviteModal(false);
+      fetchInvitations();
+    } catch (error) {
+      console.error('Error sending invites:', error);
+      Alert.alert('Error', 'Failed to send invitations. Please try again.');
+    } finally {
+      setSendingInvites(false);
+    }
+  };
+
+  const handleSendExternalInvite = async () => {
+    const email = externalEmail.trim().toLowerCase();
+
+    if (!email) {
+      Alert.alert('Required', 'Please enter an email address.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return;
+    }
+
+    if (!event || !profile?.salon_id || !user) return;
+
+    // Check if already invited
+    const alreadyInvited = invitations.some(inv => inv.invited_email?.toLowerCase() === email);
+    if (alreadyInvited) {
+      Alert.alert('Already Invited', 'This email has already been invited.');
+      return;
+    }
+
+    setSendingInvites(true);
+
+    try {
+      const { error } = await supabase
+        .from('private_event_invitations')
+        .insert({
+          event_id: event.id,
+          salon_id: profile.salon_id,
+          invited_email: email,
+          invited_name: externalName.trim() || null,
+          invited_by_user_id: user.id,
+          status: 'pending',
+        });
+
+      if (error) throw error;
+
+      Alert.alert('Success', 'Invitation sent!');
+      setExternalEmail('');
+      setExternalName('');
+      setShowInviteModal(false);
+      fetchInvitations();
+    } catch (error) {
+      console.error('Error sending external invite:', error);
+      Alert.alert('Error', 'Failed to send invitation. Please try again.');
+    } finally {
+      setSendingInvites(false);
+    }
+  };
+
+  const toggleTeamMemberSelection = (memberId: string) => {
+    setSelectedTeamMembers(prev =>
+      prev.includes(memberId)
+        ? prev.filter(id => id !== memberId)
+        : [...prev, memberId]
+    );
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'accepted':
+        return { color: '#22c55e', bgColor: 'bg-green-500/20', label: 'Accepted' };
+      case 'declined':
+        return { color: '#ef4444', bgColor: 'bg-red-500/20', label: 'Declined' };
+      case 'expired':
+        return { color: '#6b7280', bgColor: 'bg-gray-500/20', label: 'Expired' };
+      default:
+        return { color: '#f59e0b', bgColor: 'bg-amber-500/20', label: 'Pending' };
     }
   };
 
@@ -314,6 +513,111 @@ export default function EventDetailScreen() {
             <Text className="text-textMuted leading-6">{event.description}</Text>
         </View>
 
+        {/* Private Event Badge */}
+        {isPrivateEvent && (
+          <View className="flex-row items-center bg-purple-500/20 p-3 rounded-lg">
+            <Ionicons name="lock-closed" size={18} color="#8b5cf6" />
+            <Text className="text-purple-500 font-medium ml-2">Private Event</Text>
+          </View>
+        )}
+
+        {/* Invitations Section - Only for salon owner of this private event */}
+        {isEventOwner && (
+          <Card className="p-4">
+            <View className="flex-row items-center justify-between mb-4">
+              <View className="flex-row items-center">
+                <Ionicons name="people" size={20} color="#8b5cf6" />
+                <Text className="text-lg font-bold text-text ml-2">Invitations</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowInviteModal(true)}
+                className="bg-primary rounded-lg px-3 py-2 flex-row items-center"
+              >
+                <Ionicons name="add" size={16} color="#fff" />
+                <Text className="text-white font-medium ml-1 text-sm">Invite</Text>
+              </TouchableOpacity>
+            </View>
+
+            {invitations.length === 0 ? (
+              <Text className="text-textMuted text-center py-4">
+                No invitations sent yet. Tap "Invite" to invite team members or guests.
+              </Text>
+            ) : (
+              <View className="space-y-2">
+                {invitations.map((invitation) => {
+                  const statusBadge = getStatusBadge(invitation.status);
+                  const displayName = invitation.invited_user
+                    ? invitation.invited_user.full_name || invitation.invited_user.email
+                    : invitation.invited_name || invitation.invited_email || 'Guest';
+                  const isTeamMember = !!invitation.invited_user_id;
+
+                  return (
+                    <View
+                      key={invitation.id}
+                      className="flex-row items-center p-3 bg-surfaceHighlight rounded-lg mb-2"
+                    >
+                      {isTeamMember && invitation.invited_user ? (
+                        <Avatar
+                          name={displayName}
+                          source={invitation.invited_user.avatar_url}
+                          size="sm"
+                          isCertified={invitation.invited_user.is_certified ?? undefined}
+                          className="mr-3"
+                        />
+                      ) : (
+                        <View className="w-8 h-8 rounded-full bg-gray-600 items-center justify-center mr-3">
+                          <Ionicons name="mail-outline" size={16} color="#9ca3af" />
+                        </View>
+                      )}
+                      <View className="flex-1">
+                        <Text className="text-text font-medium">{displayName}</Text>
+                        <Text className="text-textMuted text-xs">
+                          {isTeamMember ? 'Team Member' : 'External Guest'}
+                        </Text>
+                      </View>
+                      <View className={`px-2 py-1 rounded-full ${statusBadge.bgColor}`}>
+                        <Text style={{ color: statusBadge.color }} className="text-xs font-medium">
+                          {statusBadge.label}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+
+            {/* Summary */}
+            {invitations.length > 0 && (
+              <View className="mt-4 pt-4 border-t border-border">
+                <View className="flex-row justify-around">
+                  <View className="items-center">
+                    <Text className="text-2xl font-bold text-text">{invitations.length}</Text>
+                    <Text className="text-textMuted text-xs">Total</Text>
+                  </View>
+                  <View className="items-center">
+                    <Text className="text-2xl font-bold text-green-500">
+                      {invitations.filter(i => i.status === 'accepted').length}
+                    </Text>
+                    <Text className="text-textMuted text-xs">Accepted</Text>
+                  </View>
+                  <View className="items-center">
+                    <Text className="text-2xl font-bold text-amber-500">
+                      {invitations.filter(i => i.status === 'pending').length}
+                    </Text>
+                    <Text className="text-textMuted text-xs">Pending</Text>
+                  </View>
+                  <View className="items-center">
+                    <Text className="text-2xl font-bold text-red-500">
+                      {invitations.filter(i => i.status === 'declined').length}
+                    </Text>
+                    <Text className="text-textMuted text-xs">Declined</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+          </Card>
+        )}
+
         {/* Action Button */}
         <View className="pt-4 pb-8">
             {isRegistered ? (
@@ -354,6 +658,172 @@ export default function EventDetailScreen() {
         </View>
         </View>
       </ScrollView>
+
+      {/* Invite Modal */}
+      <Modal
+        visible={showInviteModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowInviteModal(false)}
+      >
+        <SafeContainer edges={['top']}>
+          <View className="flex-1 bg-background">
+            {/* Modal Header */}
+            <View className="flex-row items-center justify-between p-4 border-b border-border">
+              <TouchableOpacity onPress={() => setShowInviteModal(false)}>
+                <Text className="text-primary text-base">Cancel</Text>
+              </TouchableOpacity>
+              <Text className="text-lg font-bold text-text">Invite Attendees</Text>
+              <View className="w-12" />
+            </View>
+
+            {/* Tab Selector */}
+            <View className="flex-row p-4 gap-2">
+              <TouchableOpacity
+                onPress={() => setInviteMode('team')}
+                className={`flex-1 py-3 rounded-lg items-center ${
+                  inviteMode === 'team' ? 'bg-primary' : 'bg-surfaceHighlight'
+                }`}
+              >
+                <Text className={inviteMode === 'team' ? 'text-white font-medium' : 'text-textMuted'}>
+                  Team Members
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setInviteMode('external')}
+                className={`flex-1 py-3 rounded-lg items-center ${
+                  inviteMode === 'external' ? 'bg-primary' : 'bg-surfaceHighlight'
+                }`}
+              >
+                <Text className={inviteMode === 'external' ? 'text-white font-medium' : 'text-textMuted'}>
+                  External Guest
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {inviteMode === 'team' ? (
+              /* Team Members Tab */
+              <ScrollView className="flex-1 px-4">
+                {teamMembers.length === 0 ? (
+                  <View className="items-center py-8">
+                    <Ionicons name="people-outline" size={48} color="#6b7280" />
+                    <Text className="text-textMuted mt-2">No team members found</Text>
+                  </View>
+                ) : (
+                  <>
+                    <Text className="text-textMuted text-sm mb-3">
+                      Select team members to invite ({selectedTeamMembers.length} selected)
+                    </Text>
+                    {teamMembers.map((member) => {
+                      const isSelected = selectedTeamMembers.includes(member.id);
+                      const isAlreadyInvited = invitations.some(
+                        inv => inv.invited_user_id === member.id
+                      );
+
+                      return (
+                        <TouchableOpacity
+                          key={member.id}
+                          onPress={() => !isAlreadyInvited && toggleTeamMemberSelection(member.id)}
+                          disabled={isAlreadyInvited}
+                          className={`flex-row items-center p-3 rounded-lg mb-2 ${
+                            isAlreadyInvited
+                              ? 'bg-surfaceHighlight/50 opacity-60'
+                              : isSelected
+                              ? 'bg-purple-500/20 border border-purple-500'
+                              : 'bg-surfaceHighlight'
+                          }`}
+                        >
+                          <View
+                            className={`w-6 h-6 rounded-full border-2 mr-3 items-center justify-center ${
+                              isSelected ? 'border-purple-500 bg-purple-500' : 'border-gray-500'
+                            }`}
+                          >
+                            {isSelected && (
+                              <Ionicons name="checkmark" size={14} color="#ffffff" />
+                            )}
+                          </View>
+                          <Avatar
+                            name={member.full_name || member.email}
+                            source={member.avatar_url}
+                            size="sm"
+                            isCertified={member.is_certified ?? undefined}
+                            className="mr-3"
+                          />
+                          <View className="flex-1">
+                            <Text className="text-text font-medium">
+                              {member.full_name || 'Team Member'}
+                            </Text>
+                            <Text className="text-textMuted text-xs">{member.email}</Text>
+                          </View>
+                          {isAlreadyInvited && (
+                            <View className="bg-green-500/20 px-2 py-1 rounded-full">
+                              <Text className="text-green-500 text-xs">Invited</Text>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </>
+                )}
+              </ScrollView>
+            ) : (
+              /* External Guest Tab */
+              <View className="flex-1 px-4">
+                <Text className="text-textMuted text-sm mb-3">
+                  Enter the email address of the guest you want to invite
+                </Text>
+
+                <View className="mb-4">
+                  <Text className="text-text font-medium mb-2">Email Address *</Text>
+                  <TextInput
+                    value={externalEmail}
+                    onChangeText={setExternalEmail}
+                    placeholder="guest@example.com"
+                    placeholderTextColor="#6b7280"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    className="bg-surfaceHighlight text-text p-4 rounded-lg"
+                  />
+                </View>
+
+                <View className="mb-4">
+                  <Text className="text-text font-medium mb-2">Name (Optional)</Text>
+                  <TextInput
+                    value={externalName}
+                    onChangeText={setExternalName}
+                    placeholder="Guest's name"
+                    placeholderTextColor="#6b7280"
+                    autoCapitalize="words"
+                    className="bg-surfaceHighlight text-text p-4 rounded-lg"
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Send Button */}
+            <View className="p-4 border-t border-border">
+              <Button
+                title={
+                  sendingInvites
+                    ? 'Sending...'
+                    : inviteMode === 'team'
+                    ? `Send ${selectedTeamMembers.length} Invitation${selectedTeamMembers.length !== 1 ? 's' : ''}`
+                    : 'Send Invitation'
+                }
+                onPress={inviteMode === 'team' ? handleSendTeamInvites : handleSendExternalInvite}
+                loading={sendingInvites}
+                disabled={
+                  sendingInvites ||
+                  (inviteMode === 'team' && selectedTeamMembers.length === 0) ||
+                  (inviteMode === 'external' && !externalEmail.trim())
+                }
+                fullWidth
+              />
+            </View>
+          </View>
+        </SafeContainer>
+      </Modal>
     </SafeContainer>
   );
 }
