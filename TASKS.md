@@ -98,7 +98,7 @@
   - Acceptance: Purchase $99/month per seat via Stripe (not Apple IAP), seat count increases
   - Test: Buy 2 seats → Can now have 7 team members
 
-- [ ] Create existing user detection in invite flow
+- [x] Create existing user detection in invite flow
   - Story: 2.3
   - Acceptance: If invited email has existing account, send in-app notification instead of email
   - Test: Invite existing user → They see in-app invite notification
