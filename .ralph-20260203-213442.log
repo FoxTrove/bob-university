@@ -126,3 +126,27 @@ The task has been committed and pushed to `feature/ralph-session-20260203-2130`.
   [1mTask 9:[0m Enforce subscription requirement for directory lis...
 
   [0;36m⟳[0m Claude working...
+Task completed. Here's a summary of what was implemented:
+
+## Completed: Enforce subscription requirement for directory listing
+
+**Database changes (migration `add_subscription_requirement_for_directory`):**
+1. **`has_active_subscription(user_uuid)`** - Function that checks if a user has premium access, either through their own subscription (individual/signature/studio/salon with active status) or through their salon owner's subscription (for staff members)
+
+2. **`enforce_subscription_for_directory` trigger** - Prevents setting `is_public = true` on `stylist_profiles` without an active subscription, raising an exception with a clear message
+
+3. **`unpublish_stylist_on_subscription_lapse` trigger** - Automatically sets `is_public = false` when a user's subscription expires, cancels, or changes to a non-premium plan. Also handles salon subscriptions by unpublishing all staff profiles when the salon owner loses their subscription
+
+**Mobile app changes (`app/stylist-settings.tsx`):**
+1. Added `useEntitlement` hook to check subscription status
+2. Switch toggle now checks subscription before allowing `is_public = true`
+3. Shows "Requires an active subscription" warning text for non-subscribers
+4. Presents an alert with subscription upsell when trying to enable without subscription
+5. Gracefully handles database trigger errors with subscription upsell option
+  [0;32m✓[0m Task completed
+
+  [1m[[0;32m███████████████████████████[0m[1m░░░] 90% (9/10)[0m  [0;33m27m elapsed[0m
+
+  [1mTask 10:[0m Customize Profile tab by user type...
+
+  [0;36m⟳[0m Claude working...

@@ -151,90 +151,93 @@ export default function Profile() {
                   label={isPremium ? (plan === 'salon' ? 'Salon Pro' : 'Premium') : 'Free Member'}
                   variant={isPremium ? 'premium' : 'default'}
                 />
-                {profile?.is_certified && (
+                {/* Hide certification badge for clients */}
+                {userType !== 'client' && profile?.is_certified && (
                   <Badge label="Certified" variant="success" />
                 )}
-                {profile?.role === 'owner' && (
+                {userType === 'salon_owner' && (
                   <Badge label="Salon Owner" variant="purple" />
                 )}
               </View>
             </View>
           </Card>
 
-          {/* Community Stats */}
-          <View className="mb-8">
-            <Text className="text-textMuted text-sm font-medium uppercase tracking-wider mb-3">
-              Community
-            </Text>
-            <Card padding="none">
-              {(() => {
-                const currentLevel = profile?.community_level || 1;
-                const currentPoints = profile?.community_points || 0;
-                const { progress, pointsToNext } = getLevelProgress(currentPoints, currentLevel);
-                const levelTitle = levelTitles[Math.min(currentLevel, 10)];
-                const isMaxLevel = currentLevel >= 10;
+          {/* Community Stats - Hidden for clients */}
+          {userType !== 'client' && (
+            <View className="mb-8">
+              <Text className="text-textMuted text-sm font-medium uppercase tracking-wider mb-3">
+                Community
+              </Text>
+              <Card padding="none">
+                {(() => {
+                  const currentLevel = profile?.community_level || 1;
+                  const currentPoints = profile?.community_points || 0;
+                  const { progress, pointsToNext } = getLevelProgress(currentPoints, currentLevel);
+                  const levelTitle = levelTitles[Math.min(currentLevel, 10)];
+                  const isMaxLevel = currentLevel >= 10;
 
-                return (
-                  <View className="p-4">
-                    {/* Level and Points Row */}
-                    <View className="flex-row items-center justify-between mb-4">
-                      <View className="flex-row items-center">
-                        <View className="bg-primary/10 w-12 h-12 rounded-full items-center justify-center mr-3">
-                          <Text className="text-primary text-xl font-bold">{currentLevel}</Text>
+                  return (
+                    <View className="p-4">
+                      {/* Level and Points Row */}
+                      <View className="flex-row items-center justify-between mb-4">
+                        <View className="flex-row items-center">
+                          <View className="bg-primary/10 w-12 h-12 rounded-full items-center justify-center mr-3">
+                            <Text className="text-primary text-xl font-bold">{currentLevel}</Text>
+                          </View>
+                          <View>
+                            <Text className="text-text font-bold text-base">{levelTitle}</Text>
+                            <Text className="text-textMuted text-sm">{currentPoints.toLocaleString()} points</Text>
+                          </View>
                         </View>
-                        <View>
-                          <Text className="text-text font-bold text-base">{levelTitle}</Text>
-                          <Text className="text-textMuted text-sm">{currentPoints.toLocaleString()} points</Text>
-                        </View>
+                        {profile?.is_certified && (
+                          <View className="bg-green-500/10 px-3 py-1.5 rounded-full flex-row items-center">
+                            <Ionicons name="checkmark-circle" size={14} color="#22c55e" />
+                            <Text className="text-green-600 text-xs font-medium ml-1">Certified</Text>
+                          </View>
+                        )}
                       </View>
-                      {profile?.is_certified && (
-                        <View className="bg-green-500/10 px-3 py-1.5 rounded-full flex-row items-center">
-                          <Ionicons name="checkmark-circle" size={14} color="#22c55e" />
-                          <Text className="text-green-600 text-xs font-medium ml-1">Certified</Text>
+
+                      {/* Progress to Next Level */}
+                      <View className="mb-4">
+                        <View className="flex-row justify-between mb-2">
+                          <Text className="text-textMuted text-xs">Progress to Level {isMaxLevel ? 10 : currentLevel + 1}</Text>
+                          <Text className="text-textMuted text-xs">{Math.round(progress * 100)}%</Text>
                         </View>
-                      )}
+                        <View className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <View
+                            className="h-full bg-primary rounded-full"
+                            style={{ width: `${progress * 100}%` }}
+                          />
+                        </View>
+                        {!isMaxLevel && (
+                          <Text className="text-textMuted text-xs mt-1">
+                            {pointsToNext} points to next level
+                          </Text>
+                        )}
+                        {isMaxLevel && (
+                          <Text className="text-amber-600 text-xs mt-1 font-medium">
+                            Max level achieved!
+                          </Text>
+                        )}
+                      </View>
+
+                      {/* View Profile Button */}
+                      <Pressable
+                        onPress={() => router.push(`/community/profile/${user?.id}`)}
+                        className="flex-row items-center justify-center bg-surface border border-border rounded-xl py-3"
+                      >
+                        <Ionicons name="person-outline" size={18} color="#C68976" />
+                        <Text className="text-primary font-medium ml-2">View Community Profile</Text>
+                      </Pressable>
                     </View>
-
-                    {/* Progress to Next Level */}
-                    <View className="mb-4">
-                      <View className="flex-row justify-between mb-2">
-                        <Text className="text-textMuted text-xs">Progress to Level {isMaxLevel ? 10 : currentLevel + 1}</Text>
-                        <Text className="text-textMuted text-xs">{Math.round(progress * 100)}%</Text>
-                      </View>
-                      <View className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <View
-                          className="h-full bg-primary rounded-full"
-                          style={{ width: `${progress * 100}%` }}
-                        />
-                      </View>
-                      {!isMaxLevel && (
-                        <Text className="text-textMuted text-xs mt-1">
-                          {pointsToNext} points to next level
-                        </Text>
-                      )}
-                      {isMaxLevel && (
-                        <Text className="text-amber-600 text-xs mt-1 font-medium">
-                          Max level achieved!
-                        </Text>
-                      )}
-                    </View>
-
-                    {/* View Profile Button */}
-                    <Pressable
-                      onPress={() => router.push(`/community/profile/${user?.id}`)}
-                      className="flex-row items-center justify-center bg-surface border border-border rounded-xl py-3"
-                    >
-                      <Ionicons name="person-outline" size={18} color="#C68976" />
-                      <Text className="text-primary font-medium ml-2">View Community Profile</Text>
-                    </Pressable>
-                  </View>
-                );
-              })()}
-            </Card>
-          </View>
+                  );
+                })()}
+              </Card>
+            </View>
+          )}
 
           {/* Role Specific Actions - Only show for stylists (owners have Team tab) */}
-          {profile?.role === 'stylist' && (
+          {userType === 'individual_stylist' && (
             <View className="mb-8">
               <Text className="text-textMuted text-sm font-medium uppercase tracking-wider mb-3">
                 Professional Tools
@@ -257,7 +260,7 @@ export default function Profile() {
                 </TouchableOpacity>
 
                 {/* Join a Salon - Only for individual_stylists not already in a salon */}
-                {userType === 'individual_stylist' && !profile?.salon_id && (
+                {!profile?.salon_id && (
                   <TouchableOpacity
                     className="flex-row items-center justify-between p-4"
                     onPress={() => setShowJoinModal(true)}
@@ -274,6 +277,32 @@ export default function Profile() {
                     <Ionicons name="chevron-forward" size={20} color="#52525b" />
                   </TouchableOpacity>
                 )}
+              </Card>
+            </View>
+          )}
+
+          {/* Salon Management - Only for salon owners */}
+          {userType === 'salon_owner' && (
+            <View className="mb-8">
+              <Text className="text-textMuted text-sm font-medium uppercase tracking-wider mb-3">
+                Salon Management
+              </Text>
+              <Card padding="none" className="overflow-hidden">
+                <TouchableOpacity
+                  className="flex-row items-center justify-between p-4"
+                  onPress={() => router.push('/(tabs)/team')}
+                >
+                  <View className="flex-row items-center">
+                    <View className="bg-purple-500/10 p-2 rounded-full mr-3">
+                      <Ionicons name="people" size={24} color="#a855f7" />
+                    </View>
+                    <View>
+                      <Text className="text-text font-bold">Manage Team</Text>
+                      <Text className="text-textMuted text-xs">View team progress and add staff</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#52525b" />
+                </TouchableOpacity>
               </Card>
             </View>
           )}
