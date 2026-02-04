@@ -116,7 +116,7 @@
   - Acceptance: Form with event type, dates, size, location, notes. Submits to admin dashboard.
   - Test: Submit request → Confirmation shown, appears in admin
 
-- [ ] Build private events section in Events tab
+- [x] Build private events section in Events tab
   - Story: 4.2
   - Acceptance: "My Private Events" section separate from public events
   - Test: Salon with private event sees it in dedicated section
