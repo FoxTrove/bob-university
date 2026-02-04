@@ -121,7 +121,7 @@
   - Acceptance: "My Private Events" section separate from public events
   - Test: Salon with private event sees it in dedicated section
 
-- [ ] Implement private event invitations
+- [x] Implement private event invitations
   - Story: 4.3
   - Acceptance: Invite team members or external guests, track RSVP status
   - Test: Invite 3 people → They receive invite, status tracked
