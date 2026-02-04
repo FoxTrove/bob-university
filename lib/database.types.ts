@@ -129,34 +129,36 @@ export type Database = {
           status?: string
           updated_at?: string | null
         }
-        Relationships: []
-      }
-      salon_certification_tickets: {
-        Row: {
-          available_tickets: number
-          created_at: string | null
-          id: string
-          salon_id: string
-          total_tickets: number
-          updated_at: string | null
-        }
-        Insert: {
-          available_tickets?: number
-          created_at?: string | null
-          id?: string
-          salon_id: string
-          total_tickets?: number
-          updated_at?: string | null
-        }
-        Update: {
-          available_tickets?: number
-          created_at?: string | null
-          id?: string
-          salon_id?: string
-          total_tickets?: number
-          updated_at?: string | null
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "certification_ticket_assignments_assigned_by_user_id_fkey"
+            columns: ["assigned_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certification_ticket_assignments_assigned_to_user_id_fkey"
+            columns: ["assigned_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certification_ticket_assignments_certification_id_fkey"
+            columns: ["certification_id"]
+            isOneToOne: false
+            referencedRelation: "certification_settings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certification_ticket_assignments_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       collection_access: {
         Row: {
@@ -301,6 +303,434 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      community_bans: {
+        Row: {
+          banned_by: string
+          banned_until: string | null
+          created_at: string | null
+          id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          banned_by: string
+          banned_until?: string | null
+          created_at?: string | null
+          id?: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          banned_by?: string
+          banned_until?: string | null
+          created_at?: string | null
+          id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_bans_banned_by_fkey"
+            columns: ["banned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_bans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_comment_likes: {
+        Row: {
+          comment_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "community_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_comment_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          hidden_at: string | null
+          hidden_by: string | null
+          id: string
+          is_hidden: boolean | null
+          likes_count: number | null
+          parent_comment_id: string | null
+          post_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          hidden_at?: string | null
+          hidden_by?: string | null
+          id?: string
+          is_hidden?: boolean | null
+          likes_count?: number | null
+          parent_comment_id?: string | null
+          post_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          hidden_at?: string | null
+          hidden_by?: string | null
+          id?: string
+          is_hidden?: boolean | null
+          likes_count?: number | null
+          parent_comment_id?: string | null
+          post_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_comments_hidden_by_fkey"
+            columns: ["hidden_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "community_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_mentions: {
+        Row: {
+          comment_id: string | null
+          created_at: string | null
+          id: string
+          mentioned_by_user_id: string
+          mentioned_user_id: string
+          post_id: string | null
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string
+          mentioned_by_user_id: string
+          mentioned_user_id: string
+          post_id?: string | null
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string
+          mentioned_by_user_id?: string
+          mentioned_user_id?: string
+          post_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_mentions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "community_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_mentions_mentioned_by_user_id_fkey"
+            columns: ["mentioned_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_mentions_mentioned_user_id_fkey"
+            columns: ["mentioned_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_mentions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          category: string | null
+          comments_count: number | null
+          content: string | null
+          created_at: string | null
+          hidden_at: string | null
+          hidden_by: string | null
+          hidden_reason: string | null
+          id: string
+          is_feedback_request: boolean | null
+          is_hidden: boolean | null
+          is_published: boolean | null
+          likes_count: number | null
+          media_urls: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          hidden_at?: string | null
+          hidden_by?: string | null
+          hidden_reason?: string | null
+          id?: string
+          is_feedback_request?: boolean | null
+          is_hidden?: boolean | null
+          is_published?: boolean | null
+          likes_count?: number | null
+          media_urls?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          hidden_at?: string | null
+          hidden_by?: string | null
+          hidden_reason?: string | null
+          id?: string
+          is_feedback_request?: boolean | null
+          is_hidden?: boolean | null
+          is_published?: boolean | null
+          likes_count?: number | null
+          media_urls?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_hidden_by_fkey"
+            columns: ["hidden_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_reactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_reports: {
+        Row: {
+          action_taken: string | null
+          comment_id: string | null
+          created_at: string | null
+          details: string | null
+          id: string
+          post_id: string | null
+          reason: string
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+        }
+        Insert: {
+          action_taken?: string | null
+          comment_id?: string | null
+          created_at?: string | null
+          details?: string | null
+          id?: string
+          post_id?: string | null
+          reason: string
+          reporter_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Update: {
+          action_taken?: string | null
+          comment_id?: string | null
+          created_at?: string | null
+          details?: string | null
+          id?: string
+          post_id?: string | null
+          reason?: string
+          reporter_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_reports_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "community_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_reports_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_logs: {
+        Row: {
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          resend_id: string | null
+          status: string | null
+          subject: string | null
+          template: string
+          to_email: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          resend_id?: string | null
+          status?: string | null
+          subject?: string | null
+          template: string
+          to_email: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          resend_id?: string | null
+          status?: string | null
+          subject?: string | null
+          template?: string
+          to_email?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       entitlements: {
         Row: {
@@ -482,6 +912,44 @@ export type Database = {
           },
         ]
       }
+      exit_surveys: {
+        Row: {
+          created_at: string | null
+          details: string | null
+          id: string
+          plan: string | null
+          reason: string
+          subscription_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          details?: string | null
+          id?: string
+          plan?: string | null
+          reason: string
+          subscription_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          details?: string | null
+          id?: string
+          plan?: string | null
+          reason?: string
+          subscription_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exit_surveys_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       modules: {
         Row: {
           created_at: string | null
@@ -577,6 +1045,68 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          certification_updates: boolean | null
+          community_notifications: boolean | null
+          created_at: string | null
+          event_confirmations: boolean | null
+          event_reminders: boolean | null
+          id: string
+          learning_updates: boolean | null
+          newsletter: boolean | null
+          payment_receipts: boolean | null
+          progress_milestones: boolean | null
+          promotional_emails: boolean | null
+          subscription_updates: boolean | null
+          tips_and_tutorials: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          certification_updates?: boolean | null
+          community_notifications?: boolean | null
+          created_at?: string | null
+          event_confirmations?: boolean | null
+          event_reminders?: boolean | null
+          id?: string
+          learning_updates?: boolean | null
+          newsletter?: boolean | null
+          payment_receipts?: boolean | null
+          progress_milestones?: boolean | null
+          promotional_emails?: boolean | null
+          subscription_updates?: boolean | null
+          tips_and_tutorials?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          certification_updates?: boolean | null
+          community_notifications?: boolean | null
+          created_at?: string | null
+          event_confirmations?: boolean | null
+          event_reminders?: boolean | null
+          id?: string
+          learning_updates?: boolean | null
+          newsletter?: boolean | null
+          payment_receipts?: boolean | null
+          progress_milestones?: boolean | null
+          promotional_emails?: boolean | null
+          subscription_updates?: boolean | null
+          tips_and_tutorials?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -590,12 +1120,14 @@ export type Database = {
           id: string
           is_certified: boolean | null
           location: string | null
+          push_token: string | null
+          push_token_updated_at: string | null
           role: string | null
           salon_id: string | null
           skills_assessment: Json | null
           stripe_customer_id: string | null
           updated_at: string | null
-          user_type: 'salon_owner' | 'individual_stylist' | 'client' | null
+          user_type: string | null
           years_experience: number | null
         }
         Insert: {
@@ -610,12 +1142,14 @@ export type Database = {
           id: string
           is_certified?: boolean | null
           location?: string | null
+          push_token?: string | null
+          push_token_updated_at?: string | null
           role?: string | null
           salon_id?: string | null
           skills_assessment?: Json | null
           stripe_customer_id?: string | null
           updated_at?: string | null
-          user_type?: 'salon_owner' | 'individual_stylist' | 'client' | null
+          user_type?: string | null
           years_experience?: number | null
         }
         Update: {
@@ -630,12 +1164,14 @@ export type Database = {
           id?: string
           is_certified?: boolean | null
           location?: string | null
+          push_token?: string | null
+          push_token_updated_at?: string | null
           role?: string | null
           salon_id?: string | null
           skills_assessment?: Json | null
           stripe_customer_id?: string | null
           updated_at?: string | null
-          user_type?: 'salon_owner' | 'individual_stylist' | 'client' | null
+          user_type?: string | null
           years_experience?: number | null
         }
         Relationships: [
@@ -804,6 +1340,112 @@ export type Database = {
           },
         ]
       }
+      salon_certification_tickets: {
+        Row: {
+          available_tickets: number
+          created_at: string | null
+          id: string
+          salon_id: string
+          total_tickets: number
+          updated_at: string | null
+        }
+        Insert: {
+          available_tickets?: number
+          created_at?: string | null
+          id?: string
+          salon_id: string
+          total_tickets?: number
+          updated_at?: string | null
+        }
+        Update: {
+          available_tickets?: number
+          created_at?: string | null
+          id?: string
+          salon_id?: string
+          total_tickets?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salon_certification_tickets_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: true
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salon_invites: {
+        Row: {
+          access_code_id: string | null
+          created_at: string | null
+          expires_at: string
+          id: string
+          invited_by_user_id: string
+          invited_user_id: string
+          message: string | null
+          responded_at: string | null
+          salon_id: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          access_code_id?: string | null
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          invited_by_user_id: string
+          invited_user_id: string
+          message?: string | null
+          responded_at?: string | null
+          salon_id: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          access_code_id?: string | null
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          invited_by_user_id?: string
+          invited_user_id?: string
+          message?: string | null
+          responded_at?: string | null
+          salon_id?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salon_invites_access_code_id_fkey"
+            columns: ["access_code_id"]
+            isOneToOne: false
+            referencedRelation: "staff_access_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salon_invites_invited_by_user_id_fkey"
+            columns: ["invited_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salon_invites_invited_user_id_fkey"
+            columns: ["invited_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salon_invites_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       salons: {
         Row: {
           created_at: string | null
@@ -811,6 +1453,7 @@ export type Database = {
           max_staff: number | null
           name: string
           owner_id: string | null
+          seat_subscription_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -819,6 +1462,7 @@ export type Database = {
           max_staff?: number | null
           name: string
           owner_id?: string | null
+          seat_subscription_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -827,6 +1471,7 @@ export type Database = {
           max_staff?: number | null
           name?: string
           owner_id?: string | null
+          seat_subscription_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1316,7 +1961,37 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_community_points: {
+        Args: { points_to_add: number; user_id: string }
+        Returns: undefined
+      }
+      calculate_community_level: { Args: { points: number }; Returns: number }
+      get_level_thresholds: {
+        Args: { current_level: number }
+        Returns: {
+          level_max: number
+          level_min: number
+          next_level: number
+        }[]
+      }
+      get_pending_salon_invites_count: {
+        Args: { user_uuid: string }
+        Returns: number
+      }
       get_user_role: { Args: never; Returns: string }
+      has_active_subscription: { Args: { user_uuid: string }; Returns: boolean }
+      is_user_banned: { Args: { check_user_id: string }; Returns: boolean }
+      search_users_for_mention: {
+        Args: { limit_count?: number; search_query: string }
+        Returns: {
+          avatar_url: string
+          community_level: number
+          full_name: string
+          id: string
+          is_certified: boolean
+          is_ray: boolean
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
@@ -1461,6 +2136,7 @@ export type StaffAccessCode = Tables<'staff_access_codes'>
 export type SalonCertificationTickets = Tables<'salon_certification_tickets'>
 export type CertificationTicketAssignment = Tables<'certification_ticket_assignments'>
 export type CertificationSetting = Tables<'certification_settings'>
+export type SalonInvite = Tables<'salon_invites'>
 export type PlanType = 'free' | 'individual' | 'signature' | 'studio' | 'salon'
 
 // Extended types for hooks

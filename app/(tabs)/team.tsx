@@ -281,6 +281,11 @@ export default function TeamTab() {
       return;
     }
 
+    if (!salon?.id) {
+      Alert.alert('Error', 'No salon found for this user.');
+      return;
+    }
+
     if (!checkSeatLimit()) return;
 
     const emails = parseEmails(inviteEmail);
@@ -299,10 +304,10 @@ export default function TeamTab() {
       .eq('id', user.id)
       .single();
 
-    // Track results for each email
-    const results: { email: string; success: boolean; code?: string; error?: string }[] = [];
+    // Track results for each email - now includes type of invite
+    const results: { email: string; success: boolean; code?: string; error?: string; isExistingUser?: boolean }[] = [];
 
-    // Process each email - validate and send individually
+    // Process each email - validate and check for existing user
     for (const email of emails) {
       // Validate this email first
       if (!validateEmail(email)) {
@@ -311,31 +316,103 @@ export default function TeamTab() {
       }
 
       try {
-        const code = await generateAccessCode(email);
-        if (!code) {
-          results.push({ email, success: false, error: 'Failed to generate code' });
-          continue;
-        }
+        // Check if this email belongs to an existing user
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('id, full_name, salon_id')
+          .eq('email', email)
+          .single();
 
-        // Send the invite email via edge function
-        const { error: emailError } = await supabase.functions.invoke('send-email', {
-          body: {
-            to: email,
-            template: 'team-invite',
-            data: {
-              salonName: salon?.name,
-              ownerName: ownerProfile?.full_name,
-              accessCode: code,
-              expiresIn: 'in 48 hours',
-            },
-            skip_preference_check: true,
-          },
-        });
+        if (existingUser) {
+          // Existing user found - create in-app notification instead of email
 
-        if (emailError) {
-          results.push({ email, success: false, error: emailError.message || 'Failed to send' });
+          // Check if they're already in a salon
+          if (existingUser.salon_id) {
+            if (existingUser.salon_id === salon?.id) {
+              results.push({ email, success: false, error: 'Already a team member' });
+            } else {
+              results.push({ email, success: false, error: 'Already belongs to another salon' });
+            }
+            continue;
+          }
+
+          // Check if there's already a pending invite for this user
+          const { data: existingInvite } = await supabase
+            .from('salon_invites')
+            .select('id')
+            .eq('salon_id', salon.id)
+            .eq('invited_user_id', existingUser.id)
+            .eq('status', 'pending')
+            .single();
+
+          if (existingInvite) {
+            results.push({ email, success: false, error: 'Invite already pending' });
+            continue;
+          }
+
+          // Generate access code for existing user too (for tracking)
+          const code = await generateAccessCode(email);
+          if (!code) {
+            results.push({ email, success: false, error: 'Failed to generate code' });
+            continue;
+          }
+
+          // Get the access code record ID
+          const { data: accessCodeRecord } = await supabase
+            .from('staff_access_codes')
+            .select('id')
+            .eq('code', code)
+            .single();
+
+          // Create in-app invite notification
+          const expiresAt = new Date();
+          expiresAt.setDate(expiresAt.getDate() + 7); // 7 days for in-app invites
+
+          const { error: inviteError } = await supabase
+            .from('salon_invites')
+            .insert({
+              salon_id: salon.id,
+              invited_by_user_id: user.id,
+              invited_user_id: existingUser.id,
+              status: 'pending',
+              access_code_id: accessCodeRecord?.id || null,
+              message: `${ownerProfile?.full_name || 'A salon owner'} has invited you to join ${salon.name || 'their salon'}.`,
+              expires_at: expiresAt.toISOString(),
+            });
+
+          if (inviteError) {
+            results.push({ email, success: false, error: inviteError.message || 'Failed to create invite' });
+          } else {
+            results.push({ email, success: true, code, isExistingUser: true });
+          }
         } else {
-          results.push({ email, success: true, code });
+          // New user - send email invite as before
+          const code = await generateAccessCode(email);
+          if (!code) {
+            results.push({ email, success: false, error: 'Failed to generate code' });
+            continue;
+          }
+
+          // Send the invite email via edge function
+          const { error: emailError } = await supabase.functions.invoke('send-email', {
+            body: {
+              to: email,
+              template: 'team-invite',
+              data: {
+                salonName: salon?.name,
+                ownerName: ownerProfile?.full_name,
+                accessCode: code,
+                expiresIn: 'in 48 hours',
+              },
+              skip_preference_check: true,
+            },
+          });
+
+          if (emailError) {
+            results.push({ email, success: false, error: emailError.message || 'Failed to send' });
+          } else {
+            results.push({ email, success: true, code, isExistingUser: false });
+          }
         }
       } catch (e) {
         const message = e instanceof Error ? e.message : 'Failed to send invite';
@@ -345,21 +422,28 @@ export default function TeamTab() {
 
     setSendingInvite(false);
 
-    // Build result message
+    // Build result message - separate existing users from new users
     const successful = results.filter(r => r.success);
     const failed = results.filter(r => !r.success);
+    const existingUserInvites = successful.filter(r => r.isExistingUser);
+    const emailInvites = successful.filter(r => !r.isExistingUser);
 
     if (successful.length > 0 && failed.length === 0) {
       // All succeeded
-      if (successful.length === 1) {
-        setGeneratedCode(successful[0].code!);
-        Alert.alert('Invite Sent!', `An invitation has been sent to ${successful[0].email}`);
-      } else {
-        Alert.alert(
-          'Invites Sent!',
-          `${successful.length} invitations sent successfully:\n${successful.map(r => `• ${r.email}`).join('\n')}`
-        );
+      let message = '';
+      if (emailInvites.length > 0) {
+        message += `Email invites sent: ${emailInvites.length}\n${emailInvites.map(r => `• ${r.email}`).join('\n')}`;
       }
+      if (existingUserInvites.length > 0) {
+        if (message) message += '\n\n';
+        message += `In-app notifications sent: ${existingUserInvites.length}\n${existingUserInvites.map(r => `• ${r.email} (existing user)`).join('\n')}`;
+      }
+
+      if (successful.length === 1 && emailInvites.length === 1) {
+        setGeneratedCode(successful[0].code!);
+      }
+
+      Alert.alert('Invites Sent!', message);
       setInviteEmail('');
       setShowEmailForm(false);
     } else if (successful.length === 0 && failed.length > 0) {
@@ -370,9 +454,18 @@ export default function TeamTab() {
       );
     } else {
       // Mixed results - partial success
+      let successMessage = '';
+      if (emailInvites.length > 0) {
+        successMessage += `Email: ${emailInvites.map(r => `✓ ${r.email}`).join('\n')}`;
+      }
+      if (existingUserInvites.length > 0) {
+        if (successMessage) successMessage += '\n';
+        successMessage += `In-app: ${existingUserInvites.map(r => `✓ ${r.email}`).join('\n')}`;
+      }
+
       Alert.alert(
         'Partial Success',
-        `Sent: ${successful.length}\n${successful.map(r => `✓ ${r.email}`).join('\n')}\n\nFailed: ${failed.length}\n${failed.map(r => `✗ ${r.email}: ${r.error}`).join('\n')}`
+        `Sent: ${successful.length}\n${successMessage}\n\nFailed: ${failed.length}\n${failed.map(r => `✗ ${r.email}: ${r.error}`).join('\n')}`
       );
       // Clear only successful emails from input (leave failed ones for retry)
       const failedEmails = failed.map(r => r.email);
