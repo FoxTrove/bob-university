@@ -144,7 +144,7 @@
   - Acceptance: App name in app.json, splash screen, about screen all say "Bob Company"
   - Test: App appears as "Bob Company" everywhere
 
-- [ ] Implement user-type-based tab navigation
+- [x] Implement user-type-based tab navigation
   - Story: 1.2
   - Acceptance: Tab bar shows different tabs based on user_type (see story for specs)
   - Test: Each user type sees their specific tabs
