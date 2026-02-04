@@ -448,6 +448,45 @@ serve(async (req) => {
             const planTag = planTags[planRow?.plan ?? ''] ?? 'paid_subscriber';
             await updateGHLTags(serviceKey, userId, [planTag], ['free_user']);
 
+            // Handle additional seat subscriptions
+            if (subscription.metadata?.productType === 'additional_seats') {
+              const salonId = subscription.metadata?.salonId;
+              const seatCount = parseInt(subscription.metadata?.seatCount || '0', 10);
+
+              if (salonId && seatCount > 0) {
+                // Update salon max_staff
+                const { data: currentSalon } = await supabase
+                  .from('salons')
+                  .select('max_staff')
+                  .eq('id', salonId)
+                  .single();
+
+                const baseSeats = 5; // Salon plan includes 5 seats
+                const newMaxStaff = baseSeats + seatCount;
+
+                const { error: updateError } = await supabase
+                  .from('salons')
+                  .update({
+                    max_staff: newMaxStaff,
+                    seat_subscription_id: subscription.id,
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq('id', salonId);
+
+                if (updateError) {
+                  console.error('Failed to update salon max_staff:', updateError);
+                } else {
+                  console.log(`Updated salon ${salonId} max_staff to ${newMaxStaff} (${seatCount} additional seats)`);
+                }
+
+                // Trigger GHL workflow for seat purchase
+                await triggerGHLEvent(serviceKey, 'seats.purchased', profile.email, {
+                  seat_count: seatCount,
+                  total_seats: newMaxStaff,
+                }, userId);
+              }
+            }
+
             // Grant 3 free certification tickets for salon subscriptions
             if (planRow?.plan === 'salon') {
               // Find the salon owned by this user
@@ -482,14 +521,70 @@ serve(async (req) => {
             }
           }
 
-          if (event.type === 'customer.subscription.deleted') {
-            // Trigger GHL workflow for win-back sequence
-            await triggerGHLEvent(serviceKey, 'subscription.canceled', profile.email, {
-              plan: planRow?.plan,
-            }, userId);
+          // Handle subscription updates (e.g., adding more seats)
+          if (event.type === 'customer.subscription.updated') {
+            if (subscription.metadata?.productType === 'additional_seats') {
+              const salonId = subscription.metadata?.salonId;
+              const seatQuantity = subscription.items.data[0]?.quantity || 0;
 
-            // Update GHL tags
-            await updateGHLTags(serviceKey, userId, ['churned'], ['paid_signature', 'paid_studio', 'paid_salon', 'paid_individual']);
+              if (salonId && seatQuantity > 0) {
+                const baseSeats = 5; // Salon plan includes 5 seats
+                const newMaxStaff = baseSeats + seatQuantity;
+
+                const { error: updateError } = await supabase
+                  .from('salons')
+                  .update({
+                    max_staff: newMaxStaff,
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq('id', salonId);
+
+                if (updateError) {
+                  console.error('Failed to update salon max_staff on seat update:', updateError);
+                } else {
+                  console.log(`Updated salon ${salonId} max_staff to ${newMaxStaff} (seat subscription updated)`);
+                }
+              }
+            }
+          }
+
+          if (event.type === 'customer.subscription.deleted') {
+            // Handle seat subscription cancellation
+            if (subscription.metadata?.productType === 'additional_seats') {
+              const salonId = subscription.metadata?.salonId;
+
+              if (salonId) {
+                // Reset to base 5 seats when seat subscription is cancelled
+                const { error: updateError } = await supabase
+                  .from('salons')
+                  .update({
+                    max_staff: 5,
+                    seat_subscription_id: null,
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq('id', salonId);
+
+                if (updateError) {
+                  console.error('Failed to reset salon max_staff on seat cancellation:', updateError);
+                } else {
+                  console.log(`Reset salon ${salonId} max_staff to 5 (seat subscription cancelled)`);
+                }
+
+                // Notify owner
+                await triggerGHLEvent(serviceKey, 'seats.canceled', profile.email, {
+                  salon_id: salonId,
+                }, userId);
+              }
+            } else {
+              // Regular subscription cancellation
+              // Trigger GHL workflow for win-back sequence
+              await triggerGHLEvent(serviceKey, 'subscription.canceled', profile.email, {
+                plan: planRow?.plan,
+              }, userId);
+
+              // Update GHL tags
+              await updateGHLTags(serviceKey, userId, ['churned'], ['paid_signature', 'paid_studio', 'paid_salon', 'paid_individual']);
+            }
           }
         }
       }

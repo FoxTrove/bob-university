@@ -62,6 +62,8 @@ export default function TeamTab() {
   const [selectedCertification, setSelectedCertification] = useState<CertificationSetting | null>(null);
   const [assigning, setAssigning] = useState(false);
   const [showSeatLimitModal, setShowSeatLimitModal] = useState(false);
+  const [seatsToPurchase, setSeatsToPurchase] = useState(1);
+  const [purchasingSeats, setPurchasingSeats] = useState(false);
 
   // Calculate current seat usage
   const maxSeats = salon?.max_staff || 5;
@@ -512,6 +514,95 @@ export default function TeamTab() {
   function openPurchaseModal() {
     setTicketsToPurchase(1);
     setShowPurchaseModal(true);
+  }
+
+  // Seat pricing constant
+  const SEAT_PRICE_CENTS = 9900; // $99/month per seat
+
+  async function handlePurchaseSeats() {
+    if (!salon?.id || !user?.id) {
+      Alert.alert('Error', 'No salon found for this user.');
+      return;
+    }
+
+    setPurchasingSeats(true);
+    try {
+      // 1. Get payment intent from edge function
+      const { data, error } = await supabase.functions.invoke('purchase-seats', {
+        body: {
+          salonId: salon.id,
+          seatCount: seatsToPurchase,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      // Check if this was an existing subscription update (no payment needed)
+      if (data?.updated) {
+        setShowSeatLimitModal(false);
+        setSalon({
+          ...salon,
+          max_staff: data.totalSeats,
+        });
+        Alert.alert(
+          'Seats Added!',
+          data.message || `You now have ${data.totalSeats} team seats.`
+        );
+        return;
+      }
+
+      // 2. Initialize payment sheet for new subscription
+      if (!data?.paymentIntent) throw new Error('Failed to create payment intent');
+
+      const { error: initError } = await initPaymentSheet({
+        merchantDisplayName: 'Bob Company',
+        customerId: data.customer,
+        customerEphemeralKeySecret: data.ephemeralKey,
+        paymentIntentClientSecret: data.paymentIntent,
+        allowsDelayedPaymentMethods: false,
+        defaultBillingDetails: {
+          name: 'Salon Owner',
+        },
+      });
+
+      if (initError) throw initError;
+
+      // 3. Present payment sheet
+      const { error: presentError } = await presentPaymentSheet();
+
+      if (presentError) {
+        if (presentError.code === 'Canceled') {
+          // User cancelled, not an error
+          return;
+        }
+        throw presentError;
+      }
+
+      // 4. Success - update local state optimistically
+      setShowSeatLimitModal(false);
+      const newMaxStaff = 5 + seatsToPurchase; // Base 5 + purchased seats
+      setSalon({
+        ...salon,
+        max_staff: newMaxStaff,
+      });
+
+      Alert.alert(
+        'Seats Purchased!',
+        `You now have ${newMaxStaff} team seats. Your team can now grow!`
+      );
+
+      // Refresh data to get accurate counts from server
+      fetchSalonData();
+    } catch (err) {
+      console.error('Seat purchase error:', err);
+      Alert.alert(
+        'Purchase Failed',
+        err instanceof Error ? err.message : 'An error occurred during payment.'
+      );
+    } finally {
+      setPurchasingSeats(false);
+    }
   }
 
   function closePurchaseModal() {
@@ -1257,7 +1348,7 @@ export default function TeamTab() {
           <View className="bg-surface rounded-t-3xl p-6">
             {/* Header */}
             <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-text font-bold text-xl">Team at Capacity</Text>
+              <Text className="text-text font-bold text-xl">Add Team Seats</Text>
               <TouchableOpacity onPress={() => setShowSeatLimitModal(false)}>
                 <Ionicons name="close" size={24} color="#71717a" />
               </TouchableOpacity>
@@ -1276,18 +1367,56 @@ export default function TeamTab() {
               </Text>
             </View>
 
-            {/* Pricing Info */}
-            <View className="bg-surfaceHighlight rounded-xl p-4 mb-6">
-              <View className="flex-row items-center mb-2">
-                <Ionicons name="add-circle" size={20} color="#a855f7" />
-                <Text className="text-text font-bold ml-2">Additional Seats</Text>
+            {/* Seat Quantity Selector */}
+            <Text className="text-text font-semibold mb-3">How many seats do you need?</Text>
+            <View className="flex-row items-center justify-center bg-surfaceHighlight rounded-xl p-4 mb-4">
+              <TouchableOpacity
+                className={`w-12 h-12 rounded-full items-center justify-center ${
+                  seatsToPurchase > 1 ? 'bg-purple-500/20' : 'bg-surfaceHighlight'
+                }`}
+                onPress={() => setSeatsToPurchase(Math.max(1, seatsToPurchase - 1))}
+                disabled={seatsToPurchase <= 1}
+              >
+                <Ionicons
+                  name="remove"
+                  size={24}
+                  color={seatsToPurchase > 1 ? '#a855f7' : '#71717a'}
+                />
+              </TouchableOpacity>
+
+              <View className="mx-8 items-center">
+                <Text className="text-4xl font-bold text-text">{seatsToPurchase}</Text>
+                <Text className="text-textMuted text-sm">
+                  seat{seatsToPurchase > 1 ? 's' : ''}
+                </Text>
               </View>
-              <Text className="text-textMuted mb-3">
-                Expand your team with additional seats at $99/month per seat.
-              </Text>
-              <View className="flex-row items-center">
-                <Text className="text-2xl font-bold text-primary">$99</Text>
-                <Text className="text-textMuted ml-1">/month per seat</Text>
+
+              <TouchableOpacity
+                className="w-12 h-12 rounded-full bg-purple-500/20 items-center justify-center"
+                onPress={() => setSeatsToPurchase(Math.min(20, seatsToPurchase + 1))}
+                disabled={seatsToPurchase >= 20}
+              >
+                <Ionicons name="add" size={24} color="#a855f7" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Price Summary */}
+            <View className="bg-surfaceHighlight rounded-xl p-4 mb-4">
+              <View className="flex-row justify-between items-center mb-2">
+                <Text className="text-textMuted">
+                  {seatsToPurchase} seat{seatsToPurchase > 1 ? 's' : ''} × ${(SEAT_PRICE_CENTS / 100).toFixed(0)}/mo
+                </Text>
+                <Text className="text-text font-medium">
+                  ${((seatsToPurchase * SEAT_PRICE_CENTS) / 100).toFixed(0)}/month
+                </Text>
+              </View>
+              <View className="border-t border-border pt-3 mt-2">
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-text font-bold">New team capacity</Text>
+                  <Text className="text-primary font-bold text-lg">
+                    {maxSeats + seatsToPurchase} members
+                  </Text>
+                </View>
               </View>
             </View>
 
@@ -1300,20 +1429,32 @@ export default function TeamTab() {
               <Text className="text-text font-bold">{currentSeats} / {maxSeats} seats</Text>
             </View>
 
+            {/* Info */}
+            <View className="flex-row items-start mb-6">
+              <Ionicons name="information-circle-outline" size={18} color="#71717a" />
+              <Text className="text-textMuted text-sm ml-2 flex-1">
+                Seats are billed monthly via Stripe. You can add or remove seats anytime from your account settings.
+              </Text>
+            </View>
+
             {/* Action Buttons */}
             <TouchableOpacity
-              className="bg-purple-500 py-4 px-6 rounded-xl flex-row items-center justify-center mb-3"
-              onPress={() => {
-                setShowSeatLimitModal(false);
-                // This will be implemented in the next task - navigate to seat purchase
-                Alert.alert(
-                  'Coming Soon',
-                  'Additional seat purchases will be available shortly. Contact support for immediate assistance.'
-                );
-              }}
+              className={`py-4 px-6 rounded-xl flex-row items-center justify-center mb-3 ${
+                !purchasingSeats ? 'bg-purple-500' : 'bg-surfaceHighlight'
+              }`}
+              onPress={handlePurchaseSeats}
+              disabled={purchasingSeats}
             >
-              <Ionicons name="cart-outline" size={20} color="#ffffff" />
-              <Text className="text-white font-bold ml-2">Add Seats</Text>
+              {purchasingSeats ? (
+                <ActivityIndicator size="small" color="#a855f7" />
+              ) : (
+                <>
+                  <Ionicons name="cart-outline" size={20} color="#ffffff" />
+                  <Text className="text-white font-bold ml-2">
+                    Add {seatsToPurchase} Seat{seatsToPurchase > 1 ? 's' : ''} for ${((seatsToPurchase * SEAT_PRICE_CENTS) / 100).toFixed(0)}/mo
+                  </Text>
+                </>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
