@@ -9,7 +9,14 @@ import { Avatar } from '../../components/ui/Avatar';
 import { ProgressBar } from '../../components/ui/ProgressBar';
 import { Ionicons } from '@expo/vector-icons';
 import { useStripe } from '@stripe/stripe-react-native';
-import type { Profile, Salon, Module, SalonCertificationTickets, CertificationTicketAssignment, CertificationSetting } from '../../lib/database.types';
+import type { Tables } from '../../lib/database.types';
+
+// Type aliases using Supabase's Tables helper
+type Profile = Tables<'profiles'>;
+type Salon = Tables<'salons'>;
+type SalonCertificationTickets = Tables<'salon_certification_tickets'>;
+type CertificationTicketAssignment = Tables<'certification_ticket_assignments'>;
+type CertificationSetting = Tables<'certification_settings'>;
 
 // Ticket pricing constants (30% off $297 = $207 per ticket)
 const TICKET_PRICE_CENTS = 20700;

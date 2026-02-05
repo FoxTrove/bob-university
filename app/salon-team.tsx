@@ -7,7 +7,11 @@ import { SafeContainer } from '../components/layout/SafeContainer';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Ionicons } from '@expo/vector-icons';
-import type { Profile, Salon } from '../lib/database.types';
+import type { Tables } from '../lib/database.types';
+
+// Type aliases using Supabase's Tables helper
+type Profile = Tables<'profiles'>;
+type Salon = Tables<'salons'>;
 
 export default function SalonTeam() {
   const { user } = useAuth();
