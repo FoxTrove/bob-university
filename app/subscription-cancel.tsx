@@ -132,7 +132,6 @@ export default function SubscriptionCancel() {
   const handleAcceptRetentionOffer = async () => {
     setLoading(true);
     try {
-      // Apply 2 months free (this would need a backend function)
       const { data, error } = await supabase.functions.invoke('apply-retention-offer', {
         body: {
           reason: selectedReason,
@@ -141,24 +140,52 @@ export default function SubscriptionCancel() {
       });
 
       if (error) {
-        // If the function doesn't exist yet, just show success and go back
-        console.log('Retention offer function not implemented yet');
+        throw new Error(error.message || 'Failed to apply retention offer');
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
       }
 
       setRetentionOfferApplied(true);
+
+      const freeUntilDate = data?.free_until
+        ? new Date(data.free_until).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+          })
+        : '2 months from now';
+
       Alert.alert(
         'Offer Applied!',
-        "Great! We've extended your subscription by 2 months free. Thanks for staying with us!",
+        `Great! Your subscription is now free until ${freeUntilDate}. Thanks for staying with us!`,
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (err) {
       console.error('Retention offer error:', err);
-      // Even if it fails, show a positive message
-      Alert.alert(
-        'Thank You!',
-        'We appreciate you giving us another chance. Our team will reach out about your free extension.',
-        [{ text: 'OK', onPress: () => router.back() }]
-      );
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+
+      // Check for specific error cases
+      if (errorMessage.includes('already received')) {
+        Alert.alert(
+          'Offer Unavailable',
+          'You have already received a retention offer. Please contact support if you need assistance.',
+          [{ text: 'OK' }]
+        );
+      } else if (errorMessage.includes('Apple')) {
+        Alert.alert(
+          'Apple Subscription',
+          'This offer is only available for subscriptions managed through our app. Please manage your Apple subscription through your Apple ID settings.',
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert(
+          'Unable to Apply Offer',
+          'We encountered an issue applying your offer. Please contact support for assistance.',
+          [{ text: 'OK' }]
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -421,14 +448,16 @@ export default function SubscriptionCancel() {
 
             {/* Action Buttons */}
             <Button
-              title={loading ? 'Processing...' : 'Cancel Subscription'}
               onPress={handleCancel}
               variant="outline"
               disabled={loading || !selectedReason}
               fullWidth
               className="border-red-500"
-              textClassName="text-red-500"
-            />
+            >
+              <Text className="text-red-500 font-bold tracking-wide">
+                {loading ? 'Processing...' : 'Cancel Subscription'}
+              </Text>
+            </Button>
 
             {loading && (
               <ActivityIndicator size="small" color="#3b82f6" className="mt-4" />
