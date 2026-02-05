@@ -186,7 +186,7 @@
   - Files: app/(tabs)/team.tsx (63 errors)
   - Test: `npx tsc --noEmit 2>&1 | grep "team.tsx"` returns no errors
 
-- [ ] Fix Button component icon prop
+- [x] Fix Button component icon prop
   - Story: N/A (Quality)
   - Acceptance: events/[id].tsx compiles without TS errors
   - Issue: Button component doesn't accept `icon` prop but code passes it
