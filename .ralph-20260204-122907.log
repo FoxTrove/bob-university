@@ -1884,3 +1884,78 @@ Pushed to `feature/ralph-session-20260203-2130`.
   [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
   [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
   [0;36m⟳[0m Claude working...
+**Task completed: Fix Button component icon prop**
+
+Added the `icon` prop to the Button component in `components/ui/Button.tsx`:
+- Added `icon?: React.ReactNode` to the `ButtonProps` interface
+- Updated the component to accept and render the icon prop alongside the title
+- The `events/[id].tsx` file now compiles without TypeScript errors
+
+Committed and pushed to branch `feature/ralph-session-20260203-2130`.
+  [0;32m✓[0m Task completed
+  [0;36m↳[0m Checking CI status...
+  [0;33m![0m CI timeout - continuing without result
+
+  [1m[[0;32m███████████████████████████[0m[1m░░░] 90% (38/42)[0m  [0;33m287m elapsed[0m
+
+  [1mTask 39:[0m Fix private event request type mismatch...
+
+  [0;33m![0m Migration files detected, running safety review...
+[Migration review timed out]
+  [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
+  [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
+  [0;36m⟳[0m Claude working...
+**Task completed.**
+
+## Summary
+
+Fixed the TypeScript error in `app/(tabs)/events/request-private.tsx:91`:
+
+**Problem:** The Supabase `.insert()` call was causing a TypeScript error because TypeScript couldn't properly infer the correct overload. The error message incorrectly said `salon_id` doesn't exist on the type, but the real issue was TypeScript matching the wrong overload (array vs single object).
+
+**Solution:** 
+1. Imported the `Database` types and created an explicit type alias `PrivateEventRequestInsert`
+2. Extracted the insert data into a typed variable before passing to `.insert()`
+3. Added non-null assertions (`!`) for `eventType` and `locationType` which are validated before this point
+
+**Verification:** `npx tsc --noEmit 2>&1 | grep "request-private.tsx"` returns no errors.
+  [0;32m✓[0m Task completed
+  [0;36m↳[0m Checking CI status...
+  [0;33m![0m CI timeout - continuing without result
+
+  [1m[[0;32m███████████████████████████[0m[1m░░░] 92% (39/42)[0m  [0;33m297m elapsed[0m
+
+  [1mTask 40:[0m Fix TypeScript errors in hooks...
+
+  [0;33m![0m Migration files detected, running safety review...
+[Migration review timed out]
+  [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
+  [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
+  [0;36m⟳[0m Claude working...
+Task completed successfully.
+
+**Summary:**
+- Fixed TypeScript errors in 8 hook files by:
+  - Adding type aliases to `database.types.ts` for common types (Profile, Salon, Module, Video, VideoProgress, Entitlement, PlanType, VideoWithProgress, VideoMinimal, ModuleWithVideos, ModuleWithProgress)
+  - Fixed `useCertifications.ts`: Added nullable types and proper type casting for UserCertificationStatus
+  - Fixed `useEntitlement.ts`: Cast plan from `string | null` to `PlanType`
+  - Fixed `useModules.ts`: Properly typed video sorting/filtering with nullable sort_order
+  - Fixed `useNotificationPreferences.ts`: Updated interface to use `boolean | null` matching DB schema
+  - Fixed `useProfile.ts`: Cast userType from `string | null` to `UserType`
+  - Fixed `usePushNotifications.ts`: Updated to new expo-notifications API (`shouldShowBanner`/`shouldShowList` instead of deprecated `shouldShowAlert`), fixed useRef initialization
+  - Fixed `useSubscriptionPlans.ts`: Properly cast features array from Json to string[]
+
+- Test verification: `npx tsc --noEmit 2>&1 | grep "lib/hooks"` returns no errors
+  [0;32m✓[0m Task completed
+  [0;36m↳[0m Checking CI status...
+  [0;33m![0m CI timeout - continuing without result
+
+  [1m[[0;32m████████████████████████████[0m[1m░░] 95% (40/42)[0m  [0;33m309m elapsed[0m
+
+  [1mTask 41:[0m Fix TypeScript errors in components...
+
+  [0;33m![0m Migration files detected, running safety review...
+[Migration review timed out]
+  [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
+  [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
+  [0;36m⟳[0m Claude working...

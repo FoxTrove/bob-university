@@ -31,7 +31,7 @@ export function VideoCard({ video, isLocked = false, onPress }: VideoCardProps) 
   };
 
   const progress = video.video_progress;
-  const watchedPercent = progress?.duration_seconds
+  const watchedPercent = progress?.duration_seconds && progress?.watched_seconds
     ? Math.round((progress.watched_seconds / progress.duration_seconds) * 100)
     : 0;
 
