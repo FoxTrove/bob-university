@@ -178,7 +178,7 @@
 ### Phase 7: Review Findings (Feb 4, 2026)
 > From /ralph-review: Additional TypeScript and quality issues found
 
-- [ ] Fix TypeScript type imports in team.tsx
+- [x] Fix TypeScript type imports in team.tsx
   - Story: N/A (Quality)
   - Acceptance: team.tsx compiles without TS errors
   - Issue: Importing non-existent type aliases (Profile, Salon, Module, etc.) from database.types.ts
