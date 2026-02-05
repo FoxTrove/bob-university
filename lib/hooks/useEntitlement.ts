@@ -96,7 +96,7 @@ export function useEntitlement(): UseEntitlementResult {
     };
   }, [user?.id, fetchEntitlement]);
 
-  const plan: PlanType = entitlement?.plan || 'free';
+  const plan: PlanType = (entitlement?.plan as PlanType) || 'free';
 
   const isActive = useMemo(() => {
     if (!entitlement) return false;

@@ -13,6 +13,7 @@ interface RequiredModuleJoin {
 interface UserCertificationStatus {
   status: 'pending' | 'submitted' | 'approved' | 'rejected' | 'resubmitted';
   feedback: string | null;
+  submission_video_url?: string | null;
 }
 
 interface RequirementBreakdown {
@@ -29,8 +30,10 @@ export interface Certification {
   description: string | null;
   price_cents: number;
   badge_image_url: string | null;
-  requires_review: boolean;
-  is_active: boolean;
+  requires_review: boolean | null;
+  is_active: boolean | null;
+  created_at?: string | null;
+  updated_at?: string | null;
   required_modules?: RequiredModuleJoin[];
   user_status?: UserCertificationStatus | null;
   is_qualified?: boolean;
@@ -204,7 +207,7 @@ export const useCertification = (id: string | undefined) => {
             if (!certData) throw new Error('Certification not found');
 
              // 2. Fetch user status if logged in
-            let userStatus = null;
+            let userStatus: UserCertificationStatus | null = null;
             let completedVideoIds = new Set<string>();
 
             if (user?.id) {
@@ -215,9 +218,13 @@ export const useCertification = (id: string | undefined) => {
                     .eq('user_id', user.id)
                     .eq('certification_id', id)
                     .maybeSingle();
-                
-                if (submission) {
-                    userStatus = submission;
+
+                if (submission && submission.status) {
+                    userStatus = {
+                        status: submission.status as UserCertificationStatus['status'],
+                        feedback: submission.feedback,
+                        submission_video_url: submission.submission_video_url
+                    };
                 }
 
                 // Fetch progress

@@ -84,7 +84,7 @@ export function useProfile(): UseProfileResult {
     };
   }, [user?.id, fetchProfile]);
 
-  const userType: UserType = profile?.user_type || null;
+  const userType: UserType = (profile?.user_type as UserType) || null;
 
   return {
     profile,

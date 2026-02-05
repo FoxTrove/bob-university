@@ -6,19 +6,19 @@ import logger from '../utils/logger';
 export interface NotificationPreferences {
   id: string;
   user_id: string;
-  learning_updates: boolean;
-  progress_milestones: boolean;
-  payment_receipts: boolean;
-  subscription_updates: boolean;
-  certification_updates: boolean;
-  event_confirmations: boolean;
-  event_reminders: boolean;
-  promotional_emails: boolean;
-  newsletter: boolean;
-  tips_and_tutorials: boolean;
-  community_notifications: boolean;
-  created_at: string;
-  updated_at: string;
+  learning_updates: boolean | null;
+  progress_milestones: boolean | null;
+  payment_receipts: boolean | null;
+  subscription_updates: boolean | null;
+  certification_updates: boolean | null;
+  event_confirmations: boolean | null;
+  event_reminders: boolean | null;
+  promotional_emails: boolean | null;
+  newsletter: boolean | null;
+  tips_and_tutorials: boolean | null;
+  community_notifications: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 interface UseNotificationPreferencesResult {

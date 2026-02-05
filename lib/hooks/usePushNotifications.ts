@@ -9,7 +9,8 @@ import { router } from 'expo-router';
 // Configure notification handling
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
   }),
@@ -30,8 +31,8 @@ export function usePushNotifications(): UsePushNotificationsResult {
   const [error, setError] = useState<string | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<Notifications.PermissionStatus | null>(null);
 
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
 
   useEffect(() => {
     // Listen for incoming notifications
@@ -56,10 +57,10 @@ export function usePushNotifications(): UsePushNotificationsResult {
 
     return () => {
       if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
+        notificationListener.current.remove();
       }
       if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
+        responseListener.current.remove();
       }
     };
   }, []);

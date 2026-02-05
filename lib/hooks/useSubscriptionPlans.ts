@@ -44,9 +44,10 @@ export function useSubscriptionPlans(): UseSubscriptionPlansResult {
       }
 
       // Transform features from JSON to array if needed
-      const transformedPlans = (data || []).map((plan) => ({
+      const transformedPlans: SubscriptionPlan[] = (data || []).map((plan) => ({
         ...plan,
-        features: Array.isArray(plan.features) ? plan.features : [],
+        plan: plan.plan as SubscriptionPlan['plan'],
+        features: Array.isArray(plan.features) ? (plan.features as string[]) : [],
       }));
 
       setPlans(transformedPlans);

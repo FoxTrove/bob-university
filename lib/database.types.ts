@@ -2296,3 +2296,42 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
+// Type aliases for convenience
+export type Profile = Tables<'profiles'>;
+export type Salon = Tables<'salons'>;
+export type Module = Tables<'modules'>;
+export type Video = Tables<'videos'>;
+export type VideoProgress = Tables<'video_progress'>;
+export type Entitlement = Tables<'entitlements'>;
+export type NotificationPreferences = Tables<'notification_preferences'>;
+export type SubscriptionPlan = Tables<'subscription_plans'>;
+
+// Plan types used in entitlements
+export type PlanType = 'free' | 'individual' | 'signature' | 'studio' | 'salon';
+
+// Extended video types with progress and module info
+export interface VideoWithProgress extends Video {
+  video_progress: VideoProgress | null;
+  module?: Module | null;
+}
+
+// Minimal video type for module listings
+export interface VideoMinimal {
+  id: string;
+  duration_seconds: number | null;
+  is_published: boolean | null;
+}
+
+// Module with its videos attached
+export interface ModuleWithVideos extends Module {
+  videos: Video[];
+}
+
+// Module with progress stats
+export interface ModuleWithProgress extends Module {
+  videos: VideoMinimal[];
+  totalVideos: number;
+  completedVideos: number;
+  progressPercent: number;
+}

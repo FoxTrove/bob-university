@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabase';
-import type { ModuleWithVideos, ModuleWithProgress, VideoMinimal, Module } from '../database.types';
+import type { ModuleWithVideos, ModuleWithProgress, VideoMinimal, Module, Video } from '../database.types';
 
 interface UseModulesResult {
   modules: ModuleWithProgress[];
@@ -128,16 +128,13 @@ export function useModule(moduleId: string | undefined): UseModuleResult {
         throw fetchError;
       }
 
-      // Sort videos by sort_order
-      if (data?.videos) {
-        data.videos.sort((a: { sort_order: number }, b: { sort_order: number }) =>
-          a.sort_order - b.sort_order
-        );
-        // Filter to only published videos
-        data.videos = data.videos.filter((v: { is_published: boolean }) => v.is_published);
-      }
+      // Sort and filter videos
+      let videos: Video[] = data?.videos || [];
+      videos = videos
+        .filter((v) => v.is_published)
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
 
-      setModule(data as ModuleWithVideos);
+      setModule({ ...data, videos } as ModuleWithVideos);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch module';
       setError(message);
