@@ -15,8 +15,11 @@ import { Button } from '../../../components/ui/Button';
 import { useAuth } from '../../../lib/auth';
 import { useProfile } from '../../../lib/hooks/useProfile';
 import { supabase } from '../../../lib/supabase';
+import { Database } from '../../../lib/database.types';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+
+type PrivateEventRequestInsert = Database['public']['Tables']['private_event_requests']['Insert'];
 
 type EventType = 'team_training' | 'certification_prep' | 'advanced_workshop' | 'custom';
 type LocationType = 'at_salon' | 'nearby_venue' | 'virtual' | 'flexible';
@@ -82,24 +85,30 @@ export default function RequestPrivateEventScreen() {
       return;
     }
 
+    // Store values after null check for TypeScript narrowing
+    const userId = user.id;
+    const salonId = profile.salon_id;
+
     setSubmitting(true);
 
     try {
+      const insertData: PrivateEventRequestInsert = {
+        salon_id: salonId,
+        requested_by_user_id: userId,
+        event_type: eventType!,
+        preferred_start_date: preferredStartDate,
+        preferred_end_date: preferredEndDate || null,
+        flexible_dates: flexibleDates,
+        estimated_attendees: parseInt(estimatedAttendees),
+        location_type: locationType!,
+        salon_address: locationType === 'at_salon' ? salonAddress : null,
+        preferred_city: locationType === 'nearby_venue' ? preferredCity : null,
+        special_requests: specialRequests || null,
+      };
+
       const { error: insertError } = await supabase
         .from('private_event_requests')
-        .insert({
-          salon_id: profile.salon_id,
-          requested_by_user_id: user.id,
-          event_type: eventType,
-          preferred_start_date: preferredStartDate,
-          preferred_end_date: preferredEndDate || null,
-          flexible_dates: flexibleDates,
-          estimated_attendees: parseInt(estimatedAttendees),
-          location_type: locationType,
-          salon_address: locationType === 'at_salon' ? salonAddress : null,
-          preferred_city: locationType === 'nearby_venue' ? preferredCity : null,
-          special_requests: specialRequests || null,
-        });
+        .insert(insertData);
 
       if (insertError) throw insertError;
 
