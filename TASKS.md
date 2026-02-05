@@ -3,7 +3,7 @@
 ## Session Info
 - Branch: feature/ralph-session-20260203-2130
 - Started: 2026-02-03 21:30
-- PR: (filled when created)
+- PR: https://github.com/FoxTrove/bob-university/pull/2
 
 ## Completed
 
