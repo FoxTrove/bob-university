@@ -193,7 +193,7 @@
   - Files: app/(tabs)/events/[id].tsx:871
   - Test: `npx tsc --noEmit 2>&1 | grep "events/\[id\].tsx"` returns no errors
 
-- [ ] Fix private event request type mismatch
+- [x] Fix private event request type mismatch
   - Story: N/A (Quality)
   - Acceptance: request-private.tsx compiles without TS errors
   - Issue: Insert payload has `salon_id` which doesn't exist on type
