@@ -1855,3 +1855,32 @@ The app is functionally complete with all 14 user stories implemented. However, 
   [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
   [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
   [0;36m⟳[0m Claude working...
+## Task Complete
+
+**Completed:** Fix TypeScript type imports in team.tsx
+
+**What was done:**
+- Replaced invalid type imports (`Profile`, `Salon`, `SalonCertificationTickets`, `CertificationTicketAssignment`, `CertificationSetting`) with proper `Tables<'tablename'>` helper syntax from Supabase's generated types
+- Fixed both `app/(tabs)/team.tsx` and `app/salon-team.tsx` which had the same issue
+
+**Verification:**
+- `npx tsc --noEmit 2>&1 | grep "team.tsx"` returns no errors ✓
+
+**Commits:**
+1. `fix: Use Tables<> helper for TypeScript types in team screens`
+2. `chore: Complete 'Fix TypeScript type imports in team.tsx' task`
+
+Pushed to `feature/ralph-session-20260203-2130`.
+  [0;32m✓[0m Task completed
+  [0;36m↳[0m Checking CI status...
+  [0;33m![0m CI timeout - continuing without result
+
+  [1m[[0;32m██████████████████████████[0m[1m░░░░] 88% (37/42)[0m  [0;33m278m elapsed[0m
+
+  [1mTask 38:[0m Fix Button component icon prop...
+
+  [0;33m![0m Migration files detected, running safety review...
+[Migration review timed out]
+  [0;31m![0m Blocked migrations found - see SAFETY_QUEUE.md
+  [0;36m↳[0m Run 'ralph-approve' in another terminal to approve
+  [0;36m⟳[0m Claude working...

@@ -11,6 +11,7 @@ interface ButtonProps extends TouchableOpacityProps {
   loading?: boolean;
   fullWidth?: boolean;
   children?: React.ReactNode;
+  icon?: React.ReactNode;
 }
 
 const variantStyles: Record<ButtonVariant, { container: string; text: string }> = {
@@ -56,6 +57,7 @@ export function Button({
   disabled,
   className = '',
   children,
+  icon,
   ...props
 }: ButtonProps) {
   const isDisabled = disabled || loading;
@@ -83,9 +85,12 @@ export function Button({
       ) : children ? (
         children
       ) : (
-        <Text className={`${variantStyle.text} ${sizeStyle.text} font-bold tracking-wide`}>
-          {title}
-        </Text>
+        <>
+          {icon && <View className="mr-2">{icon}</View>}
+          <Text className={`${variantStyle.text} ${sizeStyle.text} font-bold tracking-wide`}>
+            {title}
+          </Text>
+        </>
       )}
     </TouchableOpacity>
   );
