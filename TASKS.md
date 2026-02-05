@@ -200,7 +200,7 @@
   - Files: app/(tabs)/events/request-private.tsx:91
   - Test: `npx tsc --noEmit 2>&1 | grep "request-private.tsx"` returns no errors
 
-- [ ] Fix TypeScript errors in hooks
+- [x] Fix TypeScript errors in hooks
   - Story: N/A (Quality)
   - Acceptance: All lib/hooks/*.ts files compile without TS errors
   - Issue: Various type errors in 9 hook files
