@@ -207,7 +207,7 @@
   - Files: useCertifications.ts, useEntitlement.ts, useModules.ts, useNotificationPreferences.ts, useProfile.ts, usePushNotifications.ts, useSalonInvites.ts, useSubscriptionPlans.ts, useVideos.ts
   - Test: `npx tsc --noEmit 2>&1 | grep "lib/hooks"` returns no errors
 
-- [ ] Fix TypeScript errors in components
+- [x] Fix TypeScript errors in components
   - Story: N/A (Quality)
   - Acceptance: All component files compile without TS errors
   - Files: SalonOwnerHomeScreen.tsx, ModuleCard.tsx, ModuleGrid.tsx, VideoCard.tsx, VideoList.tsx
