@@ -86,53 +86,60 @@ function ExternalLinkModal({
 // Free plan is static (not stored in database)
 const freePlan: DisplayPlan = {
   id: 'free',
-  name: 'Free',
+  name: 'Free Community',
   price: '$0',
   period: 'forever',
   description: 'Explore and connect',
   features: [
-    { text: 'Intro videos', included: true },
-    { text: 'Full community access', included: true },
+    { text: 'App download & community access', included: true },
     { text: 'Browse stylist directory', included: true },
-    { text: 'Core curriculum & vault', included: false },
+    { text: 'Core curriculum (14+ hours)', included: false },
     { text: 'Live workshops', included: false },
+    { text: 'Ask Ray sessions', included: false },
     { text: 'Directory listing', included: false },
   ],
 };
 
 // Feature lists for each tier (used when DB features are empty)
-// Pricing updated Feb 2026: Signature $49/mo, Studio $127/mo, Studio Annual $1,200/yr
+// FOUNDERS PRICING Feb 2026: Signature $49/mo, Studio $97/mo, Studio Annual $970/yr, Salon $3,000/yr
 const TIER_FEATURES: Record<string, string[]> = {
   signature: [
-    'Core curriculum & vault',
-    'Monthly live workshop',
-    'Celebrity cut breakdown',
-    'Full community access',
-    'Stylist directory listing',
-    'Certification eligible',
+    'Full core curriculum (14+ hours)',
+    'Monthly specialty workshop (live)',
+    'Celebrity cut breakdowns',
+    'Rotating replay vault (6 sessions)',
+    'Community access',
   ],
   studio: [
     'Everything in Signature',
-    'Weekly "Ask Ray" live sessions',
-    'Demand (business/pricing content)',
-    'Studio-only replays',
-    'Reserved seats at live events',
+    'Monthly Ask Ray / Hot Seat (live)',
+    'Money & Demand talks (Studio-only)',
+    'Full replay archive',
     'Certification eligible',
+    'Directory listing',
+  ],
+  'studio-annual': [
+    'Everything in Signature',
+    'Monthly Ask Ray / Hot Seat (live)',
+    'Money & Demand talks (Studio-only)',
+    'Full replay archive',
+    'Certification eligible',
+    'Directory listing',
+    '2 months free vs monthly',
   ],
   individual: [
-    'Core curriculum & vault',
-    'Monthly live workshop',
-    'Celebrity cut breakdown',
-    'Full community access',
-    'Stylist directory listing',
-    'Certification eligible',
+    'Full core curriculum (14+ hours)',
+    'Monthly specialty workshop (live)',
+    'Celebrity cut breakdowns',
+    'Rotating replay vault (6 sessions)',
+    'Community access',
   ],
   salon: [
-    '5 team seats included',
-    'All Signature + Studio content',
-    'Team progress dashboard',
-    '3 certifications included',
-    'Reserved event seats for team',
+    '5 Studio memberships included',
+    'Full Signature + Studio access',
+    'Owner onboarding call',
+    'Quarterly optimization calls',
+    'Rotate team members freely',
     'Priority support',
   ],
 };
@@ -211,14 +218,17 @@ export default function Subscribe() {
 
       // Format plan name (capitalize and handle special cases)
       let displayName = plan.plan.charAt(0).toUpperCase() + plan.plan.slice(1);
-      if (plan.plan === 'individual') displayName = 'Signature'; // Legacy name mapping
+      if (plan.plan === 'individual') displayName = 'Signature';
+      if (plan.plan === 'studio-annual') displayName = 'Studio Annual';
+      if (plan.plan === 'salon') displayName = 'Virtual Studio Salon';
 
       // Plan descriptions
       const descriptions: Record<string, string> = {
-        signature: 'Full course access',
+        signature: 'Master the fundamentals',
         studio: 'Direct access to Ray',
-        individual: 'Full course access',
-        salon: 'Train your entire team',
+        'studio-annual': 'Direct access to Ray (2 months free)',
+        individual: 'Master the fundamentals',
+        salon: 'Transform your entire team',
       };
 
       return {
@@ -228,7 +238,7 @@ export default function Subscribe() {
         period: `/${plan.interval}`,
         description: plan.description || descriptions[plan.plan] || '',
         features: featureList.map((f) => ({ text: f, included: true })),
-        popular: plan.plan === 'studio', // Studio is most popular
+        popular: plan.plan === 'studio' || plan.plan === 'studio-annual',
       };
     }),
   ];

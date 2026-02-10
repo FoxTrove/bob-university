@@ -2308,7 +2308,7 @@ export type NotificationPreferences = Tables<'notification_preferences'>;
 export type SubscriptionPlan = Tables<'subscription_plans'>;
 
 // Plan types used in entitlements
-export type PlanType = 'free' | 'individual' | 'signature' | 'studio' | 'salon';
+export type PlanType = 'free' | 'individual' | 'signature' | 'studio' | 'studio-annual' | 'salon';
 
 // Extended video types with progress and module info
 export interface VideoWithProgress extends Video {

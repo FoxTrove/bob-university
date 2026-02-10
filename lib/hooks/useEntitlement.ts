@@ -114,7 +114,8 @@ export function useEntitlement(): UseEntitlementResult {
   }, [entitlement]);
 
   const isPremium = useMemo(() => {
-    return isActive && (plan === 'individual' || plan === 'signature' || plan === 'studio' || plan === 'salon');
+    const premiumPlans = ['individual', 'signature', 'studio', 'studio-annual', 'salon'];
+    return isActive && premiumPlans.includes(plan);
   }, [isActive, plan]);
 
   const subscriptionStartDate = useMemo(() => {
