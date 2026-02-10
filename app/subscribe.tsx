@@ -251,12 +251,15 @@ export default function Subscribe() {
     setProcessingPlan(selectedExternalPlan.id);
 
     try {
-      // Build web checkout URL with plan and user info
+      // Build web checkout URL with plan and user info for seamless experience
       const params = new URLSearchParams({
         plan: selectedExternalPlan.id,
-        ...(user?.email && { email: user.email }),
         source: 'ios_app',
       });
+
+      // Add user info if available
+      if (user?.email) params.set('email', user.email);
+      if (user?.user_metadata?.full_name) params.set('name', user.user_metadata.full_name);
 
       const url = `${WEB_SUBSCRIBE_URL}?${params.toString()}`;
       await Linking.openURL(url);

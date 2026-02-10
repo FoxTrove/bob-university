@@ -358,7 +358,9 @@ function SubscribeContent() {
   const searchParams = useSearchParams();
   const planParam = searchParams.get('plan') || 'studio';
   const email = searchParams.get('email') || '';
+  const name = searchParams.get('name') || '';
   const source = searchParams.get('source') || 'web';
+  const isFromApp = source === 'ios_app';
 
   const [loading, setLoading] = useState(false);
   const [userType, setUserType] = useState<UserType>(
@@ -431,11 +433,23 @@ function SubscribeContent() {
           </div>
 
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4 leading-tight">
-            Elevate Your Craft.<br />
-            <span className="text-primary">Transform Your Career.</span>
+            {name ? (
+              <>
+                {name.split(' ')[0]}, let&apos;s<br />
+                <span className="text-primary">Transform Your Career.</span>
+              </>
+            ) : (
+              <>
+                Elevate Your Craft.<br />
+                <span className="text-primary">Transform Your Career.</span>
+              </>
+            )}
           </h1>
           <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-            Join thousands of stylists mastering precision cutting with Ray&apos;s proven techniques.
+            {isFromApp
+              ? "Complete your subscription to unlock all premium content."
+              : "Join thousands of stylists mastering precision cutting with Ray's proven techniques."
+            }
           </p>
 
           {/* Social proof */}

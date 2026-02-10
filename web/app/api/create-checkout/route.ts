@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
       ],
       customer: customerId,
       customer_email: customerId ? undefined : email || undefined,
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cancel`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}&source=${source || 'web'}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cancel?source=${source || 'web'}`,
       metadata: {
         plan,
         source,
