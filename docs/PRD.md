@@ -159,43 +159,53 @@ Users who download the app receive immediate access to free content without paym
 
 #### 3.2.2 Individual Stylist Tiers
 
-| Feature | Free | Signature ($69/mo) | Studio ($149/mo) |
-| :--- | :--- | :--- | :--- |
-| Intro Videos | ✓ | ✓ | ✓ |
-| Community Access | ✓ | ✓ | ✓ |
-| Core Curriculum & Vault | - | ✓ | ✓ |
-| Monthly Live Workshop | - | ✓ | ✓ |
-| Celebrity Cut Breakdown | - | ✓ | ✓ |
-| Weekly "Ask Ray" Live | - | - | ✓ |
-| Demand (Business/Pricing Content) | - | - | ✓ |
-| Studio-Only Replays | - | - | ✓ |
-| Reserved Seats at Live Events | - | - | ✓ |
-| Directory Listing | - | ✓ | ✓ |
-| Certification Eligible | - | ✓ ($297 upsell) | ✓ ($297 upsell) |
-| Community Badge | - | "Signature" | "Studio" |
+| Feature | Free | Signature ($49/mo) | Studio ($127/mo) | Studio Annual ($1,200/yr) |
+| :--- | :--- | :--- | :--- | :--- |
+| Intro Videos | ✓ | ✓ | ✓ | ✓ |
+| Community Access | ✓ | ✓ | ✓ | ✓ |
+| Core Curriculum & Vault | - | ✓ | ✓ | ✓ |
+| Monthly Live Workshop | - | ✓ | ✓ | ✓ |
+| Celebrity Cut Breakdown | - | ✓ | ✓ | ✓ |
+| Weekly "Ask Ray" Live | - | - | ✓ | ✓ |
+| Demand (Business/Pricing Content) | - | - | ✓ | ✓ |
+| Studio-Only Replays | - | - | ✓ | ✓ |
+| Reserved Seats at Live Events | - | - | ✓ | ✓ |
+| Directory Listing | - | ✓ | ✓ | ✓ |
+| Certification Eligible | - | ✓ | ✓ | ✓ |
+| Community Badge | - | "Signature" | "Studio" | "Studio" |
 
-**Certification ($297 one-time upsell)**:
-- 4-week live cohort with Ray (quarterly)
-- Starts with "The Bob" certification
-- Future certifications: Pixie, Shag
+**Studio Annual Savings**: $1,200/year = $100/month effective (save $324 vs monthly)
+
+**Certification** (separate purchase):
+- In-app certification available for active subscribers
 - Adds "Certified" badge to profile and community posts
 - **Must maintain active subscription to stay listed in directory**
 
 #### 3.2.3 Salon Owner Tiers
 
-| Feature | Salon ($150/mo or $997/year) |
-| :--- | :--- |
-| Full Course Access | ✓ All Signature + Studio content |
-| Team Seats | 5 included (can shuffle members) |
-| Team Progress Dashboard | ✓ Monitor all stylists |
-| Admin Management | ✓ Add/remove team members |
-| Certification Discount | ~30% off per stylist certification |
-| Reserved Event Seats | ✓ For team |
-| Priority Support | ✓ |
+| Feature | Foundations ($1,500/yr) | Studio Team ($4,500/yr) |
+| :--- | :--- | :--- |
+| Course Access | Signature content | All Signature + Studio |
+| Team Seats | 5 included | 5 included (can shuffle) |
+| Team Progress Dashboard | ✓ | ✓ |
+| Admin Management | ✓ | ✓ |
+| Certifications Included | - | 3 included |
+| Weekly "Ask Ray" Live | - | ✓ |
+| Reserved Event Seats | - | ✓ For team |
+| Priority Support | - | ✓ |
 
-**Salon Value Proposition**: Individual pricing for 5 stylists would cost ~$4,485/year (5 × $69 × 12 + certifications). Salon plan offers significant savings.
+**Salon Foundations** ($1,500/year): Education-only access, no monthly option. Core curriculum for team training.
+
+**Studio Team** ($4,500/year): Full access including 3 certifications. Individual pricing for 5 stylists would cost ~$7,620/year (5 × $127 × 12). Studio Team saves over $3,000.
 
 **Additional Seats**: Salons can add seats beyond 5 at discounted per-seat rate.
+
+#### 3.2.4 On-Site Certification
+
+| Package | Price | Details |
+| :--- | :--- | :--- |
+| Up to 10 stylists | $8,500 | Ray comes to your location |
+| 11+ stylists | $10,000 | Assistant required |
 
 #### 3.2.4 Upgrade Triggers & Gating
 Strategic placement of upgrade prompts to maximize conversion:
@@ -371,13 +381,13 @@ Certifications are premium add-ons that validate mastery of specific methods thr
 #### 3.5.2 Distinct Certification Models
 - **Distinct Types**: Multiple certification types (The Bob, The Pixie, The Shag).
 - **Initial Focus**: The Bob Certification. Future expansion to Pixie and Shag as upsells.
-- **Pricing**: $297 per certification (individual stylists). Salon teams get ~30% discount.
+- **Pricing**: Individual certification available in-app. Salon Studio Team includes 3 certifications. On-site certification: $8,500 (up to 10) / $10,000 (11+).
 - **Cohort Model**: Certifications run as quarterly 4-week live intensives.
 - **Physical Fulfillment**: Automation to generate and ship physical materials (certificates, rewards) upon completion.
 
 #### 3.5.3 Certification Process (Cohort-Based)
 1. **Prerequisites**: Must have active Signature or Studio subscription.
-2. **Purchase Certification**: One-time payment of $297 via in-app purchase.
+2. **Purchase Certification**: One-time payment via in-app purchase (or included with Salon Studio Team).
 3. **Register for Cohort**: Select upcoming quarterly cohort (4-week intensive).
 4. **Live Sessions**: 90-minute live sessions every Monday for 4 weeks with Ray.
 5. **Work Through Syllabus**: Complete certification curriculum during cohort.
@@ -829,7 +839,7 @@ Total time from Instagram to paid subscriber: 5-10 minutes
 ### 5.3 Certification Flow
 1.​ Complete all videos in required module (e.g., Perfect Bob)
 2.​ Navigate to Certifications tab → eligible certifications highlighted
-3.​ Purchase certification ($297-300) via in-app checkout
+3.​ Purchase certification via in-app checkout
 4.​ Record and upload certification video (in-app camera or upload)
 5.​ Submission confirmed → wait for review (5-7 business days)
 6.​ Receive push notification with results
@@ -894,7 +904,7 @@ Content unlocks based on time elapsed since user's subscription start date:
 #### 6.4.2 Certification Configuration
 - Create Certifications: Define new certification types
 - Prerequisites: Set required module completions
-- Pricing: Set one-time purchase price ($297-300 range)
+- Pricing: Set certification pricing (individual in-app, on-site $8,500-$10,000)
 - Badge Design: Upload badge images for each certification
 
 ### 6.5 Event Management
@@ -1175,7 +1185,7 @@ by Week 5 to support content migration and soft launch preparation.
 
 | Date | Version | Description | Author |
 | :--- | :--- | :--- | :--- |
-| **Feb 10, 2026** | **2.4** | **External Link Payment Strategy**<br>iOS payment approach updated following Epic v Apple rulings:<br>- **iOS Payments:** Now using external link to web checkout (bobuniversity.com/subscribe) instead of Apple IAP<br>- **Apple Commission:** 0% during court injunction period (vs 15-30% with IAP)<br>- **Implementation:** Apple-required warning modal before opening external browser<br>- **Single Payment System:** Stripe for all platforms simplifies operations<br>- **Future-Proofing:** Will monitor court ruling on "reasonable fee" determination | FoxTrove.ai |
+| **Feb 10, 2026** | **2.4** | **External Link Payment + Pricing Update**<br>iOS payment approach updated following Epic v Apple rulings:<br>- **iOS Payments:** External link to web checkout instead of Apple IAP (0% commission)<br>- **Pricing Restructure:**<br>&nbsp;&nbsp;• Signature: $49/mo (was $69)<br>&nbsp;&nbsp;• Studio: $127/mo (was $149)<br>&nbsp;&nbsp;• Studio Annual: $1,200/yr (NEW)<br>&nbsp;&nbsp;• Salon Foundations: $1,500/yr (NEW)<br>&nbsp;&nbsp;• Salon Studio Team: $4,500/yr (was $150/mo)<br>&nbsp;&nbsp;• On-Site Certification: $8,500-$10,000 (NEW) | FoxTrove.ai |
 | **Feb 4, 2026** | **2.3** | **Rebrand to Bob Company + Salon Enhancements**<br>Major brand and feature update:<br>- **REBRAND:** App renamed from "Bob University" to "Bob Company" (parent brand). Bob University becomes the "University" section within the app for educational content.<br>- **Additional Seats:** Salon owners can purchase extra seats at $99/month via Stripe (not Apple IAP to minimize fees).<br>- **Batch Email Invites:** Invite multiple team members at once by entering multiple email addresses.<br>- **Existing User Invites:** Users with existing accounts auto-join salon and have individual subscription cancelled (salon covers access).<br>- **Certification Ticket Pool:** Salon package includes 3 free certifications as assignable tickets. Track available vs assigned. Purchase additional at ~30% discount.<br>- **Team Event Registration:** Salon owners can register multiple team members for events in one transaction.<br>- **Private Event Requests:** New workflow for salons to request custom events → Ray reviews → Phone call → Quote → Private event created.<br>- **Navigation Simplification:** Reorganized salon owner nav with primary tabs (Home, University, Team, Events, Profile) and secondary menu for less-used items.<br>- **Private Events UI:** Separate section for salon's private events vs public events. | FoxTrove.ai |
 | **Feb 3, 2026** | **2.2** | **New Pricing Tiers & User Types (Paige Meeting)**<br>Major pricing and user flow overhaul:<br>- **User Types:** Added 3 profile types during onboarding (Salon Owner, Individual Stylist, Client/Customer)<br>- **Individual Tiers:** Free → Signature ($69/mo) → Studio ($149/mo) with distinct feature sets<br>- **Studio Tier:** Weekly "Ask Ray" live, Demand content, studio-only replays, reserved event seats<br>- **Salon Pricing:** $150/mo or $997/year with 5 seats included, certification discounts<br>- **Certification:** $297 upsell, quarterly 4-week live cohorts, starts with Bob<br>- **Directory:** Requires active subscription to maintain listing (churn reduction)<br>- **Cancellation Flow:** Exit survey, directory warning, retention offer (2-3 months free)<br>- **Community Badges:** Tier badges (Signature, Studio, Certified) on posts<br>- **Client Profile:** Directory-only access, no community or education | FoxTrove.ai |
 | **Jan 13, 2026** | **2.1** | **Community Feature**<br>Added Section 3.10 Community Feature:<br>- Social feed with posts, comments, and reactions<br>- Media support (images, videos)<br>- "Requesting Feedback" mode for peer critique<br>- Category filters (Show Your Work, Questions, Tips)<br>- Post-moderation system with admin queue<br>- Database schema (5 tables) and storage bucket | FoxTrove.ai |

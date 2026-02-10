@@ -13,13 +13,13 @@ interface Plan {
   features: string[];
 }
 
-// Plan configurations matching mobile app
+// Plan configurations - Updated Feb 2026
 const PLANS: Record<string, Plan> = {
   signature: {
     name: 'Signature',
-    price: '$69',
+    price: '$49',
     period: '/month',
-    description: 'Full course access',
+    description: 'Core education access',
     priceId: process.env.NEXT_PUBLIC_STRIPE_SIGNATURE_PRICE_ID,
     features: [
       'Core curriculum & vault',
@@ -27,12 +27,12 @@ const PLANS: Record<string, Plan> = {
       'Celebrity cut breakdown',
       'Full community access',
       'Stylist directory listing',
-      'Certification eligible ($297)',
+      'Certification eligible',
     ],
   },
   studio: {
     name: 'Studio',
-    price: '$149',
+    price: '$127',
     period: '/month',
     description: 'Direct access to Ray',
     priceId: process.env.NEXT_PUBLIC_STRIPE_STUDIO_PRICE_ID,
@@ -43,14 +43,30 @@ const PLANS: Record<string, Plan> = {
       'Demand (business/pricing content)',
       'Studio-only replays',
       'Reserved seats at live events',
-      'Certification eligible ($297)',
+      'Certification eligible',
+    ],
+  },
+  'studio-annual': {
+    name: 'Studio Annual',
+    price: '$1,200',
+    period: '/year',
+    description: 'Best value - save $324/year',
+    priceId: process.env.NEXT_PUBLIC_STRIPE_STUDIO_ANNUAL_PRICE_ID,
+    popular: true,
+    features: [
+      'Everything in Studio monthly',
+      'Save $324 vs monthly ($100/mo effective)',
+      'Weekly "Ask Ray" live sessions',
+      'Demand (business/pricing content)',
+      'Studio-only replays',
+      'Priority support',
     ],
   },
   individual: {
     name: 'Signature',
-    price: '$69',
+    price: '$49',
     period: '/month',
-    description: 'Full course access',
+    description: 'Core education access',
     priceId: process.env.NEXT_PUBLIC_STRIPE_SIGNATURE_PRICE_ID,
     features: [
       'Core curriculum & vault',
@@ -58,22 +74,7 @@ const PLANS: Record<string, Plan> = {
       'Celebrity cut breakdown',
       'Full community access',
       'Stylist directory listing',
-      'Certification eligible ($297)',
-    ],
-  },
-  salon: {
-    name: 'Salon',
-    price: '$150',
-    period: '/month',
-    description: 'Train your entire team',
-    priceId: process.env.NEXT_PUBLIC_STRIPE_SALON_PRICE_ID,
-    features: [
-      '5 team seats included',
-      'All Signature + Studio content',
-      'Team progress dashboard',
-      '~30% off certifications',
-      'Reserved event seats for team',
-      'Priority support',
+      'Certification eligible',
     ],
   },
 };

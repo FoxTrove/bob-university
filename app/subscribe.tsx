@@ -101,6 +101,7 @@ const freePlan: DisplayPlan = {
 };
 
 // Feature lists for each tier (used when DB features are empty)
+// Pricing updated Feb 2026: Signature $49/mo, Studio $127/mo, Studio Annual $1,200/yr
 const TIER_FEATURES: Record<string, string[]> = {
   signature: [
     'Core curriculum & vault',
@@ -108,7 +109,7 @@ const TIER_FEATURES: Record<string, string[]> = {
     'Celebrity cut breakdown',
     'Full community access',
     'Stylist directory listing',
-    'Certification eligible ($297)',
+    'Certification eligible',
   ],
   studio: [
     'Everything in Signature',
@@ -116,7 +117,7 @@ const TIER_FEATURES: Record<string, string[]> = {
     'Demand (business/pricing content)',
     'Studio-only replays',
     'Reserved seats at live events',
-    'Certification eligible ($297)',
+    'Certification eligible',
   ],
   individual: [
     'Core curriculum & vault',
@@ -124,13 +125,13 @@ const TIER_FEATURES: Record<string, string[]> = {
     'Celebrity cut breakdown',
     'Full community access',
     'Stylist directory listing',
-    'Certification eligible ($297)',
+    'Certification eligible',
   ],
   salon: [
     '5 team seats included',
     'All Signature + Studio content',
     'Team progress dashboard',
-    '~30% off certifications',
+    '3 certifications included',
     'Reserved event seats for team',
     'Priority support',
   ],
