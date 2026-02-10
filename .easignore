@@ -52,3 +52,18 @@ scripts/
 .mcp.json
 config.toml
 debug_videos.js
+
+# Ralph session files
+.ralph-*
+.ralph-state
+DONE.txt
+BLOCKERS.md
+TASKS.md
+STORIES.md
+STUCK.txt
+
+# Web app (separate Vercel deployment)
+web/
+
+# Supabase (deployed separately)
+supabase/
