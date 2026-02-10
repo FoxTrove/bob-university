@@ -56,7 +56,7 @@
 |---|-------|--------|-----------|--------|
 | ~~1~~ | ~~Apple IAP~~ | ✅ RESOLVED | - | **DONE** |
 | 2 | **APNs certificate missing** | iOS push notifications fail | 1-2 hrs | TODO |
-| 3 | **Vercel env vars not set** | Web checkout won't work | 30 min | TODO |
+| ~~3~~ | ~~Vercel env vars not set~~ | ✅ RESOLVED | - | **DONE** |
 
 ### 🟡 HIGH PRIORITY (Before Submission)
 
