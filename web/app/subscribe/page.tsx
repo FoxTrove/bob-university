@@ -3,8 +3,27 @@
 import { useSearchParams } from 'next/navigation';
 import { useState, Suspense } from 'react';
 
+interface IndividualPlan {
+  name: string;
+  monthlyPrice: number;
+  annualPrice: number | null;
+  description: string;
+  features: string[];
+  popular?: boolean;
+}
+
+interface SalonPlan {
+  name: string;
+  price: number;
+  period: string;
+  description: string;
+  features: string[];
+  popular?: boolean;
+  savings?: string;
+}
+
 // Individual Plan configurations
-const INDIVIDUAL_PLANS = {
+const INDIVIDUAL_PLANS: Record<string, IndividualPlan> = {
   signature: {
     name: 'Signature',
     monthlyPrice: 49,
@@ -37,7 +56,7 @@ const INDIVIDUAL_PLANS = {
 };
 
 // Salon Plan configurations
-const SALON_PLANS = {
+const SALON_PLANS: Record<string, SalonPlan> = {
   foundations: {
     name: 'Foundations',
     price: 1500,
@@ -154,7 +173,7 @@ function IndividualPlanCard({
   isSelected,
   onSelect,
 }: {
-  plan: typeof INDIVIDUAL_PLANS.signature;
+  plan: IndividualPlan;
   planKey: string;
   isAnnual: boolean;
   isSelected: boolean;
@@ -232,7 +251,7 @@ function SalonPlanCard({
   isSelected,
   onSelect,
 }: {
-  plan: typeof SALON_PLANS.foundations;
+  plan: SalonPlan;
   isSelected: boolean;
   onSelect: () => void;
 }) {
