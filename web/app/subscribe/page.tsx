@@ -3,8 +3,18 @@
 import { useSearchParams } from 'next/navigation';
 import { useState, Suspense } from 'react';
 
+interface Plan {
+  name: string;
+  price: string;
+  period: string;
+  description: string;
+  priceId: string | undefined;
+  popular?: boolean;
+  features: string[];
+}
+
 // Plan configurations matching mobile app
-const PLANS = {
+const PLANS: Record<string, Plan> = {
   signature: {
     name: 'Signature',
     price: '$69',
