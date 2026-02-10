@@ -24,12 +24,20 @@ interface RequirementBreakdown {
   completedVideos: number;
 }
 
+export interface ValueProp {
+  label: string;
+  value: string;
+  icon?: string;
+}
+
 export interface Certification {
   id: string;
   title: string;
   description: string | null;
   price_cents: number;
   badge_image_url: string | null;
+  feature_image_url: string | null;
+  value_props: ValueProp[] | null;
   requires_review: boolean | null;
   is_active: boolean | null;
   created_at?: string | null;
@@ -152,11 +160,13 @@ export function useCertifications() {
 
           return {
               ...cert,
+              feature_image_url: (cert as any).feature_image_url || null,
+              value_props: (cert as any).value_props || null,
               user_status: userStatuses[cert.id] || null,
               is_qualified: totalVideos > 0 && totalCompletedVideos === totalVideos,
               progress_percentage: totalVideos > 0 ? Math.round((totalCompletedVideos / totalVideos) * 100) : 0,
               requirements_breakdown: requirementsBreakdown
-          };
+          } as Certification;
       }));
 
       setCertifications(processedCerts);
@@ -260,10 +270,12 @@ export const useCertification = (id: string | undefined) => {
 
             setCertification({
                 ...certData,
+                feature_image_url: (certData as any).feature_image_url || null,
+                value_props: (certData as any).value_props || null,
                 user_status: userStatus,
                 is_qualified: totalVideos > 0 && completedVideos === totalVideos,
                 progress_percentage: totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0
-            });
+            } as Certification);
 
         } catch (err) {
             console.error('Error fetching certification:', err);

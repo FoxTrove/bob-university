@@ -356,7 +356,7 @@ export default function Profile() {
               </Text>
               <Card padding="none" className="overflow-hidden">
                 <TouchableOpacity
-                  className="flex-row items-center justify-between p-4"
+                  className="flex-row items-center justify-between p-4 border-b border-border"
                   onPress={() => router.push('/(tabs)/team')}
                 >
                   <View className="flex-row items-center">
@@ -366,6 +366,21 @@ export default function Profile() {
                     <View>
                       <Text className="text-text font-bold">Manage Team</Text>
                       <Text className="text-textMuted text-xs">View team progress and add staff</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#52525b" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="flex-row items-center justify-between p-4"
+                  onPress={() => router.push('/(tabs)/certification')}
+                >
+                  <View className="flex-row items-center">
+                    <View className="bg-amber-500/10 p-2 rounded-full mr-3">
+                      <Ionicons name="ribbon" size={24} color="#f59e0b" />
+                    </View>
+                    <View>
+                      <Text className="text-text font-bold">Certifications</Text>
+                      <Text className="text-textMuted text-xs">Earn your official credentials</Text>
                     </View>
                   </View>
                   <Ionicons name="chevron-forward" size={20} color="#52525b" />

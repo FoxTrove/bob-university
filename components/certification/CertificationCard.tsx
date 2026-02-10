@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, Pressable, Image, Alert } from 'react-native';
+import React from 'react';
+import { View, Text, Pressable, Image } from 'react-native';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
+import { ProgressBar } from '../ui/ProgressBar';
 import { Ionicons } from '@expo/vector-icons';
-import { Link, useRouter } from 'expo-router';
-import { Certification, useSubmitCertification } from '../../lib/hooks/useCertifications';
+import { useRouter } from 'expo-router';
+import { Certification } from '../../lib/hooks/useCertifications';
 
 interface CertificationCardProps {
   certification: Certification;
@@ -13,36 +14,13 @@ interface CertificationCardProps {
 
 export function CertificationCard({ certification, onRefresh }: CertificationCardProps) {
   const router = useRouter();
-  const { submitApplication, submitting } = useSubmitCertification();
-  const [localSubmitting, setLocalSubmitting] = useState(false);
 
-  // Status priority: Check user_status first, then qualification
   const userStatus = certification.user_status?.status;
   const isQualified = certification.is_qualified;
   const progressPercent = certification.progress_percentage || 0;
 
-  const handleSubmit = async () => {
-      Alert.alert(
-          "Submit Application",
-          "Are you sure you want to submit your application for this certification? An admin will review your progress.",
-          [
-              { text: "Cancel", style: "cancel" },
-              { 
-                  text: "Submit", 
-                  onPress: async () => {
-                      setLocalSubmitting(true);
-                      const success = await submitApplication(certification.id);
-                      setLocalSubmitting(false);
-                      if (success) {
-                          Alert.alert("Success", "Your application has been submitted!");
-                          onRefresh?.();
-                      } else {
-                          Alert.alert("Error", "Failed to submit application. Please try again.");
-                      }
-                  }
-              }
-          ]
-      );
+  const handlePress = () => {
+    router.push(`/certification/${certification.id}`);
   };
 
   const getStatusBadge = () => {
@@ -57,11 +35,10 @@ export function CertificationCard({ certification, onRefresh }: CertificationCar
       case 'rejected':
         return <Badge label="Needs Work" variant="error" />;
       default:
-        // Not submitted yet
         if (isQualified) {
             return <Badge label="Ready to Apply" variant="success" />;
         }
-        return <Badge label={`${progressPercent}% Complete`} variant="info" />;
+        return <Badge label={`${progressPercent}%`} variant="info" />;
     }
   };
 
@@ -70,78 +47,121 @@ export function CertificationCard({ certification, onRefresh }: CertificationCar
       currency: 'USD'
   }).format(certification.price_cents / 100);
 
+  const getStatusIcon = () => {
+    switch (userStatus) {
+      case 'approved':
+        return { name: 'checkmark-circle', color: '#22c55e' };
+      case 'submitted':
+      case 'resubmitted':
+        return { name: 'hourglass-outline', color: '#eab308' };
+      case 'rejected':
+        return { name: 'alert-circle', color: '#ef4444' };
+      default:
+        return { name: 'ribbon', color: '#C68976' };
+    }
+  };
+
+  const statusIcon = getStatusIcon();
+
   return (
-    <Card padding="none" className="mb-4 overflow-hidden">
-      <View className="h-40 bg-surfaceHighlight w-full relative">
-        {certification.badge_image_url ? (
-          <Image
-            source={{ uri: certification.badge_image_url }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-        ) : (
-            <View className="flex-1 items-center justify-center bg-surfaceHighlight">
-                <Ionicons name="ribbon-outline" size={48} color="#52525b" />
+    <Pressable onPress={handlePress}>
+      <Card padding="none" className="mb-4 overflow-hidden">
+        {/* Hero Image Section */}
+        <View className="h-44 bg-surfaceHighlight w-full relative">
+          {certification.feature_image_url || certification.badge_image_url ? (
+            <Image
+              source={{ uri: certification.feature_image_url || certification.badge_image_url || undefined }}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="flex-1 items-center justify-center bg-gradient-to-br from-primary/20 to-surfaceHighlight">
+              <View className="bg-primary/20 p-4 rounded-full">
+                <Ionicons name="ribbon" size={48} color="#C68976" />
+              </View>
             </View>
-        )}
-        <View className="absolute top-3 right-3">
-             {getStatusBadge()}
+          )}
+          {/* Gradient overlay */}
+          <View className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+          {/* Status Badge */}
+          <View className="absolute top-3 right-3">
+            {getStatusBadge()}
+          </View>
+
+          {/* Title on image */}
+          <View className="absolute bottom-0 left-0 right-0 p-4">
+            <View className="flex-row items-center mb-2">
+              <View className="bg-black/50 p-2 rounded-full mr-2">
+                <Ionicons name={statusIcon.name as any} size={20} color={statusIcon.color} />
+              </View>
+              <Text className="text-xl font-serifBold text-white flex-1" numberOfLines={1}>
+                {certification.title}
+              </Text>
+            </View>
+          </View>
         </View>
-      </View>
-      
-      <View className="p-4">
-        <View className="flex-row justify-between items-start mb-2">
-            <Text className="text-xl font-serifBold text-text flex-1 mr-2">{certification.title}</Text>
-            {(!userStatus || userStatus === 'rejected') && (
-                 <Text className="text-primary font-bold">{formattedPrice}</Text>
-            )}
-        </View>
-        
-        {certification.description && (
-            <Text className="text-textMuted text-sm line-clamp-2 mb-4" numberOfLines={2}>
+
+        {/* Content Section */}
+        <View className="p-4">
+          {/* Description */}
+          {certification.description && (
+            <Text className="text-gray-400 text-sm mb-4" numberOfLines={2}>
               {certification.description}
             </Text>
-        )}
+          )}
 
-        {/* Progress Bar */}
-        {!isQualified && !userStatus && (
-            <View className="w-full h-2 bg-surfaceHighlight rounded-full overflow-hidden mb-4">
-                <View 
-                    className="h-full bg-primary" 
-                    style={{ width: `${progressPercent}%` }}
-                />
+          {/* Progress Section - Only for in-progress certifications */}
+          {!isQualified && !userStatus && (
+            <View className="mb-4">
+              <View className="flex-row justify-between items-center mb-2">
+                <Text className="text-textMuted text-sm">Progress</Text>
+                <Text className="text-primary font-bold text-sm">{progressPercent}%</Text>
+              </View>
+              <ProgressBar progress={progressPercent / 100} />
             </View>
-        )}
-        
-        {/* Action Buttons */}
-        <View className="flex-row items-center justify-between mt-2">
-             <Link href={`/certification/${certification.id}`} asChild>
-                <Pressable className="flex-row items-center">
-                    <Text className="text-primary font-medium text-sm">View Requirements</Text>
-                    <Ionicons name="arrow-forward" size={16} color="#3b82f6" className="ml-1" />
-                </Pressable>
-             </Link>
+          )}
 
-             {isQualified && (!userStatus || userStatus === 'rejected') && (
-                 <Pressable 
-                    onPress={handleSubmit}
-                    disabled={localSubmitting || submitting}
-                    className={`bg-primary px-4 py-2 rounded-lg ${localSubmitting ? 'opacity-50' : ''}`}
-                 >
-                     <Text className="text-white font-bold text-sm">
-                         {localSubmitting ? 'Submitting...' : 'Apply Now'}
-                     </Text>
-                 </Pressable>
-             )}
+          {/* Footer Row */}
+          <View className="flex-row items-center justify-between">
+            {/* Price or Status */}
+            <View className="flex-row items-center">
+              {userStatus === 'approved' ? (
+                <View className="flex-row items-center bg-green-500/10 px-3 py-1.5 rounded-full">
+                  <Ionicons name="checkmark-circle" size={16} color="#22c55e" />
+                  <Text className="text-green-400 font-medium text-sm ml-1">Certified</Text>
+                </View>
+              ) : userStatus === 'submitted' || userStatus === 'resubmitted' ? (
+                <View className="flex-row items-center bg-yellow-500/10 px-3 py-1.5 rounded-full">
+                  <Ionicons name="hourglass-outline" size={16} color="#eab308" />
+                  <Text className="text-yellow-400 font-medium text-sm ml-1">Under Review</Text>
+                </View>
+              ) : (
+                <Text className="text-2xl font-bold text-primary">{formattedPrice}</Text>
+              )}
+            </View>
+
+            {/* Action */}
+            <View className="flex-row items-center bg-primary/10 px-4 py-2 rounded-full">
+              <Text className="text-primary font-medium text-sm mr-1">
+                {userStatus === 'approved' ? 'View' : isQualified ? 'Apply Now' : 'Details'}
+              </Text>
+              <Ionicons name="arrow-forward" size={16} color="#C68976" />
+            </View>
+          </View>
+
+          {/* Rejection Feedback */}
+          {userStatus === 'rejected' && certification.user_status?.feedback && (
+            <View className="mt-4 p-3 bg-red-500/10 rounded-xl border border-red-500/20">
+              <View className="flex-row items-center mb-1">
+                <Ionicons name="alert-circle" size={14} color="#ef4444" />
+                <Text className="text-red-400 text-xs font-bold ml-1">Feedback:</Text>
+              </View>
+              <Text className="text-red-300 text-sm" numberOfLines={2}>{certification.user_status.feedback}</Text>
+            </View>
+          )}
         </View>
-        
-        {userStatus === 'rejected' && certification.user_status?.feedback && (
-            <View className="mt-4 p-3 bg-red-500/10 rounded-lg">
-                <Text className="text-red-500 text-xs font-bold mb-1">Feedback:</Text>
-                <Text className="text-red-400 text-xs">{certification.user_status.feedback}</Text>
-            </View>
-        )}
-      </View>
-    </Card>
+      </Card>
+    </Pressable>
   );
 }
