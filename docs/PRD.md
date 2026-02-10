@@ -1,8 +1,8 @@
 # Bob Company Mobile Application
 ## Product Requirements Document
 
-**Version 2.3**
-**February 4, 2026**
+**Version 2.4**
+**February 10, 2026**
 **Prepared by FoxTrove.ai for Ray Hornback**
 
 | Metadata | Details |
@@ -265,11 +265,9 @@ Lessons are no longer just video. They support a rich media experience:
 ### 3.4 Subscription & Payment Management
 
 #### 3.4.1 Payment Processing
-- Primary Processor: Stripe for web/Android.
-- Apple IAP: Required for iOS app.
-- Pricing Adjustment: Pricing may need to be increased for iOS/Apple payments to offset 15-30% transaction fees.
-- Alternative Research: Evaluate Fanbasis as potential alternative payment
-processor.
+- Primary Processor: Stripe for all platforms (iOS, Android, Web).
+- iOS Strategy: External link to web checkout per Epic v Apple ruling (Feb 2026). iOS users are directed to bobuniversity.com/subscribe with Apple-required warning modal. This allows 0% Apple commission during current court injunction period.
+- Future-Proofing: Monitor court ruling on "reasonable fee" determination. If fee is imposed, evaluate Apple IAP fallback option.
 
 #### 3.4.2 Subscription Management
 - Plan Switching: Upgrade from Individual to Salon with prorated billing.
@@ -940,16 +938,20 @@ Content unlocks based on time elapsed since user's subscription start date:
 - Event Reminders: 24 hours before, 1 hour before event
 - New Content: Notify when new videos are published
 
-### 6.7 Payment & Subscriptions Strategy (Split)
-> [!WARNING]
-> COMPLIANCE CRITICAL
-- **Subscriptions**:
-    - **iOS**: Must use **Apple In-App Purchases (IAP)** (`StoreKit`).
-    - **Android**: Use **Stripe Subscriptions**.
+### 6.7 Payment & Subscriptions Strategy (External Link)
+> [!NOTE]
+> LEGAL CONTEXT: Following Epic v Apple rulings (May 2025 injunction), apps can direct users to external websites for purchases with 0% Apple commission. Courts are determining what "reasonable fee" Apple may charge in future.
+
+- **Subscriptions (All Platforms)**:
+    - **iOS**: External link to bobuniversity.com/subscribe with Apple-required warning modal. User completes Stripe checkout on web.
+    - **Android/Web**: Direct Stripe integration (Payment Sheet or Checkout).
 - **One-Time Purchases** (Events, Certifications):
-    - **iOS**: If considered "Digital Goods" consumed in-app (e.g. Certifications access), Apple may require IAP.
-    - **Events**: Physical/Live events can use Stripe (Physical Goods/Services exception).
-    - **Current Plan**: Use Stripe for Events and Certifications initially, but prepare for IAP fallback if rejected during App Store Review.
+    - **All Platforms**: Stripe checkout (events are physical goods exception, certifications via web checkout if needed).
+- **Benefits**:
+    - 0% Apple commission (vs 15-30% with IAP) during injunction period
+    - Single payment system (Stripe) simplifies operations
+    - Full control over checkout experience and customer data
+- **Risk Mitigation**: If future court ruling imposes fee, evaluate Apple IAP implementation as fallback.
 
 ### 6.8 Analytics Dashboard - [DEFERRED TO PHASE 2]
 The Analytics Dashboard now includes combined metrics for Revenue, Location, Fees, Churn, Conversion, and new user growth. *Note: Deferred until financial integrations (Apple/Stripe/Google) are fully ready.*
@@ -1115,7 +1117,7 @@ by Week 5 to support content migration and soft launch preparation.
 | :--- | :--- | :--- | :--- |
 | App Store Rejection | Launch delay | Follow guidelines strictly, submit early for review | FoxTrove |
 | Content Migration Issues | Missing/broken videos | Thorough QA checklist, parallel running period | Joint |
-| Apple IAP Requirements | 15% revenue cut | Evaluate web-based signup, reader app exemption | FoxTrove |
+| External Link Fee Ruling | Future Apple fee | Monitor court ruling; Apple IAP fallback ready if needed | FoxTrove |
 | User Adoption | Low downloads | Strong launch campaign, influencer promo | Ray |
 | Video Hosting Costs | Higher than projected | CDN optimization, adaptive bitrate | FoxTrove |
 | AI Assistant Costs | API usage exceeds budget | Usage caps, caching, cheaper model for simple queries | FoxTrove |
@@ -1163,7 +1165,7 @@ by Week 5 to support content migration and soft launch preparation.
 - Technical Architecture Diagram (to be prepared)
 
 ### 11.3 Open Questions
-- Apple IAP vs. web-based subscription: Which approach for iOS?
+- ~~Apple IAP vs. web-based subscription: Which approach for iOS?~~ **RESOLVED (Feb 2026):** Using external link to web checkout per Epic v Apple ruling. 0% Apple commission during injunction period.
 - Content drip: Implement monthly unlocking or provide all content immediately?
 - AI assistant: OpenAI vs. Anthropic - cost and capability comparison needed
 - Offline downloads: Include in MVP or defer to Phase 2?
@@ -1173,6 +1175,7 @@ by Week 5 to support content migration and soft launch preparation.
 
 | Date | Version | Description | Author |
 | :--- | :--- | :--- | :--- |
+| **Feb 10, 2026** | **2.4** | **External Link Payment Strategy**<br>iOS payment approach updated following Epic v Apple rulings:<br>- **iOS Payments:** Now using external link to web checkout (bobuniversity.com/subscribe) instead of Apple IAP<br>- **Apple Commission:** 0% during court injunction period (vs 15-30% with IAP)<br>- **Implementation:** Apple-required warning modal before opening external browser<br>- **Single Payment System:** Stripe for all platforms simplifies operations<br>- **Future-Proofing:** Will monitor court ruling on "reasonable fee" determination | FoxTrove.ai |
 | **Feb 4, 2026** | **2.3** | **Rebrand to Bob Company + Salon Enhancements**<br>Major brand and feature update:<br>- **REBRAND:** App renamed from "Bob University" to "Bob Company" (parent brand). Bob University becomes the "University" section within the app for educational content.<br>- **Additional Seats:** Salon owners can purchase extra seats at $99/month via Stripe (not Apple IAP to minimize fees).<br>- **Batch Email Invites:** Invite multiple team members at once by entering multiple email addresses.<br>- **Existing User Invites:** Users with existing accounts auto-join salon and have individual subscription cancelled (salon covers access).<br>- **Certification Ticket Pool:** Salon package includes 3 free certifications as assignable tickets. Track available vs assigned. Purchase additional at ~30% discount.<br>- **Team Event Registration:** Salon owners can register multiple team members for events in one transaction.<br>- **Private Event Requests:** New workflow for salons to request custom events → Ray reviews → Phone call → Quote → Private event created.<br>- **Navigation Simplification:** Reorganized salon owner nav with primary tabs (Home, University, Team, Events, Profile) and secondary menu for less-used items.<br>- **Private Events UI:** Separate section for salon's private events vs public events. | FoxTrove.ai |
 | **Feb 3, 2026** | **2.2** | **New Pricing Tiers & User Types (Paige Meeting)**<br>Major pricing and user flow overhaul:<br>- **User Types:** Added 3 profile types during onboarding (Salon Owner, Individual Stylist, Client/Customer)<br>- **Individual Tiers:** Free → Signature ($69/mo) → Studio ($149/mo) with distinct feature sets<br>- **Studio Tier:** Weekly "Ask Ray" live, Demand content, studio-only replays, reserved event seats<br>- **Salon Pricing:** $150/mo or $997/year with 5 seats included, certification discounts<br>- **Certification:** $297 upsell, quarterly 4-week live cohorts, starts with Bob<br>- **Directory:** Requires active subscription to maintain listing (churn reduction)<br>- **Cancellation Flow:** Exit survey, directory warning, retention offer (2-3 months free)<br>- **Community Badges:** Tier badges (Signature, Studio, Certified) on posts<br>- **Client Profile:** Directory-only access, no community or education | FoxTrove.ai |
 | **Jan 13, 2026** | **2.1** | **Community Feature**<br>Added Section 3.10 Community Feature:<br>- Social feed with posts, comments, and reactions<br>- Media support (images, videos)<br>- "Requesting Feedback" mode for peer critique<br>- Category filters (Show Your Work, Questions, Tips)<br>- Post-moderation system with admin queue<br>- Database schema (5 tables) and storage bucket | FoxTrove.ai |

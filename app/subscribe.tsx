@@ -1,15 +1,18 @@
-import { View, Text, Pressable, ScrollView, Alert, Platform, Linking, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ScrollView, Alert, Platform, Linking, ActivityIndicator, Modal } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeContainer } from '../components/layout/SafeContainer';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { useStripe } from '@stripe/stripe-react-native';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import * as LinkingExpo from 'expo-linking';
 import { useSubscriptionPlans, formatPlanPrice } from '../lib/hooks/useSubscriptionPlans';
-import { useAppleIAP } from '../lib/hooks/useAppleIAP';
+import { useAuth } from '../lib/auth';
+
+// Web subscription URL - users are directed here for payment
+const WEB_SUBSCRIBE_URL = 'https://bobuniversity.com/subscribe';
 
 interface PlanFeature {
   text: string;
@@ -24,7 +27,60 @@ interface DisplayPlan {
   description: string;
   features: PlanFeature[];
   popular?: boolean;
-  appleProductId?: string | null;
+}
+
+// Apple-required external link warning modal
+function ExternalLinkModal({
+  visible,
+  planName,
+  onConfirm,
+  onCancel,
+}: {
+  visible: boolean;
+  planName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <Modal visible={visible} transparent animationType="fade">
+      <View className="flex-1 bg-black/80 justify-center items-center px-6">
+        <View className="bg-surface rounded-2xl p-6 w-full max-w-sm">
+          <View className="items-center mb-4">
+            <View className="bg-primary/20 w-12 h-12 rounded-full items-center justify-center mb-3">
+              <Ionicons name="open-outline" size={24} color="#C68976" />
+            </View>
+            <Text className="text-xl font-serifBold text-white text-center">
+              Continue to Website
+            </Text>
+          </View>
+
+          <Text className="text-gray-300 text-center mb-2">
+            You&apos;re about to leave the app to subscribe to the{' '}
+            <Text className="font-bold text-white">{planName}</Text> plan on our website.
+          </Text>
+
+          <Text className="text-gray-400 text-sm text-center mb-6">
+            This purchase will be processed by Stripe on bobuniversity.com. Apple is not responsible for this transaction.
+          </Text>
+
+          <View className="space-y-3">
+            <Button
+              title="Continue to Website"
+              onPress={onConfirm}
+              variant="primary"
+              fullWidth
+            />
+            <Button
+              title="Cancel"
+              onPress={onCancel}
+              variant="outline"
+              fullWidth
+            />
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
 }
 
 // Free plan is static (not stored in database)
@@ -132,20 +188,16 @@ function PlanCard({ plan, onSelect, loading }: { plan: DisplayPlan; onSelect: ()
 
 export default function Subscribe() {
   const router = useRouter();
+  const { user } = useAuth();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
 
+  // External link modal state (iOS only)
+  const [showExternalModal, setShowExternalModal] = useState(false);
+  const [selectedExternalPlan, setSelectedExternalPlan] = useState<DisplayPlan | null>(null);
+
   // Fetch plans from database
   const { plans: dbPlans, loading: plansLoading, error: plansError } = useSubscriptionPlans();
-
-  // Get Apple product IDs for IAP
-  const appleProductIds = useMemo(
-    () => dbPlans.filter((p) => p.apple_product_id).map((p) => p.apple_product_id!),
-    [dbPlans]
-  );
-
-  // Initialize Apple IAP (only active on iOS)
-  const { purchaseProduct, restorePurchases, purchasing: iapPurchasing } = useAppleIAP(appleProductIds);
 
   // Transform database plans to display format
   const displayPlans: DisplayPlan[] = [
@@ -176,29 +228,43 @@ export default function Subscribe() {
         description: plan.description || descriptions[plan.plan] || '',
         features: featureList.map((f) => ({ text: f, included: true })),
         popular: plan.plan === 'studio', // Studio is most popular
-        appleProductId: plan.apple_product_id,
       };
     }),
   ];
 
+  // Handle external link confirmation (iOS)
+  const handleExternalConfirm = async () => {
+    if (!selectedExternalPlan) return;
+
+    setShowExternalModal(false);
+    setProcessingPlan(selectedExternalPlan.id);
+
+    try {
+      // Build web checkout URL with plan and user info
+      const params = new URLSearchParams({
+        plan: selectedExternalPlan.id,
+        ...(user?.email && { email: user.email }),
+        source: 'ios_app',
+      });
+
+      const url = `${WEB_SUBSCRIBE_URL}?${params.toString()}`;
+      await Linking.openURL(url);
+    } catch (error) {
+      console.error('Failed to open subscription URL:', error);
+      Alert.alert('Error', 'Unable to open the subscription page. Please try again.');
+    } finally {
+      setProcessingPlan(null);
+      setSelectedExternalPlan(null);
+    }
+  };
+
   const handleSelectPlan = async (plan: DisplayPlan) => {
     if (plan.id === 'free') return;
 
-    // iOS: Use Apple IAP for subscriptions
+    // iOS: Show external link modal (per Apple guidelines)
     if (Platform.OS === 'ios') {
-      if (plan.appleProductId) {
-        setProcessingPlan(plan.id);
-        try {
-          await purchaseProduct(plan.appleProductId);
-        } finally {
-          setProcessingPlan(null);
-        }
-      } else {
-        Alert.alert(
-          'Coming Soon',
-          'iOS subscriptions will be available through Apple In-App Purchases.'
-        );
-      }
+      setSelectedExternalPlan(plan);
+      setShowExternalModal(true);
       return;
     }
 
@@ -308,22 +374,25 @@ export default function Subscribe() {
               ))
             )}
 
-            {Platform.OS === 'ios' && (
-              <Pressable onPress={restorePurchases} className="mb-4">
-                <Text className="text-primary text-center font-medium">
-                  Restore Purchases
-                </Text>
-              </Pressable>
-            )}
-
             <Text className="text-textMuted text-xs text-center mt-2 mb-8">
               {Platform.OS === 'ios'
-                ? 'Subscriptions are processed through Apple. You can cancel anytime in your Apple ID settings.'
+                ? 'You will be directed to our website to complete your subscription. Payments are processed securely by Stripe.'
                 : 'Payments are processed securely by Stripe. You can cancel at any time in your account settings.'}
             </Text>
           </View>
         </ScrollView>
       </SafeContainer>
+
+      {/* External link modal for iOS */}
+      <ExternalLinkModal
+        visible={showExternalModal}
+        planName={selectedExternalPlan?.name || ''}
+        onConfirm={handleExternalConfirm}
+        onCancel={() => {
+          setShowExternalModal(false);
+          setSelectedExternalPlan(null);
+        }}
+      />
     </>
   );
 }

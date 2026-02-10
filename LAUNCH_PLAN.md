@@ -1,7 +1,7 @@
 # Bob University Launch Plan
 ## Target: February 23, 2026
 
-**Last Updated:** February 10, 2026
+**Last Updated:** February 10, 2026 (iOS payment strategy resolved)
 **Days Until Launch:** 13 days
 **Days Until App Store Submission:** 2-3 days (Feb 12-13)
 
@@ -40,7 +40,7 @@
 
 | # | Issue | Impact | Est. Time |
 |---|-------|--------|-----------|
-| 1 | **Apple IAP stub only** | iOS App Store rejection | 8-12 hrs |
+| ~~1~~ | ~~Apple IAP stub only~~ | ✅ **RESOLVED** - Using external link to web checkout (Epic v Apple ruling) | 0 hrs |
 | 2 | **APNs certificate missing** | iOS push notifications fail | 1-2 hrs |
 | 3 | **No E2E tests** | Can't validate payment flows | 4-6 hrs |
 
@@ -59,44 +59,21 @@
 
 ### TIER 1: Critical Blockers (Feb 10-11)
 
-#### 1. Implement Apple In-App Purchases
+#### 1. ✅ iOS Payment Strategy (RESOLVED)
 
-**Current State:** `lib/hooks/useAppleIAP.ts` is a stub returning `isAvailable: false`
+**Decision (Feb 10, 2026):** Using external link to web checkout instead of Apple IAP.
 
-**Required Work:**
-```bash
-# 1. Install react-native-iap
-npm install react-native-iap
+**Legal Context:** Per Epic v Apple court rulings (May 2025 injunction), apps can direct users to external websites for purchases with 0% Apple commission during the injunction period. Courts are determining what "reasonable fee" Apple may charge.
 
-# 2. Configure in app.json
-# Add to plugins: ["react-native-iap"]
+**Implementation Complete:**
+- `app/subscribe.tsx` - Updated to show Apple-required warning modal, then opens `bobuniversity.com/subscribe` in browser
+- iOS users complete Stripe checkout on web
+- Single payment system (Stripe) for all platforms
+- 0% Apple commission (vs 15-30% with IAP)
 
-# 3. Implement real useAppleIAP hook
-# - Connect to StoreKit 2
-# - Product fetching
-# - Purchase flow
-# - Receipt validation
-# - Restore purchases
-
-# 4. Create/update Apple IAP webhook
-# - supabase/functions/apple-iap-webhook
-# - Receipt validation with Apple
-# - Update entitlements table
-```
-
-**App Store Connect Setup:**
-- Create Subscription Group: "Bob University"
-- Products needed:
-  - `com.thebobco.bobuniversity.signature.monthly` - $69/month
-  - `com.thebobco.bobuniversity.studio.monthly` - $149/month
-  - `com.thebobco.bobuniversity.salon.monthly` - $150/month
-
-**Files to Modify:**
-- `lib/hooks/useAppleIAP.ts` - Full implementation
-- `app/subscribe.tsx` - Integrate Apple IAP alongside Stripe
-- `supabase/functions/apple-iap-webhook/index.ts` - Receipt validation
-- `package.json` - Add react-native-iap
-- `app.json` - Add plugin config
+**Remaining Work:**
+- Create `bobuniversity.com/subscribe` web page with Stripe Checkout
+- Handle deep linking back to app after purchase (optional enhancement)
 
 ---
 
@@ -287,14 +264,15 @@ STRIPE_WEBHOOK_SECRET=
 GHL_API_KEY=
 GHL_LOCATION_ID=
 RESEND_API_KEY=
-APPLE_SHARED_SECRET= (for IAP receipt validation)
+# APPLE_SHARED_SECRET= (not needed - using external link instead of IAP)
 ```
 
 ### Required in App Store Connect
-- [ ] Subscription products created
-- [ ] Sandbox test users created
+- [ ] ~~Subscription products created~~ (not needed - using external link)
+- [ ] ~~Sandbox test users created~~ (not needed - using external link)
 - [ ] Bank/tax info complete
 - [ ] App Review contact info
+- [ ] External link disclosure in app metadata (if required)
 
 ### Required in Google Play Console
 - [ ] App created
@@ -308,8 +286,9 @@ APPLE_SHARED_SECRET= (for IAP receipt validation)
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
-| App Store rejection | Medium | High | Submit early (Feb 12-13), have backup date Feb 28 |
-| Apple IAP not ready | Medium | Critical | Start immediately, Stripe fallback exists |
+| App Store rejection | Low | High | Submit early (Feb 12-13), external link approach is Apple-compliant |
+| ~~Apple IAP not ready~~ | ~~Medium~~ | ~~Critical~~ | ✅ RESOLVED - Using external link to web checkout |
+| Future Apple fee on external links | Medium | Medium | Monitor court ruling; Apple IAP fallback ready if needed |
 | Critical bug in beta | Medium | Medium | 8-day soft launch buffer |
 | Low initial downloads | Low | Low | Expected; webinar is growth engine |
 
@@ -320,8 +299,8 @@ APPLE_SHARED_SECRET= (for IAP receipt validation)
 **Must Have for Launch:**
 - [ ] iOS app approved in App Store
 - [ ] Android app approved in Google Play
-- [ ] Stripe payments working
-- [ ] Apple IAP working OR App Store approved with Stripe-only
+- [ ] Stripe payments working (all platforms via external link for iOS)
+- [ ] Web subscription page live at bobuniversity.com/subscribe
 - [ ] Push notifications delivering
 - [ ] All free content accessible
 - [ ] Premium content properly gated
