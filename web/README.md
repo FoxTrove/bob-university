@@ -39,24 +39,40 @@ Following the Epic v Apple court rulings (May 2025 injunction), iOS apps can dir
 5. Stripe webhook updates entitlements (handled by existing `stripe-webhook` edge function)
 6. Success page prompts user to return to app
 
-## Monitoring: Apple Fee Ruling
+## Legal Context: Epic v Apple (Current as of Feb 2026)
 
-⚠️ **IMPORTANT**: This approach depends on the current court injunction.
+### What Happened
+1. **April 2023**: Ninth Circuit ruled Apple's anti-steering rules violate California UCL. Nationwide injunction issued allowing developers to link to external payment options.
 
-**What to monitor:**
-- **Case**: Epic Games v. Apple (9th Circuit)
-- **Status**: Injunction prevents Apple from charging commission on external link purchases
-- **Risk**: Courts may determine a "reasonable fee" that Apple can charge
+2. **January 2024**: Supreme Court denied cert for both parties. Injunction went into full effect.
 
-**Action items if fee is imposed:**
-1. Evaluate if fee is lower than 15% Apple IAP (worth keeping external links)
-2. If higher, implement Apple IAP fallback (see `lib/hooks/useAppleIAP.ts` stub)
-3. Update `app/subscribe.tsx` to use Apple IAP for iOS
+3. **April 2025**: Judge Rogers found Apple in **willful violation** of the injunction. Apple's 27% commission on external link purchases was ruled to "thwart the injunction's goals."
+   - Apple was ordered to **stop enforcing link-out restrictions and fees**
+   - Sanctions ordered, Apple referred for possible criminal contempt
 
-**Where to check:**
-- Apple Developer News: https://developer.apple.com/news/
-- Epic v Apple court filings: PACER or legal news outlets
-- App Store Review Guidelines updates
+### Current State
+- ✅ External links to web checkout are **legal and fee-free**
+- ✅ We can include buttons/links directing users to external purchases
+- ✅ We can communicate with users about off-app purchasing
+- ⚠️ This is an **ongoing enforcement situation**, not a final resolution
+
+### What Apple Can Still Do
+- Require App Store for iOS app distribution
+- Require Apple IAP for *in-app* transactions (we're doing external, so this doesn't apply)
+
+### What to Monitor
+- **District court enforcement proceedings** - Apple may try new compliance schemes
+- **Apple Developer News**: https://developer.apple.com/news/
+- **App Store Review Guidelines updates** - Watch for new link-out policies
+- **Legal news** - "Epic Apple injunction" for any new rulings
+
+### If Apple Finds a Legal Way to Charge Fees
+1. Evaluate the fee percentage vs 15% Apple IAP
+2. If external link + fee is still cheaper → keep current approach
+3. If Apple IAP is cheaper → implement IAP fallback (see `lib/hooks/useAppleIAP.ts` stub)
+
+### Key Takeaway
+Apple was found in contempt for trying to charge 27%. Until enforcement proceedings conclude and Apple finds a court-approved fee structure (if any), **external links remain fee-free**.
 
 ## Local Development
 

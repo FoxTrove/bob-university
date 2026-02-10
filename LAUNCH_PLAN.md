@@ -63,7 +63,11 @@
 
 **Decision (Feb 10, 2026):** Using external link to web checkout instead of Apple IAP.
 
-**Legal Context:** Per Epic v Apple court rulings (May 2025 injunction), apps can direct users to external websites for purchases with 0% Apple commission during the injunction period. Courts are determining what "reasonable fee" Apple may charge.
+**Legal Context (Epic v Apple):**
+- April 2023: Ninth Circuit ruled anti-steering rules violate California UCL. Nationwide injunction allows developers to link to external payment options.
+- January 2024: Supreme Court denied cert. Injunction in full effect.
+- April 2025: Judge Rogers found Apple in **willful violation** for trying to charge 27% on external link purchases. Apple ordered to stop enforcing those fees.
+- **Current state**: External links are legal and fee-free. Apple was found in contempt; enforcement proceedings ongoing.
 
 **Implementation Complete:**
 - `app/subscribe.tsx` - Updated to show Apple-required warning modal, then opens `bobuniversity.com/subscribe` in browser
@@ -288,7 +292,7 @@ RESEND_API_KEY=
 |------|------------|--------|------------|
 | App Store rejection | Low | High | Submit early (Feb 12-13), external link approach is Apple-compliant |
 | ~~Apple IAP not ready~~ | ~~Medium~~ | ~~Critical~~ | ✅ RESOLVED - Using external link to web checkout |
-| Future Apple fee on external links | Medium | Medium | Monitor court ruling; Apple IAP fallback ready if needed |
+| Apple new compliance scheme | Low | Medium | Apple found in contempt April 2025; monitor enforcement proceedings |
 | Critical bug in beta | Medium | Medium | 8-day soft launch buffer |
 | Low initial downloads | Low | Low | Expected; webinar is growth engine |
 
