@@ -27,10 +27,14 @@ function getSupabase() {
 
 // Price IDs from Stripe (configure in .env)
 const PRICE_IDS: Record<string, string> = {
+  // Individual plans
   signature: process.env.STRIPE_SIGNATURE_PRICE_ID!,
   studio: process.env.STRIPE_STUDIO_PRICE_ID!,
-  individual: process.env.STRIPE_SIGNATURE_PRICE_ID!, // Same as signature
-  salon: process.env.STRIPE_SALON_PRICE_ID!,
+  'studio-annual': process.env.STRIPE_STUDIO_ANNUAL_PRICE_ID!,
+  individual: process.env.STRIPE_SIGNATURE_PRICE_ID!, // Legacy, same as signature
+  // Salon plans
+  'salon-foundations': process.env.STRIPE_SALON_FOUNDATIONS_PRICE_ID!,
+  'salon-studio': process.env.STRIPE_SALON_STUDIO_PRICE_ID!,
 };
 
 export async function POST(request: NextRequest) {
