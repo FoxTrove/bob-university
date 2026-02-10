@@ -1,7 +1,7 @@
 # Bob University Launch Plan
 ## Target: February 23, 2026
 
-**Last Updated:** February 10, 2026 (iOS payment strategy resolved)
+**Last Updated:** February 10, 2026 (Pricing & checkout flow complete)
 **Days Until Launch:** 13 days
 **Days Until App Store Submission:** 2-3 days (Feb 12-13)
 
@@ -11,8 +11,9 @@
 
 | Date | Milestone |
 |------|-----------|
-| Feb 9 (Today) | Audit complete, prioritize blockers |
-| Feb 10-11 | Critical dev fixes (Apple IAP, APNs) |
+| ~~Feb 9~~ | ~~Audit complete, prioritize blockers~~ |
+| ~~Feb 10~~ | ✅ **Pricing & Checkout Flow Complete** |
+| Feb 11 | APNs certificate, content verification |
 | Feb 12-13 | **App Store Submission** |
 | Feb 14-16 | **Soft Launch** (Beta testers) |
 | Feb 16-22 | Bug fixes, pre-launch marketing |
@@ -23,266 +24,196 @@
 
 ## Current Status Summary
 
-### What's Working (90%+ Complete)
-- Stripe subscription payments (Android/Web)
-- Content gating (free vs premium)
-- Drip content system
-- Onboarding flow (all user types)
-- Cancel flow with retention offers
-- GHL integration (contact sync, tags, workflows)
-- Push notification infrastructure
-- Admin dashboard
-- Community feature
-- Directory & maps
-- Certification submission flow
+### ✅ COMPLETED TODAY (Feb 10)
 
-### Critical Blockers (Must Fix Before Submission)
+| Task | Status |
+|------|--------|
+| iOS External Link Checkout | ✅ Complete - Modal + web redirect |
+| Web Subscribe Page | ✅ Live at web-steel-seven-44.vercel.app/subscribe |
+| Founders Pricing (Stripe) | ✅ All prices created in Stripe |
+| Founders Pricing (Database) | ✅ subscription_plans table updated |
+| Founders Pricing (Mobile) | ✅ app/subscribe.tsx updated |
+| Founders Pricing (Web) | ✅ Web page shows correct prices |
+| Deep Link Return Flow | ✅ Auto-redirects back to app after checkout |
+| Success/Cancel Pages | ✅ iOS-optimized with app return |
+| Personalized Checkout | ✅ Shows user's name on web page |
 
-| # | Issue | Impact | Est. Time |
-|---|-------|--------|-----------|
-| ~~1~~ | ~~Apple IAP stub only~~ | ✅ **RESOLVED** - Using external link to web checkout (Epic v Apple ruling) | 0 hrs |
-| 2 | **APNs certificate missing** | iOS push notifications fail | 1-2 hrs |
-| 3 | **No E2E tests** | Can't validate payment flows | 4-6 hrs |
-
-### High Priority (Before Launch)
-
-| # | Issue | Impact | Est. Time |
-|---|-------|--------|-----------|
-| 4 | Verify free vs paid video configuration | Content access issues | 2-3 hrs |
-| 5 | App Store assets (screenshots, description) | Submission requirement | 2-3 hrs |
-| 6 | TestFlight & Android internal test builds | Beta testing | 1-2 hrs |
-| 7 | Full payment flow QA (signup → payment → access) | User experience | 2-3 hrs |
+**Founders Pricing Summary:**
+| Plan | Price |
+|------|-------|
+| Signature | $49/mo |
+| Studio | $97/mo |
+| Studio Annual | $970/yr (2 months free) |
+| Certification | $297 one-time |
+| Virtual Studio Salon | $3,000/yr |
+| In-Person Cert | $9,500 ($7,500 Founders) |
 
 ---
 
-## Detailed Task Breakdown
+### 🔴 CRITICAL BLOCKERS (Must Fix Before Submission)
 
-### TIER 1: Critical Blockers (Feb 10-11)
+| # | Issue | Impact | Est. Time | Status |
+|---|-------|--------|-----------|--------|
+| ~~1~~ | ~~Apple IAP~~ | ✅ RESOLVED | - | **DONE** |
+| 2 | **APNs certificate missing** | iOS push notifications fail | 1-2 hrs | TODO |
+| 3 | **Vercel env vars not set** | Web checkout won't work | 30 min | TODO |
 
-#### 1. ✅ iOS Payment Strategy (RESOLVED)
+### 🟡 HIGH PRIORITY (Before Submission)
 
-**Decision (Feb 10, 2026):** Using external link to web checkout instead of Apple IAP.
+| # | Issue | Impact | Est. Time | Status |
+|---|-------|--------|-----------|--------|
+| 4 | Verify free vs paid videos | Content access issues | 1 hr | TODO |
+| 5 | App Store assets | Submission requirement | 2-3 hrs | TODO |
+| 6 | TestFlight build | Beta testing | 1 hr | TODO |
+| 7 | Full payment flow QA | User experience | 2 hrs | TODO |
 
-**Legal Context (Epic v Apple):**
-- April 2023: Ninth Circuit ruled anti-steering rules violate California UCL. Nationwide injunction allows developers to link to external payment options.
-- January 2024: Supreme Court denied cert. Injunction in full effect.
-- April 2025: Judge Rogers found Apple in **willful violation** for trying to charge 27% on external link purchases. Apple ordered to stop enforcing those fees.
-- **Current state**: External links are legal and fee-free. Apple was found in contempt; enforcement proceedings ongoing.
+### 🟢 NICE TO HAVE (Before Launch)
 
-**Implementation Complete:**
-- `app/subscribe.tsx` - Updated to show Apple-required warning modal, then opens `bobuniversity.com/subscribe` in browser
-- iOS users complete Stripe checkout on web
-- Single payment system (Stripe) for all platforms
-- 0% Apple commission (vs 15-30% with IAP)
-
-**Remaining Work:**
-- Create `bobuniversity.com/subscribe` web page with Stripe Checkout
-- Handle deep linking back to app after purchase (optional enhancement)
-
----
-
-#### 2. Configure APNs Certificate
-
-**Required Work:**
-1. Apple Developer Portal:
-   - Create APNs Key (p8 file)
-   - Download and save securely
-
-2. Expo Dashboard:
-   - Add APNs key to project credentials
-   - Or configure in eas.json for EAS Build
-
-3. Test:
-   - Build development app
-   - Test push notification on physical device
+| # | Issue | Impact | Est. Time | Status |
+|---|-------|--------|-----------|--------|
+| 8 | E2E tests | Automated QA | 4-6 hrs | Optional |
+| 9 | Android Play Store listing | Android launch | 2 hrs | TODO |
 
 ---
 
-#### 3. E2E Tests for Critical Flows
+## Vercel Environment Variables (BLOCKING)
 
-**Test Scenarios:**
-```typescript
-// tests/e2e/payment.test.ts
-describe('Payment Flow', () => {
-  test('Free user can browse free videos', async () => {});
-  test('Free user sees paywall on premium video', async () => {});
-  test('User can complete Stripe subscription', async () => {});
-  test('Entitlement updates after payment', async () => {});
-  test('User can access premium content after payment', async () => {});
-});
+**Must add to Vercel dashboard before web checkout works:**
 
-describe('Cancel Flow', () => {
-  test('User sees retention offer', async () => {});
-  test('Accepting offer extends subscription', async () => {});
-  test('Declining cancels at period end', async () => {});
-});
+```
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_SIGNATURE_PRICE_ID=price_1SzNodHQIhtnmy73Uas7S3rr
+STRIPE_STUDIO_PRICE_ID=price_1SzOmDHQIhtnmy73hxpfq6Ce
+STRIPE_STUDIO_ANNUAL_PRICE_ID=price_1SzOmDHQIhtnmy73fMVdl2Ns
+STRIPE_CERTIFICATION_PRICE_ID=price_1SzOmTHQIhtnmy73trO1zz5b
+STRIPE_VIRTUAL_SALON_PRICE_ID=price_1SzOmMHQIhtnmy73Ay8tlKSC
+STRIPE_INPERSON_CERT_PRICE_ID=price_1SzOmbHQIhtnmy73okJLk6yW
+STRIPE_INPERSON_CERT_FOUNDERS_PRICE_ID=price_1SzOmbHQIhtnmy73baScE0n8
+NEXT_PUBLIC_SUPABASE_URL=https://[project].supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+NEXT_PUBLIC_BASE_URL=https://bobuniversity.com
 ```
 
-**Tool Options:**
-- Detox (React Native E2E)
-- Maestro (simpler, YAML-based)
-- Manual QA checklist (minimum)
-
 ---
 
-### TIER 2: High Priority (Feb 11-13)
+## Remaining Tasks Detail
 
-#### 4. Verify Free vs Paid Video Configuration
+### 1. APNs Certificate (1-2 hrs)
 
-**Check in Admin Dashboard:**
-- [ ] Identify which videos should be free (`is_free: true`)
-- [ ] Verify 5-10 intro videos are marked free
-- [ ] Confirm premium videos are gated
-- [ ] Test drip content dates
+**Steps:**
+1. Apple Developer Portal → Keys → Create APNs Key
+2. Download .p8 file
+3. Add to Expo credentials:
+   ```bash
+   eas credentials --platform ios
+   ```
+4. Test on physical device
 
-**Database Query:**
+### 2. Verify Content Configuration (1 hr)
+
+**Check in Supabase:**
 ```sql
--- Check free video count
-SELECT COUNT(*) FROM videos WHERE is_free = true;
-
--- List free videos
+-- Free videos (should be 5-10 intro videos)
 SELECT id, title, module_id FROM videos WHERE is_free = true;
 
--- Check videos with drip delays
-SELECT id, title, drip_days FROM videos WHERE drip_days > 0;
+-- Videos with drip delays
+SELECT id, title, drip_days FROM videos WHERE drip_days > 0 ORDER BY drip_days;
+
+-- Verify modules are published
+SELECT id, title, is_published FROM modules WHERE is_published = true;
 ```
 
----
+### 3. App Store Assets (2-3 hrs)
 
-#### 5. App Store Assets
-
-**iOS App Store:**
+**iOS Required:**
 - [ ] 6.7" iPhone screenshots (5-8)
 - [ ] 6.5" iPhone screenshots (5-8)
-- [ ] 12.9" iPad Pro screenshots (optional)
-- [ ] App icon (1024x1024)
-- [ ] App preview video (30s, optional)
-- [ ] Description (first 2 sentences critical)
-- [ ] Keywords (100 chars)
+- [ ] App icon 1024x1024
+- [ ] Description (highlight: precision cutting, Ray's techniques)
+- [ ] Keywords (100 chars max)
 - [ ] Privacy policy URL
 - [ ] Support URL
+- [ ] **External link disclosure** (if Apple requires)
 
 **Google Play:**
-- [ ] Feature graphic (1024x500)
-- [ ] Screenshots (phone + tablet)
+- [ ] Feature graphic 1024x500
+- [ ] Phone screenshots
 - [ ] Short description (80 chars)
 - [ ] Full description
-- [ ] Privacy policy URL
 
-**Copy from MARKETING_LAUNCH_PLAN.md:**
-```
-App Name: Bob University - Hair Education
-Subtitle: Pro Cutting Techniques & Tips
-Keywords: hair education,haircutting,stylist training,barbering,certification,salon,bob techniques,haircut
-```
+### 4. TestFlight Build (1 hr)
 
----
-
-#### 6. Test Builds
-
-**iOS TestFlight:**
 ```bash
+# Build for TestFlight
 eas build --profile preview --platform ios
+
+# Submit to App Store Connect
 eas submit --platform ios
 ```
 
-**Android Internal Testing:**
-```bash
-eas build --profile preview --platform android
-# Upload AAB to Google Play Console internal testing track
-```
+### 5. Payment Flow QA (2 hrs)
+
+**Test Matrix:**
+
+| Platform | Flow | Test |
+|----------|------|------|
+| iOS | External link → Web → Stripe → Deep link back | Manual |
+| Android | In-app Stripe Payment Sheet | Manual |
+| Web | Direct Stripe Checkout | Manual |
+
+**Scenarios:**
+- [ ] New user sign up → subscribe → access content
+- [ ] Existing user → upgrade to Studio
+- [ ] User → cancel → sees retention offer
+- [ ] User → cancel confirmed → access until period end
 
 ---
 
-### TIER 3: Pre-Launch Polish (Feb 14-22)
+## Go/No-Go Criteria (Feb 22)
 
-#### 7. Full User Flow QA
+### Must Have ✅
+- [ ] iOS app approved in App Store
+- [ ] Android app in Google Play (internal at minimum)
+- [ ] Stripe payments working on web
+- [ ] Web checkout page live with correct domain
+- [ ] iOS deep link back to app working
+- [ ] Push notifications delivering (iOS + Android)
+- [ ] Free content accessible
+- [ ] Premium content gated
+- [ ] GHL sync working
 
-**Manual Test Checklist:**
-
-**Authentication:**
-- [ ] Email sign-up works
-- [ ] Apple Sign-In works
-- [ ] Google Sign-In works
-- [ ] Password reset works
-
-**Onboarding:**
-- [ ] Individual stylist flow complete
-- [ ] Salon owner flow complete
-- [ ] Client flow complete
-- [ ] Skills assessment saves correctly
-- [ ] GHL contact created
-
-**Content:**
-- [ ] Free videos play without subscription
-- [ ] Premium videos show paywall
-- [ ] Video progress saves
-- [ ] Resume playback works
-- [ ] Module completion tracking works
-
-**Subscription:**
-- [ ] Plan selection displays correct prices
-- [ ] Stripe payment completes
-- [ ] Apple IAP payment completes (iOS)
-- [ ] Entitlement updates immediately
-- [ ] Premium content unlocks
-- [ ] Receipt history shows purchases
-
-**Community:**
-- [ ] Can create post with image/video
-- [ ] Comments work
-- [ ] Reactions work
-- [ ] Reporting works
-
-**Certification:**
-- [ ] Can view certification details
-- [ ] Can submit video for review
-- [ ] Status updates correctly
-
-**Events:**
-- [ ] Can browse events
-- [ ] Can purchase tickets
-- [ ] Confirmation received
-
-**Push Notifications:**
-- [ ] Permission prompt appears
-- [ ] Token saved to database
-- [ ] Test notification received
+### Nice to Have
+- [ ] E2E tests passing
+- [ ] 100% beta feedback addressed
+- [ ] Custom domain (bobuniversity.com/subscribe)
 
 ---
 
-## Environment Checklist
+## iOS Checkout Flow (Complete)
 
-### Required Environment Variables (Mobile)
-```env
-EXPO_PUBLIC_SUPABASE_URL=
-EXPO_PUBLIC_SUPABASE_ANON_KEY=
-EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN=
 ```
-
-### Required Edge Function Secrets (Supabase)
+User taps Subscribe
+       ↓
+Apple-required modal
+       ↓
+"Continue to Website"
+       ↓
+Safari → bobuniversity.com/subscribe
+• Personalized greeting with user's name
+• Plan pre-selected
+• Email pre-filled
+       ↓
+Stripe Checkout
+       ↓
+Success page (3-second countdown)
+       ↓
+Auto deep-link → bob-university://subscription-success
+       ↓
+App shows success, refreshes entitlement
+       ↓
+Auto-navigate to home
 ```
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-GHL_API_KEY=
-GHL_LOCATION_ID=
-RESEND_API_KEY=
-# APPLE_SHARED_SECRET= (not needed - using external link instead of IAP)
-```
-
-### Required in App Store Connect
-- [ ] ~~Subscription products created~~ (not needed - using external link)
-- [ ] ~~Sandbox test users created~~ (not needed - using external link)
-- [ ] Bank/tax info complete
-- [ ] App Review contact info
-- [ ] External link disclosure in app metadata (if required)
-
-### Required in Google Play Console
-- [ ] App created
-- [ ] Store listing complete
-- [ ] Content rating questionnaire
-- [ ] Pricing configured
 
 ---
 
@@ -290,63 +221,44 @@ RESEND_API_KEY=
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
-| App Store rejection | Low | High | Submit early (Feb 12-13), external link approach is Apple-compliant |
-| ~~Apple IAP not ready~~ | ~~Medium~~ | ~~Critical~~ | ✅ RESOLVED - Using external link to web checkout |
-| Apple new compliance scheme | Low | Medium | Apple found in contempt April 2025; monitor enforcement proceedings |
-| Critical bug in beta | Medium | Medium | 8-day soft launch buffer |
-| Low initial downloads | Low | Low | Expected; webinar is growth engine |
+| App Store rejection | Low | High | External link approach is court-approved |
+| Vercel env vars not set | High | Critical | **Do this immediately** |
+| APNs not configured | High | Medium | Beta testers can't test push |
+| Critical bug in beta | Medium | Medium | 8-day buffer before launch |
 
 ---
 
-## Go/No-Go Criteria (Feb 22)
-
-**Must Have for Launch:**
-- [ ] iOS app approved in App Store
-- [ ] Android app approved in Google Play
-- [ ] Stripe payments working (all platforms via external link for iOS)
-- [ ] Web subscription page live at bobuniversity.com/subscribe
-- [ ] Push notifications delivering
-- [ ] All free content accessible
-- [ ] Premium content properly gated
-- [ ] GHL sync working
-- [ ] No crash rate >1%
-
-**Nice to Have:**
-- [ ] E2E tests passing
-- [ ] 100% of beta feedback addressed
-- [ ] Perfect video playback
-
----
-
-## Quick Reference Commands
+## Quick Reference
 
 ```bash
-# Start development
+# Mobile development
 npm start
 
-# Build for TestFlight
+# Web development
+cd web && npm run dev
+
+# Deploy web to Vercel
+cd web && vercel --prod
+
+# iOS TestFlight build
 eas build --profile preview --platform ios
+eas submit --platform ios
 
-# Build for Google Play internal
+# Android build
 eas build --profile preview --platform android
-
-# Production build
-eas build --profile production --platform all
-
-# Check Supabase types
-npx supabase gen types typescript --project-id <id> > lib/database.types.ts
-
-# Run admin dashboard
-cd admin && npm run dev
 ```
 
 ---
 
-## Contacts
+## Next Actions (Priority Order)
 
-- **Kyle (Dev):** Focus on Apple IAP, APNs, technical blockers
-- **Ray (Content):** Beta tester outreach, webinar prep, Instagram content
+1. **🔴 Set Vercel env vars** (blocks web checkout)
+2. **🔴 Configure APNs certificate** (blocks iOS push)
+3. **🟡 Verify free video configuration**
+4. **🟡 Create App Store screenshots**
+5. **🟡 Submit TestFlight build**
+6. **🟡 Full QA pass**
 
 ---
 
-*Next Review: Feb 11, 2026 - After Apple IAP implementation*
+*Next Review: Feb 11, 2026 - After APNs and content verification*
