@@ -26,15 +26,19 @@ function getSupabase() {
 }
 
 // Price IDs from Stripe (configure in .env)
+// Founders Pricing (Feb 2026 Launch)
 const PRICE_IDS: Record<string, string> = {
   // Individual plans
-  signature: process.env.STRIPE_SIGNATURE_PRICE_ID!,
-  studio: process.env.STRIPE_STUDIO_PRICE_ID!,
-  'studio-annual': process.env.STRIPE_STUDIO_ANNUAL_PRICE_ID!,
+  signature: process.env.STRIPE_SIGNATURE_PRICE_ID!, // $49/mo
+  studio: process.env.STRIPE_STUDIO_PRICE_ID!, // $97/mo (Founders)
+  'studio-annual': process.env.STRIPE_STUDIO_ANNUAL_PRICE_ID!, // $970/yr (Founders)
   individual: process.env.STRIPE_SIGNATURE_PRICE_ID!, // Legacy, same as signature
+  // One-time purchases
+  certification: process.env.STRIPE_CERTIFICATION_PRICE_ID!, // $297 one-time
   // Salon plans
-  'salon-foundations': process.env.STRIPE_SALON_FOUNDATIONS_PRICE_ID!,
-  'salon-studio': process.env.STRIPE_SALON_STUDIO_PRICE_ID!,
+  'virtual-salon': process.env.STRIPE_VIRTUAL_SALON_PRICE_ID!, // $3,000/yr
+  'inperson-cert': process.env.STRIPE_INPERSON_CERT_PRICE_ID!, // $9,500 one-time
+  'inperson-cert-founders': process.env.STRIPE_INPERSON_CERT_FOUNDERS_PRICE_ID!, // $7,500 one-time (limited)
 };
 
 export async function POST(request: NextRequest) {

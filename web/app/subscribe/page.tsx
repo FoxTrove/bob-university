@@ -24,73 +24,57 @@ interface SalonPlan {
   highlight?: string;
 }
 
-// Individual Plan configurations
+// Individual Plan configurations - FOUNDERS PRICING (Feb 2026)
 const INDIVIDUAL_PLANS: Record<string, IndividualPlan> = {
   signature: {
     name: 'Signature',
     monthlyPrice: 49,
     annualPrice: null,
     description: 'Master the fundamentals',
-    highlight: 'Most Popular for Beginners',
     features: [
-      'Full core curriculum access',
-      'Monthly live workshop with Ray',
+      'Full core curriculum (14+ hours)',
+      'Monthly specialty workshop (live)',
       'Celebrity cut breakdowns',
-      'Private community access',
-      'Stylist directory listing',
-      'Certification eligible',
+      'Rotating replay vault (6 sessions)',
+      'Community access',
     ],
   },
   studio: {
     name: 'Studio',
-    monthlyPrice: 127,
-    annualPrice: 1200,
-    description: 'Direct mentorship from Ray',
+    monthlyPrice: 97,
+    annualPrice: 970,
+    description: 'Direct access to Ray',
     popular: true,
     highlight: 'Best Value',
     features: [
       'Everything in Signature, plus:',
-      'Weekly "Ask Ray" live sessions',
-      'Demand: business & pricing mastery',
-      'Studio-exclusive replays',
-      'Reserved seats at live events',
-      'Priority support',
+      'Monthly Ask Ray / Hot Seat (live)',
+      'Money & Demand talks (Studio-only)',
+      'Full replay archive (nothing drops off)',
+      'Certification eligible',
+      'Directory listing',
     ],
   },
 };
 
-// Salon Plan configurations
+// Salon Plan configurations - FOUNDERS PRICING (Feb 2026)
 const SALON_PLANS: Record<string, SalonPlan> = {
-  foundations: {
-    name: 'Foundations',
-    price: 1500,
+  'virtual-salon': {
+    name: 'Virtual Studio Salon',
+    price: 3000,
     period: '/year',
-    description: 'Education for your whole team',
-    features: [
-      '5 team seats included',
-      'Signature-level content access',
-      'Team progress dashboard',
-      'Admin management tools',
-      'Swap team members anytime',
-      'Group onboarding call',
-    ],
-  },
-  'studio-team': {
-    name: 'Studio Team',
-    price: 4500,
-    period: '/year',
-    description: 'Complete team transformation',
+    description: 'Transform your entire team',
     popular: true,
-    highlight: 'Best Value',
+    highlight: 'Team Training',
     features: [
-      '5 team seats included',
+      '5 Studio memberships included',
       'Full Signature + Studio access',
-      '3 certifications included ($891 value)',
-      'Weekly "Ask Ray" for your team',
-      'Reserved event seats',
-      'Dedicated account manager',
+      'Owner onboarding call',
+      'Quarterly optimization calls',
+      'Rotate team members freely',
+      'Priority support',
     ],
-    savings: 'Save $3,120 vs individual plans',
+    savings: 'Save $2,820 vs 5 individual plans',
   },
 };
 
@@ -207,7 +191,7 @@ function BillingToggle({
         </span>
         {!disabled && (
           <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg shadow-green-500/25">
-            Save 21%
+            2 months free
           </span>
         )}
       </div>
@@ -383,8 +367,8 @@ function SubscribeContent() {
   const [selectedIndividualPlan, setSelectedIndividualPlan] = useState<'signature' | 'studio'>(
     planParam === 'signature' ? 'signature' : 'studio'
   );
-  const [selectedSalonPlan, setSelectedSalonPlan] = useState<'foundations' | 'studio-team'>(
-    'studio-team'
+  const [selectedSalonPlan, setSelectedSalonPlan] = useState<'virtual-salon'>(
+    'virtual-salon'
   );
   const [isAnnual, setIsAnnual] = useState(true);
 
@@ -401,7 +385,7 @@ function SubscribeContent() {
       if (userType === 'individual') {
         checkoutPlan = useAnnual ? `${selectedIndividualPlan}-annual` : selectedIndividualPlan;
       } else {
-        checkoutPlan = `salon-${selectedSalonPlan === 'studio-team' ? 'studio' : 'foundations'}`;
+        checkoutPlan = selectedSalonPlan; // 'virtual-salon'
       }
 
       const response = await fetch('/api/create-checkout', {
@@ -537,32 +521,30 @@ function SubscribeContent() {
                   <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <span className="text-primary font-medium">5 team seats included • Billed annually</span>
+                  <span className="text-primary font-medium">5 Studio memberships • Annual commitment</span>
                 </div>
               </div>
 
-              <div className="grid gap-4 mb-8">
+              <div className="mb-8">
                 <PlanCard
-                  name={SALON_PLANS.foundations.name}
-                  price={SALON_PLANS.foundations.price}
-                  period={SALON_PLANS.foundations.period}
-                  description={SALON_PLANS.foundations.description}
-                  features={SALON_PLANS.foundations.features}
-                  isSelected={selectedSalonPlan === 'foundations'}
-                  onSelect={() => setSelectedSalonPlan('foundations')}
-                />
-                <PlanCard
-                  name={SALON_PLANS['studio-team'].name}
-                  price={SALON_PLANS['studio-team'].price}
-                  period={SALON_PLANS['studio-team'].period}
-                  description={SALON_PLANS['studio-team'].description}
-                  features={SALON_PLANS['studio-team'].features}
+                  name={SALON_PLANS['virtual-salon'].name}
+                  price={SALON_PLANS['virtual-salon'].price}
+                  period={SALON_PLANS['virtual-salon'].period}
+                  description={SALON_PLANS['virtual-salon'].description}
+                  features={SALON_PLANS['virtual-salon'].features}
                   popular={true}
-                  highlight={SALON_PLANS['studio-team'].highlight}
-                  savings={SALON_PLANS['studio-team'].savings}
-                  isSelected={selectedSalonPlan === 'studio-team'}
-                  onSelect={() => setSelectedSalonPlan('studio-team')}
+                  highlight={SALON_PLANS['virtual-salon'].highlight}
+                  savings={SALON_PLANS['virtual-salon'].savings}
+                  isSelected={true}
+                  onSelect={() => {}}
                 />
+              </div>
+
+              <div className="bg-surface/50 rounded-xl p-4 mb-8 border border-gray-800">
+                <p className="text-gray-400 text-sm text-center">
+                  <span className="text-white font-medium">Looking for in-person certification?</span><br />
+                  Contact us about our In-Person Salon Certification Program ($7,500 Founders / $9,500 Standard)
+                </p>
               </div>
             </>
           )}
@@ -593,18 +575,18 @@ function SubscribeContent() {
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                You&apos;re saving $324/year with annual billing!
+                You&apos;re saving $194/year with annual billing (2 months free)!
               </span>
             </div>
           )}
 
-          {userType === 'salon' && selectedSalonPlan === 'studio-team' && (
+          {userType === 'salon' && (
             <div className="mt-4 text-center">
               <span className="inline-flex items-center gap-2 text-green-400 font-medium">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                Includes 3 certifications ($891 value)!
+                Save $2,820/year vs 5 individual Studio memberships!
               </span>
             </div>
           )}
