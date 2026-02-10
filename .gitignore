@@ -51,3 +51,21 @@ docs/Bob Company Brand Guide 2026.pdf
 
 # service account keys (contain private keys)
 *-service-account*.json
+
+# Ralph session files
+.ralph-*.log
+.ralph-state
+DONE.txt
+BLOCKERS.md
+TASKS.md
+STORIES.md
+STUCK.txt
+
+# Planning/session docs (keep local only)
+LAUNCH_AUDIT.md
+LAUNCH_PLAN.md
+MARKETING_LAUNCH_PLAN.md
+IMPLEMENTATION_PLAN.md
+BUILD_REPORT.md
+ARCHITECTURE.md
+MIGRATIONS.md
