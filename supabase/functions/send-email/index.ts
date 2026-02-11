@@ -81,7 +81,7 @@ function getEmailStyles(): string {
 function getEmailHeader(): string {
   return `
     <div class="header">
-      <h1>Bob University</h1>
+      <h1>The Bob Company</h1>
     </div>
   `;
 }
@@ -89,8 +89,8 @@ function getEmailHeader(): string {
 function getEmailFooter(unsubscribeUrl?: string): string {
   return `
     <div class="footer">
-      <p>Bob University - Master the Art of Hair</p>
-      <p>&copy; ${new Date().getFullYear()} Bob University. All rights reserved.</p>
+      <p>The Bob Company - Master the Art of Hair</p>
+      <p>&copy; ${new Date().getFullYear()} The Bob Company. All rights reserved.</p>
       ${unsubscribeUrl ? `<p><a href="${unsubscribeUrl}">Unsubscribe from these emails</a></p>` : ""}
     </div>
   `;
@@ -126,18 +126,18 @@ function generateTemplate(
   switch (template) {
     case "welcome":
       return {
-        subject: "Welcome to Bob University!",
+        subject: "Welcome to The Bob Company!",
         html: wrapHtml(`
           <div class="content">
             <h2>Welcome, ${data.firstName || "there"}!</h2>
-            <p>We're thrilled to have you join the Bob University community. You've just taken the first step toward mastering the art of hair.</p>
+            <p>We're thrilled to have you join the The Bob Company community. You've just taken the first step toward mastering the art of hair.</p>
             <p>Here's what you can do next:</p>
             <ul>
               <li>Explore our video library and start learning</li>
               <li>Complete your first module to earn points</li>
               <li>Check out the certification program when you're ready</li>
             </ul>
-            <a href="https://app.bobuniversity.com" class="button">Start Learning</a>
+            <a href="https://app.thebobcompany.com" class="button">Start Learning</a>
             <p>Have questions? We're here to help!</p>
           </div>
         `),
@@ -145,7 +145,7 @@ function generateTemplate(
 
     case "subscription-confirmed":
       return {
-        subject: "Your Bob University Subscription is Active!",
+        subject: "Your The Bob Company Subscription is Active!",
         html: wrapHtml(`
           <div class="content">
             <h2>Welcome to ${data.planName || "Premium"}!</h2>
@@ -164,7 +164,7 @@ function generateTemplate(
                 <span class="details-value">${data.nextBillingDate || "N/A"}</span>
               </div>
             </div>
-            <a href="https://app.bobuniversity.com" class="button">Access Premium Content</a>
+            <a href="https://app.thebobcompany.com" class="button">Access Premium Content</a>
           </div>
         `),
       };
@@ -183,7 +183,7 @@ function generateTemplate(
               </div>
               <div class="details-row">
                 <span class="details-label">Description</span>
-                <span class="details-value">${data.description || "Bob University Subscription"}</span>
+                <span class="details-value">${data.description || "The Bob Company Subscription"}</span>
               </div>
               <div class="details-row">
                 <span class="details-label">Date</span>
@@ -205,7 +205,7 @@ function generateTemplate(
         html: wrapHtml(`
           <div class="content">
             <h2 class="warning">Payment Failed</h2>
-            <p>We were unable to process your payment for your Bob University subscription.</p>
+            <p>We were unable to process your payment for your The Bob Company subscription.</p>
             <div class="details-box">
               <div class="details-row">
                 <span class="details-label">Amount</span>
@@ -217,7 +217,7 @@ function generateTemplate(
               </div>
             </div>
             <p>Please update your payment method to continue your access to premium content.</p>
-            <a href="https://app.bobuniversity.com/settings/billing" class="button">Update Payment Method</a>
+            <a href="https://app.thebobcompany.com/settings/billing" class="button">Update Payment Method</a>
             <p>If you believe this is an error, please contact your bank or reach out to us for assistance.</p>
           </div>
         `),
@@ -246,7 +246,7 @@ function generateTemplate(
               <li>Record your submission video demonstrating your skills</li>
               <li>Upload your video through the certification portal</li>
             </ol>
-            <a href="https://app.bobuniversity.com/certification" class="button">Start Your Submission</a>
+            <a href="https://app.thebobcompany.com/certification" class="button">Start Your Submission</a>
             <p>Good luck! We can't wait to see your skills.</p>
           </div>
         `),
@@ -276,7 +276,7 @@ function generateTemplate(
               <li>You're eligible to join the Stylist Directory</li>
               <li>Share your achievement on social media!</li>
             </ul>
-            <a href="https://app.bobuniversity.com/certification" class="button">View Your Certificate</a>
+            <a href="https://app.thebobcompany.com/certification" class="button">View Your Certificate</a>
           </div>
         `),
       };
@@ -299,14 +299,14 @@ function generateTemplate(
               <li>Clearly demonstrate each required technique</li>
               <li>Review the certification checklist before recording</li>
             </ul>
-            <a href="https://app.bobuniversity.com/certification" class="button">Try Again</a>
+            <a href="https://app.thebobcompany.com/certification" class="button">Try Again</a>
           </div>
         `),
       };
 
     case "event-ticket":
       return {
-        subject: `Your Ticket: ${data.eventName || "Bob University Event"}`,
+        subject: `Your Ticket: ${data.eventName || "The Bob Company Event"}`,
         html: wrapHtml(`
           <div class="content">
             <h2>You're In!</h2>
@@ -314,7 +314,7 @@ function generateTemplate(
             <div class="details-box">
               <div class="details-row">
                 <span class="details-label">Event</span>
-                <span class="details-value">${data.eventName || "Bob University Event"}</span>
+                <span class="details-value">${data.eventName || "The Bob Company Event"}</span>
               </div>
               <div class="details-row">
                 <span class="details-label">Date</span>
@@ -330,7 +330,7 @@ function generateTemplate(
               </div>
             </div>
             <p>Show this email or your ticket code at the door for entry.</p>
-            <a href="https://app.bobuniversity.com/events" class="button">View Event Details</a>
+            <a href="https://app.thebobcompany.com/events" class="button">View Event Details</a>
             <p>We can't wait to see you there!</p>
           </div>
         `),
@@ -346,7 +346,7 @@ function generateTemplate(
             <div class="details-box">
               <div class="details-row">
                 <span class="details-label">Event</span>
-                <span class="details-value">${data.eventName || "Bob University Event"}</span>
+                <span class="details-value">${data.eventName || "The Bob Company Event"}</span>
               </div>
               <div class="details-row">
                 <span class="details-label">Date</span>
@@ -362,7 +362,7 @@ function generateTemplate(
               </div>
             </div>
             <p>Don't forget to bring your ticket code for check-in!</p>
-            <a href="https://app.bobuniversity.com/events" class="button">View Event</a>
+            <a href="https://app.thebobcompany.com/events" class="button">View Event</a>
           </div>
         `),
       };
@@ -373,12 +373,12 @@ function generateTemplate(
         html: wrapHtml(`
           <div class="content">
             <h2>New Content Available!</h2>
-            <p>A new module has been added to Bob University:</p>
+            <p>A new module has been added to The Bob Company:</p>
             <div class="details-box">
               <h3>${data.moduleName || "New Module"}</h3>
               <p>${data.description || "Check out the latest content in the app."}</p>
             </div>
-            <a href="https://app.bobuniversity.com/modules/${data.moduleId || ""}" class="button">Start Learning</a>
+            <a href="https://app.thebobcompany.com/modules/${data.moduleId || ""}" class="button">Start Learning</a>
           </div>
         `),
       };
@@ -394,18 +394,18 @@ function generateTemplate(
               <h3>${data.milestoneName || "Achievement Unlocked"}</h3>
               <p>${data.description || "Keep up the great work!"}</p>
             </div>
-            <a href="https://app.bobuniversity.com" class="button">Continue Learning</a>
+            <a href="https://app.thebobcompany.com" class="button">Continue Learning</a>
           </div>
         `),
       };
 
     case "team-invite":
       return {
-        subject: `You're invited to join ${data.salonName || "a salon"} on Bob University`,
+        subject: `You're invited to join ${data.salonName || "a salon"} on The Bob Company`,
         html: wrapHtml(`
           <div class="content">
             <h2>You've Been Invited!</h2>
-            <p>${data.ownerName ? `${data.ownerName} has` : "Your salon owner has"} invited you to join <strong>${data.salonName || "their salon"}</strong> on Bob University.</p>
+            <p>${data.ownerName ? `${data.ownerName} has` : "Your salon owner has"} invited you to join <strong>${data.salonName || "their salon"}</strong> on The Bob Company.</p>
             <p>Use the access code below to get started with your team's training:</p>
             <div class="details-box" style="text-align: center;">
               <p style="font-size: 36px; font-family: monospace; letter-spacing: 8px; font-weight: bold; color: #000; margin: 16px 0;">${data.accessCode || "------"}</p>
@@ -413,7 +413,7 @@ function generateTemplate(
             </div>
             <h3>How to Join:</h3>
             <ol>
-              <li>Download the Bob University app</li>
+              <li>Download the The Bob Company app</li>
               <li>Create your account or sign in</li>
               <li>Enter the access code above when prompted</li>
               <li>Start learning with your team!</li>
@@ -426,12 +426,12 @@ function generateTemplate(
 
     default:
       return {
-        subject: "Update from Bob University",
+        subject: "Update from The Bob Company",
         html: wrapHtml(`
           <div class="content">
             <h2>Hello!</h2>
-            <p>${data.message || "We have an update for you from Bob University."}</p>
-            <a href="https://app.bobuniversity.com" class="button">Open App</a>
+            <p>${data.message || "We have an update for you from The Bob Company."}</p>
+            <a href="https://app.thebobcompany.com" class="button">Open App</a>
           </div>
         `),
       };
@@ -451,7 +451,7 @@ serve(async (req) => {
 
   try {
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "Bob University <hello@bobuniversity.com>";
+    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "The Bob Company <hello@thebobcompany.com>";
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
@@ -517,7 +517,7 @@ serve(async (req) => {
 
       // Include signature in token
       const signedToken = btoa(JSON.stringify({ ...tokenData, sig: signatureHex }));
-      unsubscribeUrl = `https://app.bobuniversity.com/unsubscribe?token=${signedToken}`;
+      unsubscribeUrl = `https://app.thebobcompany.com/unsubscribe?token=${signedToken}`;
     }
 
     // Generate email content

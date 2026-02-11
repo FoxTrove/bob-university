@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const SUPPORT_EMAIL = 'support@bobuniversity.com';
+const SUPPORT_EMAIL = 'support@thebobcompany.com';
 
 interface SecondaryNavMenuProps {
   /** Color for the hamburger icon (default: black) */

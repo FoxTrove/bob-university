@@ -77,7 +77,7 @@ function CancelContent() {
         <p className="text-gray-500 text-sm mt-8">
           Have questions?{' '}
           <a
-            href="mailto:support@bobuniversity.com"
+            href="mailto:support@thebobcompany.com"
             className="text-primary hover:underline"
           >
             Contact support

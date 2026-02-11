@@ -649,13 +649,13 @@ function SubscribeContent() {
         <div className="max-w-xl mx-auto text-center">
           <p className="text-gray-500 text-sm">
             Payments processed securely by Stripe. Questions? Email{' '}
-            <a href="mailto:support@bobuniversity.com" className="text-primary hover:underline">
-              support@bobuniversity.com
+            <a href="mailto:support@thebobcompany.com" className="text-primary hover:underline">
+              support@thebobcompany.com
             </a>
           </p>
           {source === 'ios_app' && (
             <p className="text-gray-500 text-sm mt-4">
-              After subscribing, return to the Bob University app to access your content.
+              After subscribing, return to The Bob Company app to access your content.
             </p>
           )}
         </div>

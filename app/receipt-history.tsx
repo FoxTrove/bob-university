@@ -247,7 +247,7 @@ export default function ReceiptHistory() {
               <View className="mt-4 mb-8">
                 <Text className="text-textMuted text-xs text-center">
                   For detailed invoices or billing questions,{'\n'}
-                  please contact support@bobuniversity.com
+                  please contact support@thebobcompany.com
                 </Text>
               </View>
             )}

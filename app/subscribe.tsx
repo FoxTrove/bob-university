@@ -60,7 +60,7 @@ function ExternalLinkModal({
           </Text>
 
           <Text className="text-gray-400 text-sm text-center mb-6">
-            This purchase will be processed by Stripe on bobuniversity.com. Apple is not responsible for this transaction.
+            This purchase will be processed by Stripe on thebobcompany.com. Apple is not responsible for this transaction.
           </Text>
 
           <View className="space-y-3">

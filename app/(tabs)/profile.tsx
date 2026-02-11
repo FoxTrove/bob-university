@@ -12,8 +12,8 @@ import { getLevelProgress } from '../../components/ui/CircularProgress';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-const PRIVACY_POLICY_URL = 'https://bobuniversity.com/privacy';
-const SUPPORT_EMAIL = 'support@bobuniversity.com';
+const PRIVACY_POLICY_URL = 'https://thebobcompany.com/privacy';
+const SUPPORT_EMAIL = 'support@thebobcompany.com';
 
 const levelTitles: Record<number, string> = {
   1: 'Newcomer',

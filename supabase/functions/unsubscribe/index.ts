@@ -83,7 +83,7 @@ function generateHtmlResponse(success: boolean, message: string, preference?: st
     <div class="icon">${icon}</div>
     <h1>${success ? "You've been unsubscribed" : "Something went wrong"}</h1>
     <p>${message}</p>
-    <a href="https://app.bobuniversity.com/notifications" class="button">Manage Preferences</a>
+    <a href="https://app.thebobcompany.com/notifications" class="button">Manage Preferences</a>
   </div>
 </body>
 </html>
