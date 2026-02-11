@@ -10,6 +10,10 @@ import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SecondaryNavMenu } from '../navigation/SecondaryNavMenu';
+import { BobUniversityHeader } from '../branding/BobUniversityHeader';
+
+// Bob University logo for section headers
+const bobUniversityLogo = require('../../assets/bob-university-logo.png');
 
 export function IndividualStylistHomeScreen() {
   const { user } = useAuth();
@@ -57,10 +61,47 @@ export function IndividualStylistHomeScreen() {
           </View>
         ) : (
           <>
+            {/* Bob University Learning Section */}
+            <TouchableOpacity
+              onPress={() => router.push('/modules')}
+              className="mt-4 mb-6 bg-bu-cream rounded-xl overflow-hidden border border-bu-gold/30"
+            >
+              <View className="flex-row items-center p-4">
+                <Image
+                  source={bobUniversityLogo}
+                  className="w-16 h-16 mr-4"
+                  resizeMode="contain"
+                />
+                <View className="flex-1">
+                  <Text className="text-bu-navy font-serifBold text-lg">Bob University</Text>
+                  <Text className="text-bu-navy/70 text-sm">Your learning journey</Text>
+                </View>
+                <View className="bg-bu-navy/10 rounded-full p-2">
+                  <Ionicons name="chevron-forward" size={20} color="#2d3e5f" />
+                </View>
+              </View>
+              {/* Progress indicator */}
+              <View className="px-4 pb-4">
+                <View className="flex-row items-center justify-between mb-2">
+                  <Text className="text-bu-navy/60 text-xs">{overallProgress}% Complete</Text>
+                  <Text className="text-bu-navy/60 text-xs">{completedVideos}/{totalVideos} lessons</Text>
+                </View>
+                <View className="bg-bu-navy/10 h-2 rounded-full overflow-hidden">
+                  <View
+                    className="bg-bu-gold h-full rounded-full"
+                    style={{ width: `${Math.max(2, overallProgress)}%` }}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
+
             {/* Continue Watching Section */}
             {continueVideos.length > 0 && (
-              <View className="mt-4 mb-8">
-                <Text className="text-2xl font-serif text-primary mb-4">Continue Watching</Text>
+              <View className="mb-8">
+                <View className="flex-row items-center mb-4">
+                  <Image source={bobUniversityLogo} className="w-6 h-6 mr-2" resizeMode="contain" />
+                  <Text className="text-2xl font-serif text-bu-navy">Continue Watching</Text>
+                </View>
                 {continueVideos.slice(0, 3).map((video) => {
                   const progress = video.video_progress;
                   const percent =
@@ -119,14 +160,17 @@ export function IndividualStylistHomeScreen() {
             {/* Module Progress Section */}
             <View className="mb-8">
               <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-2xl font-serif text-primary">Your Progress</Text>
+                <View className="flex-row items-center">
+                  <Image source={bobUniversityLogo} className="w-6 h-6 mr-2" resizeMode="contain" />
+                  <Text className="text-2xl font-serif text-bu-navy">Your Progress</Text>
+                </View>
                 <TouchableOpacity onPress={() => router.push('/modules')}>
-                  <Text className="text-accent font-semibold">See All</Text>
+                  <Text className="text-bu-gold font-semibold">See All</Text>
                 </TouchableOpacity>
               </View>
 
               {/* Overall Progress Card */}
-              <Card variant="elevated" className="bg-primary mb-4">
+              <Card variant="elevated" className="bg-bu-navy mb-4">
                 <View className="flex-row items-center justify-between">
                   <View className="flex-1">
                     <Text className="text-white/70 text-sm uppercase tracking-wide mb-1">
@@ -147,7 +191,7 @@ export function IndividualStylistHomeScreen() {
                 <View className="mt-4 pt-4 border-t border-white/20">
                   <View className="bg-white/20 h-3 rounded-full overflow-hidden">
                     <View
-                      className="bg-white h-full rounded-full"
+                      className="bg-bu-gold h-full rounded-full"
                       style={{ width: `${Math.max(2, overallProgress)}%` }}
                     />
                   </View>
@@ -225,7 +269,7 @@ export function IndividualStylistHomeScreen() {
                         Get Certified
                       </Text>
                       <Text className="text-white/80 text-sm mb-4">
-                        Complete your training and earn your Bob University certification. Stand out
+                        Complete your training and earn your The Bob Company certification. Stand out
                         to clients and salons.
                       </Text>
                       <View className="flex-row items-center">
@@ -261,11 +305,11 @@ export function IndividualStylistHomeScreen() {
               <Text className="text-2xl font-serif text-primary mb-4">Quick Actions</Text>
               <View className="flex-row gap-3">
                 <TouchableOpacity onPress={() => router.push('/modules')} className="flex-1">
-                  <Card variant="outlined" className="items-center py-4">
-                    <View className="bg-blue-100 rounded-full p-3 mb-2">
-                      <Ionicons name="book" size={24} color="#3b82f6" />
+                  <Card variant="outlined" className="items-center py-4 border-bu-gold/30 bg-bu-cream/30">
+                    <View className="bg-bu-navy/10 rounded-full p-3 mb-2">
+                      <Ionicons name="school" size={24} color="#2d3e5f" />
                     </View>
-                    <Text className="text-text font-medium text-sm">Courses</Text>
+                    <Text className="text-bu-navy font-medium text-sm">University</Text>
                   </Card>
                 </TouchableOpacity>
 

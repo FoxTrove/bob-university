@@ -670,7 +670,7 @@ serve(async (req) => {
           await sendEmail(serviceKey, profile.email, 'payment-receipt', {
             firstName: profile.full_name?.split(' ')[0] || '',
             amount: (invoice.amount_paid / 100).toFixed(2),
-            description: 'Bob University Subscription',
+            description: 'The Bob Company Subscription',
             date: invoice.created
               ? new Date(invoice.created * 1000).toLocaleDateString()
               : new Date().toLocaleDateString(),

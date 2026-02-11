@@ -109,7 +109,7 @@ export function StylistProfileModal({ visible, stylist, onClose }: StylistProfil
                     <View>
                          <Text className="text-lg font-bold text-text mb-2">About</Text>
                          <Text className="text-textMuted leading-6">
-                             {stylist.bio || `${stylist.name} is a certified Bob University stylist ready to help you achieve your perfect look.`}
+                             {stylist.bio || `${stylist.name} is a Bob Company certified stylist ready to help you achieve your perfect look.`}
                          </Text>
                     </View>
                     

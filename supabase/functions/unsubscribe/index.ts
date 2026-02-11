@@ -26,7 +26,7 @@ function generateHtmlResponse(success: boolean, message: string, preference?: st
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${success ? "Unsubscribed" : "Error"} - Bob University</title>
+  <title>${success ? "Unsubscribed" : "Error"} - The Bob Company</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

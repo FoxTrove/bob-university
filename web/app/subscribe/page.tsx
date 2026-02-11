@@ -2,6 +2,8 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useState, Suspense } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 
 interface IndividualPlan {
   name: string;
@@ -115,7 +117,7 @@ function CheckIcon({ className = "w-5 h-5" }: { className?: string }) {
 
 function StarIcon() {
   return (
-    <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+    <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
     </svg>
   );
@@ -129,13 +131,13 @@ function UserTypeToggle({
   onChange: (type: UserType) => void;
 }) {
   return (
-    <div className="inline-flex bg-gray-900 rounded-full p-1.5 border border-gray-800">
+    <div className="inline-flex bg-white rounded-full p-1.5 border border-[#e5e0db] shadow-sm">
       <button
         onClick={() => onChange('individual')}
         className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
           userType === 'individual'
-            ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg shadow-primary/25'
-            : 'text-gray-400 hover:text-white'
+            ? 'bg-primary text-white shadow-md'
+            : 'text-[#6b6b6b] hover:text-[#1a1a1a]'
         }`}
       >
         Individual Stylist
@@ -144,8 +146,8 @@ function UserTypeToggle({
         onClick={() => onChange('salon')}
         className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
           userType === 'salon'
-            ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg shadow-primary/25'
-            : 'text-gray-400 hover:text-white'
+            ? 'bg-primary text-white shadow-md'
+            : 'text-[#6b6b6b] hover:text-[#1a1a1a]'
         }`}
       >
         Salon Team
@@ -165,7 +167,7 @@ function BillingToggle({
 }) {
   return (
     <div className="flex items-center justify-center gap-4">
-      <span className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-white' : 'text-gray-500'}`}>
+      <span className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-[#1a1a1a]' : 'text-[#6b6b6b]'}`}>
         Monthly
       </span>
       <button
@@ -173,10 +175,10 @@ function BillingToggle({
         disabled={disabled}
         className={`relative w-16 h-8 rounded-full transition-all duration-300 ${
           disabled
-            ? 'bg-gray-800 cursor-not-allowed opacity-50'
+            ? 'bg-gray-200 cursor-not-allowed opacity-50'
             : isAnnual
-              ? 'bg-gradient-to-r from-green-500 to-emerald-500 shadow-lg shadow-green-500/25'
-              : 'bg-gray-700 hover:bg-gray-600'
+              ? 'bg-green-500 shadow-md'
+              : 'bg-gray-300 hover:bg-gray-400'
         }`}
       >
         <div
@@ -186,11 +188,11 @@ function BillingToggle({
         />
       </button>
       <div className="flex items-center gap-2">
-        <span className={`text-sm font-medium transition-colors ${isAnnual ? 'text-white' : 'text-gray-500'}`}>
+        <span className={`text-sm font-medium transition-colors ${isAnnual ? 'text-[#1a1a1a]' : 'text-[#6b6b6b]'}`}>
           Annual
         </span>
         {!disabled && (
-          <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg shadow-green-500/25">
+          <span className="bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
             2 months free
           </span>
         )}
@@ -231,31 +233,31 @@ function PlanCard({
       onClick={onSelect}
       className={`relative w-full text-left rounded-2xl transition-all duration-300 ${
         isSelected
-          ? 'ring-2 ring-primary shadow-2xl shadow-primary/20 scale-[1.02]'
-          : 'ring-1 ring-gray-800 hover:ring-gray-700 hover:scale-[1.01]'
+          ? 'ring-2 ring-primary shadow-xl scale-[1.02]'
+          : 'ring-1 ring-[#e5e0db] hover:ring-primary/50 hover:shadow-lg hover:scale-[1.01]'
       }`}
     >
       {/* Popular badge */}
       {popular && highlight && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-          <span className="bg-gradient-to-r from-primary to-primary/80 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-primary/25 whitespace-nowrap">
+          <span className="bg-primary text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md whitespace-nowrap">
             {highlight}
           </span>
         </div>
       )}
 
-      <div className={`p-6 rounded-2xl ${popular ? 'bg-gradient-to-b from-gray-900 to-surface' : 'bg-surface'}`}>
+      <div className={`p-6 rounded-2xl ${popular ? 'bg-gradient-to-b from-[#fff8f6] to-white' : 'bg-white'}`}>
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="text-xl font-bold text-white mb-1">{name}</h3>
-            <p className="text-gray-400 text-sm">{description}</p>
+            <h3 className="text-xl font-bold text-[#1a1a1a] mb-1">{name}</h3>
+            <p className="text-[#6b6b6b] text-sm">{description}</p>
           </div>
           <div
             className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
               isSelected
-                ? 'border-primary bg-primary shadow-lg shadow-primary/50'
-                : 'border-gray-600'
+                ? 'border-primary bg-primary shadow-md'
+                : 'border-[#d1d5db]'
             }`}
           >
             {isSelected && (
@@ -273,21 +275,21 @@ function PlanCard({
         {/* Pricing */}
         <div className="mb-6">
           <div className="flex items-baseline gap-1">
-            <span className="text-4xl font-bold text-white">${price.toLocaleString()}</span>
-            <span className="text-gray-400 text-lg">{period}</span>
+            <span className="text-4xl font-bold text-[#1a1a1a]">${price.toLocaleString()}</span>
+            <span className="text-[#6b6b6b] text-lg">{period}</span>
           </div>
           {effectiveMonthly && originalMonthly && (
             <div className="mt-2 flex items-center gap-2">
-              <span className="text-green-400 font-semibold">
+              <span className="text-green-600 font-semibold">
                 ${effectiveMonthly}/mo effective
               </span>
-              <span className="text-gray-500 line-through text-sm">
+              <span className="text-[#9ca3af] line-through text-sm">
                 ${originalMonthly}/mo
               </span>
             </div>
           )}
           {savings && (
-            <p className="mt-2 text-green-400 font-semibold text-sm">{savings}</p>
+            <p className="mt-2 text-green-600 font-semibold text-sm">{savings}</p>
           )}
         </div>
 
@@ -296,7 +298,7 @@ function PlanCard({
           {features.map((feature, i) => (
             <li key={i} className="flex items-start gap-3">
               <CheckIcon className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-              <span className={`text-sm ${i === 0 && feature.includes('Everything') ? 'text-primary font-medium' : 'text-gray-300'}`}>
+              <span className={`text-sm ${i === 0 && feature.includes('Everything') ? 'text-primary font-medium' : 'text-[#4b5563]'}`}>
                 {feature}
               </span>
             </li>
@@ -309,20 +311,20 @@ function PlanCard({
 
 function TestimonialCard({ quote, author, role, avatar }: typeof TESTIMONIALS[0]) {
   return (
-    <div className="bg-surface rounded-2xl p-6 border border-gray-800">
+    <div className="bg-white rounded-2xl p-6 border border-[#e5e0db] shadow-sm">
       <div className="flex gap-1 mb-4">
         {[...Array(5)].map((_, i) => (
           <StarIcon key={i} />
         ))}
       </div>
-      <p className="text-gray-300 mb-4 leading-relaxed">&ldquo;{quote}&rdquo;</p>
+      <p className="text-[#4b5563] mb-4 leading-relaxed">&ldquo;{quote}&rdquo;</p>
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-bold text-sm">
           {avatar}
         </div>
         <div>
-          <p className="text-white font-medium text-sm">{author}</p>
-          <p className="text-gray-500 text-xs">{role}</p>
+          <p className="text-[#1a1a1a] font-medium text-sm">{author}</p>
+          <p className="text-[#6b6b6b] text-xs">{role}</p>
         </div>
       </div>
     </div>
@@ -331,7 +333,7 @@ function TestimonialCard({ quote, author, role, avatar }: typeof TESTIMONIALS[0]
 
 function TrustBadges() {
   return (
-    <div className="flex flex-wrap justify-center gap-6 text-gray-400 text-sm">
+    <div className="flex flex-wrap justify-center gap-6 text-[#6b6b6b] text-sm">
       <div className="flex items-center gap-2">
         <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -420,19 +422,32 @@ function SubscribeContent() {
     : salonPlan.period;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-gray-950">
-      {/* Hero Section */}
-      <div className="pt-16 pb-12 px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          {/* Logo/Brand */}
-          <div className="inline-flex items-center gap-2 bg-gray-900/50 border border-gray-800 rounded-full px-4 py-2 mb-8">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">BU</span>
-            </div>
-            <span className="text-gray-300 font-medium">Bob University</span>
-          </div>
+    <div className="min-h-screen bg-[#f7f3ef]">
+      {/* Header */}
+      <header className="py-6 px-4 border-b border-[#e5e0db] bg-white">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <Link href="/">
+            <Image
+              src="/logo.png"
+              alt="The Bob Company"
+              width={160}
+              height={56}
+              className="h-auto"
+            />
+          </Link>
+          <Link
+            href="/"
+            className="text-[#6b6b6b] hover:text-[#1a1a1a] text-sm font-medium transition-colors"
+          >
+            Back to Home
+          </Link>
+        </div>
+      </header>
 
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4 leading-tight">
+      {/* Hero Section */}
+      <div className="pt-12 pb-8 px-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#1a1a1a] mb-4 leading-tight">
             {name ? (
               <>
                 {name.split(' ')[0]}, let&apos;s<br />
@@ -445,7 +460,7 @@ function SubscribeContent() {
               </>
             )}
           </h1>
-          <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-[#6b6b6b] mb-8 max-w-2xl mx-auto">
             {isFromApp
               ? "Complete your subscription to unlock all premium content."
               : "Join thousands of stylists mastering precision cutting with Ray's proven techniques."
@@ -453,12 +468,12 @@ function SubscribeContent() {
           </p>
 
           {/* Social proof */}
-          <div className="flex flex-wrap justify-center items-center gap-6 mb-12">
+          <div className="flex flex-wrap justify-center items-center gap-6 mb-10">
             <div className="flex -space-x-2">
               {['JM', 'SK', 'AP', 'TC', 'LR'].map((initials, i) => (
                 <div
                   key={i}
-                  className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 border-2 border-background flex items-center justify-center text-white text-xs font-medium"
+                  className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/80 to-primary/40 border-2 border-white flex items-center justify-center text-white text-xs font-medium shadow-sm"
                 >
                   {initials}
                 </div>
@@ -470,8 +485,8 @@ function SubscribeContent() {
                   <StarIcon key={i} />
                 ))}
               </div>
-              <p className="text-gray-400 text-sm">
-                <span className="text-white font-semibold">2,400+</span> stylists enrolled
+              <p className="text-[#6b6b6b] text-sm">
+                <span className="text-[#1a1a1a] font-semibold">2,400+</span> stylists enrolled
               </p>
             </div>
           </div>
@@ -494,7 +509,7 @@ function SubscribeContent() {
                   disabled={selectedIndividualPlan === 'signature'}
                 />
                 {selectedIndividualPlan === 'signature' && (
-                  <p className="text-center text-gray-500 text-sm mt-3">
+                  <p className="text-center text-[#6b6b6b] text-sm mt-3">
                     Annual billing available with Studio plan
                   </p>
                 )}
@@ -535,7 +550,7 @@ function SubscribeContent() {
                   <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <span className="text-primary font-medium">5 Studio memberships • Annual commitment</span>
+                  <span className="text-primary font-medium">5 Studio memberships included</span>
                 </div>
               </div>
 
@@ -554,10 +569,10 @@ function SubscribeContent() {
                 />
               </div>
 
-              <div className="bg-surface/50 rounded-xl p-4 mb-8 border border-gray-800">
-                <p className="text-gray-400 text-sm text-center">
-                  <span className="text-white font-medium">Looking for in-person certification?</span><br />
-                  Contact us about our In-Person Salon Certification Program ($7,500 Founders / $9,500 Standard)
+              <div className="bg-white rounded-xl p-4 mb-8 border border-[#e5e0db]">
+                <p className="text-[#6b6b6b] text-sm text-center">
+                  <span className="text-[#1a1a1a] font-medium">Looking for in-person certification?</span><br />
+                  Contact us about our In-Person Salon Certification Program
                 </p>
               </div>
             </>
@@ -567,7 +582,7 @@ function SubscribeContent() {
           <button
             onClick={handleSubscribe}
             disabled={loading}
-            className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-lg shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
@@ -585,7 +600,7 @@ function SubscribeContent() {
           {/* Value callout */}
           {userType === 'individual' && useAnnual && (
             <div className="mt-4 text-center">
-              <span className="inline-flex items-center gap-2 text-green-400 font-medium">
+              <span className="inline-flex items-center gap-2 text-green-600 font-medium">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
@@ -596,7 +611,7 @@ function SubscribeContent() {
 
           {userType === 'salon' && (
             <div className="mt-4 text-center">
-              <span className="inline-flex items-center gap-2 text-green-400 font-medium">
+              <span className="inline-flex items-center gap-2 text-green-600 font-medium">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
@@ -612,10 +627,58 @@ function SubscribeContent() {
         </div>
       </div>
 
+      {/* Bob University Callout */}
+      <div className="px-4 pb-16">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-[#2d3e5f] rounded-2xl p-8 md:p-12">
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="md:w-1/3">
+                <Image
+                  src="/bob-university-logo.png"
+                  alt="Bob University"
+                  width={200}
+                  height={130}
+                  className="mx-auto"
+                />
+              </div>
+              <div className="md:w-2/3 text-center md:text-left">
+                <h3 className="text-2xl font-serif font-bold text-white mb-3">
+                  World-Class Education Inside the App
+                </h3>
+                <p className="text-white/80 mb-4">
+                  Bob University is our comprehensive learning platform with 14+ hours of professional curriculum,
+                  live workshops, and direct access to Ray&apos;s expertise.
+                </p>
+                <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                  <span className="inline-flex items-center gap-2 bg-[#c9a76f]/20 text-[#c9a76f] px-3 py-1 rounded-full text-sm">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Core Curriculum
+                  </span>
+                  <span className="inline-flex items-center gap-2 bg-[#c9a76f]/20 text-[#c9a76f] px-3 py-1 rounded-full text-sm">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Live Workshops
+                  </span>
+                  <span className="inline-flex items-center gap-2 bg-[#c9a76f]/20 text-[#c9a76f] px-3 py-1 rounded-full text-sm">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Ask Ray Sessions
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Testimonials */}
       <div className="px-4 pb-16">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-serif font-bold text-white text-center mb-8">
+          <h2 className="text-2xl font-serif font-bold text-[#1a1a1a] text-center mb-8">
             Trusted by Top Stylists
           </h2>
           <div className="grid md:grid-cols-3 gap-4">
@@ -629,14 +692,14 @@ function SubscribeContent() {
       {/* Guarantee */}
       <div className="px-4 pb-16">
         <div className="max-w-xl mx-auto">
-          <div className="bg-gradient-to-br from-gray-900 to-surface rounded-2xl p-8 border border-gray-800 text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-500/25">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white rounded-2xl p-8 border border-[#e5e0db] shadow-sm text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Risk-Free Guarantee</h3>
-            <p className="text-gray-400">
+            <h3 className="text-xl font-bold text-[#1a1a1a] mb-2">Risk-Free Guarantee</h3>
+            <p className="text-[#6b6b6b]">
               Not satisfied? Cancel anytime with no questions asked. We&apos;re confident you&apos;ll love the education,
               but we want you to feel completely comfortable trying it out.
             </p>
@@ -645,21 +708,21 @@ function SubscribeContent() {
       </div>
 
       {/* Footer */}
-      <div className="px-4 pb-12">
+      <footer className="py-8 px-4 border-t border-[#e5e0db] bg-white">
         <div className="max-w-xl mx-auto text-center">
-          <p className="text-gray-500 text-sm">
+          <p className="text-[#6b6b6b] text-sm">
             Payments processed securely by Stripe. Questions? Email{' '}
             <a href="mailto:support@thebobcompany.com" className="text-primary hover:underline">
               support@thebobcompany.com
             </a>
           </p>
           {source === 'ios_app' && (
-            <p className="text-gray-500 text-sm mt-4">
+            <p className="text-[#6b6b6b] text-sm mt-4">
               After subscribing, return to The Bob Company app to access your content.
             </p>
           )}
         </div>
-      </div>
+      </footer>
     </div>
   );
 }
@@ -668,8 +731,8 @@ export default function SubscribePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="flex items-center gap-3 text-gray-400">
+        <div className="min-h-screen bg-[#f7f3ef] flex items-center justify-center">
+          <div className="flex items-center gap-3 text-[#6b6b6b]">
             <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />

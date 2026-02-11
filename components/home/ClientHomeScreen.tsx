@@ -137,7 +137,7 @@ export function ClientHomeScreen() {
                   Find a Stylist
                 </Text>
                 <Text className="text-white/80 text-sm mb-4">
-                  Browse our directory of certified Bob University stylists near you.
+                  Browse our directory of certified The Bob Company stylists near you.
                 </Text>
                 <View className="flex-row items-center">
                   <Text className="text-white font-bold mr-2">Explore Directory</Text>

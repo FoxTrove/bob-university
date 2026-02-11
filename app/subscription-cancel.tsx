@@ -230,7 +230,7 @@ export default function SubscriptionCancel() {
               </Text>
 
               <Text className="text-textMuted text-center mb-8 px-4">
-                As a thank you for being part of Bob University, we'd like to offer you{' '}
+                As a thank you for being part of The Bob Company, we'd like to offer you{' '}
                 <Text className="text-primary font-bold">2 months free</Text> on your current plan.
               </Text>
 
@@ -389,7 +389,7 @@ export default function SubscriptionCancel() {
               Why are you cancelling?
             </Text>
             <Text className="text-textMuted text-sm mb-4">
-              Your feedback helps us improve Bob University.
+              Your feedback helps us improve The Bob Company.
             </Text>
 
             <View className="space-y-3 mb-6">

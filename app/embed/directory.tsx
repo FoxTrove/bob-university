@@ -88,9 +88,9 @@ export default function EmbedDirectoryScreen() {
         <View className="p-4 border-b border-border z-10 bg-background">
             <View className="flex-row items-center justify-between mb-2">
                 <Text className="text-2xl font-bold text-primary">Stylist Directory</Text>
-                {/* Optional: Add a "Powered by Bob University" or similar logo here if desired */}
+                {/* Optional: Add a "Powered by The Bob Company" or similar logo here if desired */}
             </View>
-            <Text className="text-textMuted mb-4">Find a certified Bob University stylist near you</Text>
+            <Text className="text-textMuted mb-4">Find a Bob Company certified stylist near you</Text>
             
             <View className="flex-row gap-2">
                 <View className="flex-1 bg-surface rounded-lg flex-row items-center px-3 border border-border h-10">

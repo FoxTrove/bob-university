@@ -444,12 +444,12 @@ export default function EventDetailScreen() {
         : null;
 
       const { error: initError } = await initPaymentSheet({
-        merchantDisplayName: 'Bob University',
+        merchantDisplayName: 'The Bob Company',
         customerId: customer,
         customerEphemeralKeySecret: ephemeralKey,
         paymentIntentClientSecret: paymentIntent,
         defaultBillingDetails: {
-          name: 'Bob University Team',
+          name: 'The Bob Company Team',
         },
         returnURL: 'bob-university://stripe-redirect',
       });
@@ -584,12 +584,12 @@ export default function EventDetailScreen() {
 
       // 2. Initialize the Payment Sheet
       const { error: initError } = await initPaymentSheet({
-        merchantDisplayName: 'Bob University',
+        merchantDisplayName: 'The Bob Company',
         customerId: customer,
         customerEphemeralKeySecret: ephemeralKey,
         paymentIntentClientSecret: paymentIntent,
         defaultBillingDetails: {
-          name: 'Bob University Student',
+          name: 'The Bob Company Student',
         },
         returnURL: 'bob-university://stripe-redirect',
       });

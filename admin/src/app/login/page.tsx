@@ -36,7 +36,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Bob University</h1>
+          <h1 className="text-2xl font-bold text-gray-900">The Bob Company</h1>
           <p className="text-gray-600 mt-2">Admin Dashboard</p>
         </div>
 
@@ -58,7 +58,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
-              placeholder="admin@bobuniversity.com"
+              placeholder="admin@thebobcompany.com"
             />
           </div>
 

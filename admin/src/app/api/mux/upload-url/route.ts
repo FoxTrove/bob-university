@@ -36,7 +36,7 @@ export async function POST() {
 
     // Create a direct upload URL
     const upload = await mux.video.uploads.create({
-      cors_origin: process.env.NEXT_PUBLIC_APP_URL || 'https://admin.bobuniversity.com',
+      cors_origin: process.env.NEXT_PUBLIC_APP_URL || 'https://admin.thebobcompany.com',
       new_asset_settings: {
         playback_policy: ['public'],
         encoding_tier: 'baseline',

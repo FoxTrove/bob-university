@@ -313,7 +313,7 @@ export default function Subscribe() {
       const { paymentIntent, ephemeralKey, customer } = data;
 
       const { error: initError } = await initPaymentSheet({
-        merchantDisplayName: "Bob University",
+        merchantDisplayName: "The Bob Company",
         customerId: customer,
         customerEphemeralKeySecret: ephemeralKey,
         paymentIntentClientSecret: paymentIntent,

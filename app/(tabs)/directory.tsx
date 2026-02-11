@@ -91,7 +91,7 @@ export default function DirectoryScreen() {
       <View className="flex-1 bg-background">
         <View className="p-4 border-b border-border z-10 bg-background">
             <Text className="text-3xl font-serifBold text-primary mb-1">Stylist Directory</Text>
-            <Text className="text-textMuted mb-4">Find a certified Bob University stylist near you</Text>
+            <Text className="text-textMuted mb-4">Find a Bob Company certified stylist near you</Text>
             
             <View className="flex-row gap-2">
                 <View className="flex-1 bg-surface rounded-lg flex-row items-center px-3 border border-border h-10">

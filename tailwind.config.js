@@ -32,6 +32,13 @@ module.exports = {
           individual: 'rgb(var(--color-tier-individual) / <alpha-value>)',
           salon: 'rgb(var(--color-tier-salon) / <alpha-value>)',
           gold: 'rgb(var(--color-tier-gold) / <alpha-value>)',
+        },
+
+        // Bob University brand colors
+        bu: {
+          navy: 'rgb(var(--color-bu-navy) / <alpha-value>)',
+          gold: 'rgb(var(--color-bu-gold) / <alpha-value>)',
+          cream: 'rgb(var(--color-bu-cream) / <alpha-value>)',
         }
       },
       fontFamily: {

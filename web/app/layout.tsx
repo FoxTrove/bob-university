@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Bob University - Subscribe',
+  title: 'The Bob Company - Subscribe',
   description: 'Subscribe to Bob University for premium hair education content',
 };
 

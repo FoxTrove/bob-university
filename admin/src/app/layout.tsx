@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bob University Admin",
-  description: "Admin dashboard for Bob University hair education platform",
+  title: "The Bob Company Admin",
+  description: "Admin dashboard for The Bob Company hair education platform",
 };
 
 export default function RootLayout({

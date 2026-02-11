@@ -161,7 +161,7 @@ export default function CertificationDetails() {
           if (!data?.paymentIntent) throw new Error('Failed to create payment intent');
 
           const { error: initError } = await initPaymentSheet({
-              merchantDisplayName: 'Bob University',
+              merchantDisplayName: 'The Bob Company',
               customerId: data.customer,
               customerEphemeralKeySecret: data.ephemeralKey,
               paymentIntentClientSecret: data.paymentIntent,

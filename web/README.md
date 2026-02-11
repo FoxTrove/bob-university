@@ -1,4 +1,4 @@
-# Bob University Web Subscription
+# The Bob Company Web Subscription
 
 A minimal web app for handling iOS subscription payments via external link (per Epic v Apple ruling).
 
@@ -16,7 +16,7 @@ Following the Epic v Apple court rulings (May 2025 injunction), iOS apps can dir
 
 2. Set environment variables in Vercel dashboard (see `.env.example`)
 
-3. Configure custom domain: `bobuniversity.com`
+3. Configure custom domain: `app.thebobcompany.com`
 
 ## Environment Variables
 
@@ -28,11 +28,11 @@ Following the Epic v Apple court rulings (May 2025 injunction), iOS apps can dir
 | `STRIPE_SALON_PRICE_ID` | Price ID for Salon plan |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key |
-| `NEXT_PUBLIC_BASE_URL` | This site's URL (https://bobuniversity.com) |
+| `NEXT_PUBLIC_BASE_URL` | This site's URL (https://app.thebobcompany.com) |
 
 ## Flow
 
-1. iOS app opens `bobuniversity.com/subscribe?plan=X&email=X&source=ios_app`
+1. iOS app opens `app.thebobcompany.com/subscribe?plan=X&email=X&source=ios_app`
 2. User sees plan details and clicks "Subscribe Now"
 3. API creates Stripe Checkout session
 4. User completes payment on Stripe

@@ -148,7 +148,7 @@ serve(async (req) => {
       currency: 'usd',
       customer: customerId,
       automatic_payment_methods: { enabled: true },
-      description: description || 'Bob University Purchase',
+      description: description || 'The Bob Company Purchase',
       metadata: {
         userId: user.id,
         certificationId: certificationId || null,

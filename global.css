@@ -91,6 +91,11 @@
     --color-tier-individual: 198 137 118;
     --color-tier-salon: 223 192 171;
     --color-tier-gold: 235 139 139;
+
+    /* Bob University brand colors */
+    --color-bu-navy: 45 62 95; /* Navy #2d3e5f */
+    --color-bu-gold: 201 167 111; /* Gold #c9a76f */
+    --color-bu-cream: 247 243 239; /* Cream background #f7f3ef */
   }
 
   .dark {
