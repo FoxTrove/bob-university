@@ -12,7 +12,7 @@ import { useSubscriptionPlans, formatPlanPrice } from '../lib/hooks/useSubscript
 import { useAuth } from '../lib/auth';
 
 // Web subscription URL - users are directed here for payment
-const WEB_SUBSCRIBE_URL = 'https://bobuniversity.com/subscribe';
+const WEB_SUBSCRIBE_URL = 'https://app.bobuniversity.com/subscribe';
 
 interface PlanFeature {
   text: string;
